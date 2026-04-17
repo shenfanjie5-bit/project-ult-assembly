@@ -22,17 +22,15 @@ class ServiceHandle(BaseModel):
     bundle_name: str
     compose_service: str
     compose_file: Path
+    env_file: Path | None = None
     command_runner: CommandRunner | None = Field(default=None, exclude=True, repr=False)
 
     def poll(self) -> int | None:
         """Return None while the compose service is running, otherwise an exit code."""
 
         result = self._run(
-            [
-                "docker",
-                "compose",
-                "-f",
-                str(self.compose_file),
+            self._compose_prefix()
+            + [
                 "ps",
                 "--status",
                 "running",
@@ -52,15 +50,19 @@ class ServiceHandle(BaseModel):
         """Ask docker compose to stop the managed service."""
 
         self._run(
-            [
-                "docker",
-                "compose",
-                "-f",
-                str(self.compose_file),
+            self._compose_prefix()
+            + [
                 "stop",
                 self.compose_service,
             ]
         )
+
+    def _compose_prefix(self) -> list[str]:
+        command = ["docker", "compose"]
+        if self.env_file is not None:
+            command.extend(["--env-file", str(self.env_file)])
+        command.extend(["-f", str(self.compose_file)])
+        return command
 
     def _run(self, command: Sequence[str]) -> CompletedProcess[str]:
         if self.command_runner is not None:

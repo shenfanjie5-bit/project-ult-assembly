@@ -141,12 +141,14 @@ def test_bootstrap_dry_run_prints_plan_without_docker(tmp_path: Path) -> None:
     assert result.exit_code == 0
     assert "postgres -> neo4j -> dagster-daemon -> dagster-webserver" in result.output
     assert (
-        "docker compose -f compose/lite-local.yaml up -d --wait "
+        f"docker compose --env-file {env_file} -f compose/lite-local.yaml up -d --wait "
         "postgres neo4j dagster-daemon dagster-webserver"
     ) in result.output
 
 
-def test_shutdown_dry_run_prints_stop_plan() -> None:
+def test_shutdown_dry_run_prints_stop_plan(tmp_path: Path) -> None:
+    env_file = _write_env_file(tmp_path / ".env")
+
     result = CliRunner().invoke(
         entrypoint,
         [
@@ -157,6 +159,8 @@ def test_shutdown_dry_run_prints_stop_plan() -> None:
             str(PROFILES_ROOT),
             "--bundles-dir",
             str(BUNDLES_ROOT),
+            "--env-file",
+            str(env_file),
             "--dry-run",
         ],
     )
@@ -164,7 +168,7 @@ def test_shutdown_dry_run_prints_stop_plan() -> None:
     assert result.exit_code == 0
     assert "dagster-webserver -> dagster-daemon -> neo4j -> postgres" in result.output
     assert (
-        "docker compose -f compose/lite-local.yaml stop "
+        f"docker compose --env-file {env_file} -f compose/lite-local.yaml stop "
         "dagster-webserver dagster-daemon neo4j postgres"
     ) in result.output
 
@@ -176,9 +180,18 @@ def test_bootstrap_maps_runner_error_to_nonzero_exit(
     env_file = _write_env_file(tmp_path / ".env")
 
     class FailingRunner:
+        def __init__(self, env_file: Path | None = None) -> None:
+            self.env_file = env_file
+
         def start(self, plan: object) -> object:
             raise ComposeCommandError(
-                ["docker", "compose", "up"],
+                [
+                    "docker",
+                    "compose",
+                    "--env-file",
+                    str(self.env_file),
+                    "up",
+                ],
                 1,
                 stderr="docker unavailable",
             )
@@ -201,7 +214,7 @@ def test_bootstrap_maps_runner_error_to_nonzero_exit(
     )
 
     assert result.exit_code != 0
-    assert "docker compose up" in result.output
+    assert f"docker compose --env-file {env_file} up" in result.output
     assert "docker unavailable" in result.output
 
 

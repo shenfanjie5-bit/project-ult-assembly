@@ -58,18 +58,16 @@ class Runner:
         self,
         command_runner: CommandRunner | None = None,
         cwd: Path = Path.cwd(),
+        env_file: Path | None = None,
     ) -> None:
         self.command_runner = command_runner
         self.cwd = Path(cwd)
+        self.env_file = Path(env_file) if env_file is not None else None
 
     def start(self, plan: BootstrapPlan) -> BootstrapResult:
         """Start services in plan startup order and wait for compose readiness."""
 
-        command = [
-            "docker",
-            "compose",
-            "-f",
-            str(plan.compose_file),
+        command = self._compose_prefix(plan) + [
             "up",
             "-d",
             "--wait",
@@ -90,6 +88,7 @@ class Runner:
                     bundle_name=service.bundle_name,
                     compose_service=service.compose_service,
                     compose_file=plan.compose_file,
+                    env_file=self.env_file,
                     command_runner=self.command_runner,
                 )
                 for service in plan.services
@@ -99,11 +98,7 @@ class Runner:
     def stop(self, plan: BootstrapPlan) -> BootstrapResult:
         """Stop services in the plan shutdown order."""
 
-        command = [
-            "docker",
-            "compose",
-            "-f",
-            str(plan.compose_file),
+        command = self._compose_prefix(plan) + [
             "stop",
             *plan.shutdown_order,
         ]
@@ -117,6 +112,13 @@ class Runner:
             stdout=result.stdout or "",
             stderr=result.stderr or "",
         )
+
+    def _compose_prefix(self, plan: BootstrapPlan) -> list[str]:
+        command = ["docker", "compose"]
+        if self.env_file is not None:
+            command.extend(["--env-file", str(self.env_file)])
+        command.extend(["-f", str(plan.compose_file)])
+        return command
 
     def _run(self, command: Sequence[str]) -> CompletedProcess[str]:
         try:

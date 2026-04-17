@@ -10,8 +10,8 @@ import click
 
 from assembly.bootstrap.plan import BootstrapPlan, BootstrapPlanError, build_plan
 from assembly.bootstrap.runner import ComposeCommandError, Runner
-from assembly.profiles.errors import ProfileError
-from assembly.profiles.loader import list_profiles, load_profile
+from assembly.profiles.errors import ProfileError, ProfileNotFoundError
+from assembly.profiles.loader import list_profiles
 from assembly.profiles.resolver import render_profile
 from assembly.profiles.schema import EnvironmentProfile
 from assembly.registry import RegistryError, assert_md_yaml_consistent
@@ -140,11 +140,12 @@ def bootstrap_command(
 
         profile = _load_profile_by_id(profile_id, profiles_dir)
         plan = build_plan(profile, bundle_root=bundles_dir)
+        compose_env_file = _compose_env_file(env_file)
         if dry_run:
-            _print_start_plan(plan)
+            _print_start_plan(plan, compose_env_file)
             return
 
-        result = Runner().start(plan)
+        result = Runner(env_file=compose_env_file).start(plan)
     except (BootstrapPlanError, ProfileError) as exc:
         raise click.ClickException(str(exc)) from exc
     except ComposeCommandError as exc:
@@ -159,11 +160,13 @@ def bootstrap_command(
 @PROFILE_OPTION
 @PROFILES_DIR_OPTION
 @BUNDLES_DIR_OPTION
+@ENV_FILE_OPTION
 @DRY_RUN_OPTION
 def shutdown_command(
     profile_id: str,
     profiles_dir: Path,
     bundles_dir: Path,
+    env_file: Path,
     dry_run: bool,
 ) -> None:
     """Stop compose-managed services in the bootstrap shutdown order."""
@@ -171,11 +174,12 @@ def shutdown_command(
     try:
         profile = _load_profile_by_id(profile_id, profiles_dir)
         plan = build_plan(profile, bundle_root=bundles_dir)
+        compose_env_file = _compose_env_file(env_file)
         if dry_run:
-            _print_stop_plan(plan)
+            _print_stop_plan(plan, compose_env_file)
             return
 
-        result = Runner().stop(plan)
+        result = Runner(env_file=compose_env_file).stop(plan)
     except (BootstrapPlanError, ProfileError) as exc:
         raise click.ClickException(str(exc)) from exc
     except ComposeCommandError as exc:
@@ -210,13 +214,21 @@ def _load_profile_by_id(profile_id: str, profiles_dir: Path) -> EnvironmentProfi
         if profile.profile_id == profile_id:
             return profile
 
-    return load_profile(Path(profiles_dir) / f"{profile_id}.yaml")
+    raise ProfileNotFoundError(f"Profile id not found in {profiles_dir}: {profile_id}")
 
 
 def _combined_env(env_file: Path) -> dict[str, str]:
     env = _read_env_file(env_file)
     env.update(os.environ)
     return env
+
+
+def _compose_env_file(env_file: Path) -> Path | None:
+    path = Path(env_file)
+    if path.exists():
+        return path
+
+    return None
 
 
 def _read_env_file(env_file: Path) -> dict[str, str]:
@@ -255,24 +267,20 @@ def _dump_snapshot(snapshot: object, output_path: Path) -> None:
     snapshot.dump(path)
 
 
-def _print_start_plan(plan: BootstrapPlan) -> None:
+def _print_start_plan(plan: BootstrapPlan, env_file: Path | None) -> None:
     click.echo(f"Bootstrap plan for {plan.profile_id}")
     click.echo(f"startup_order: {' -> '.join(plan.startup_order)}")
-    click.echo("compose_command: " + " ".join(_start_command(plan)))
+    click.echo("compose_command: " + " ".join(_start_command(plan, env_file)))
 
 
-def _print_stop_plan(plan: BootstrapPlan) -> None:
+def _print_stop_plan(plan: BootstrapPlan, env_file: Path | None) -> None:
     click.echo(f"Shutdown plan for {plan.profile_id}")
     click.echo(f"shutdown_order: {' -> '.join(plan.shutdown_order)}")
-    click.echo("compose_command: " + " ".join(_stop_command(plan)))
+    click.echo("compose_command: " + " ".join(_stop_command(plan, env_file)))
 
 
-def _start_command(plan: BootstrapPlan) -> list[str]:
-    return [
-        "docker",
-        "compose",
-        "-f",
-        str(plan.compose_file),
+def _start_command(plan: BootstrapPlan, env_file: Path | None) -> list[str]:
+    return _compose_prefix(plan, env_file) + [
         "up",
         "-d",
         "--wait",
@@ -280,15 +288,19 @@ def _start_command(plan: BootstrapPlan) -> list[str]:
     ]
 
 
-def _stop_command(plan: BootstrapPlan) -> list[str]:
-    return [
-        "docker",
-        "compose",
-        "-f",
-        str(plan.compose_file),
+def _stop_command(plan: BootstrapPlan, env_file: Path | None) -> list[str]:
+    return _compose_prefix(plan, env_file) + [
         "stop",
         *plan.shutdown_order,
     ]
+
+
+def _compose_prefix(plan: BootstrapPlan, env_file: Path | None) -> list[str]:
+    command = ["docker", "compose"]
+    if env_file is not None:
+        command.extend(["--env-file", str(env_file)])
+    command.extend(["-f", str(plan.compose_file)])
+    return command
 
 
 def _format_compose_error(exc: ComposeCommandError) -> str:

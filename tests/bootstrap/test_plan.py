@@ -171,5 +171,39 @@ def test_lite_compose_file_contains_only_phase_one_services() -> None:
     assert FORBIDDEN_COMPOSE_SERVICES.isdisjoint(raw["services"])
 
 
+def test_lite_compose_stateful_databases_use_named_volumes() -> None:
+    raw = yaml.safe_load(COMPOSE_FILE.read_text(encoding="utf-8"))
+
+    assert set(raw["volumes"]) >= {"postgres_data", "neo4j_data"}
+    assert "postgres_data:/var/lib/postgresql/data" in raw["services"]["postgres"][
+        "volumes"
+    ]
+    assert "neo4j_data:/data" in raw["services"]["neo4j"]["volumes"]
+
+
+def test_lite_compose_published_ports_bind_loopback_only() -> None:
+    raw = yaml.safe_load(COMPOSE_FILE.read_text(encoding="utf-8"))
+
+    published_ports = [
+        port
+        for service in raw["services"].values()
+        for port in service.get("ports", [])
+    ]
+
+    assert published_ports
+    assert all(port.startswith("127.0.0.1:") for port in published_ports)
+    assert "${DAGSTER_HOST:-127.0.0.1}" in raw["services"]["dagster-webserver"][
+        "command"
+    ]
+
+
+def test_dagster_daemon_healthcheck_does_not_depend_on_pgrep() -> None:
+    raw = yaml.safe_load(COMPOSE_FILE.read_text(encoding="utf-8"))
+    healthcheck = raw["services"]["dagster-daemon"]["healthcheck"]["test"]
+
+    assert "dagster-daemon liveness-check" in healthcheck
+    assert all("pgrep" not in part for part in healthcheck)
+
+
 def _write_bundle(path: Path, data: dict[str, object]) -> None:
     path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")

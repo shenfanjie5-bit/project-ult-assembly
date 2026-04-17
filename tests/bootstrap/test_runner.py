@@ -4,14 +4,17 @@ from pathlib import Path
 from subprocess import CompletedProcess
 from typing import Sequence
 
+import assembly.bootstrap as bootstrap_api
 import pytest
 
 from assembly.bootstrap.plan import BootstrapPlan, BootstrapService
 from assembly.bootstrap.runner import (
+    BootstrapResult,
     ComposeCommandError,
     DockerComposeUnavailableError,
     Runner,
 )
+from assembly.profiles.loader import load_profile
 
 
 def test_runner_start_uses_docker_compose_wait_in_startup_order() -> None:
@@ -69,6 +72,67 @@ def test_runner_stop_uses_plan_shutdown_order() -> None:
     assert result.service_order == plan.shutdown_order
 
 
+def test_runner_threads_env_file_into_compose_commands(tmp_path: Path) -> None:
+    calls: list[list[str]] = []
+    env_file = tmp_path / ".env"
+    env_file.write_text("POSTGRES_DB=assembly\n", encoding="utf-8")
+
+    def fake_runner(command: Sequence[str]) -> CompletedProcess[str]:
+        calls.append(list(command))
+        return CompletedProcess(list(command), 0, stdout="", stderr="")
+
+    plan = _plan()
+    runner = Runner(command_runner=fake_runner, env_file=env_file)
+
+    start_result = runner.start(plan)
+    stop_result = runner.stop(plan)
+    start_result.handles[0].poll()
+
+    assert calls[0] == [
+        "docker",
+        "compose",
+        "--env-file",
+        str(env_file),
+        "-f",
+        "compose/lite-local.yaml",
+        "up",
+        "-d",
+        "--wait",
+        "postgres",
+        "neo4j",
+        "dagster-daemon",
+        "dagster-webserver",
+    ]
+    assert calls[1] == [
+        "docker",
+        "compose",
+        "--env-file",
+        str(env_file),
+        "-f",
+        "compose/lite-local.yaml",
+        "stop",
+        "dagster-webserver",
+        "dagster-daemon",
+        "neo4j",
+        "postgres",
+    ]
+    assert calls[2] == [
+        "docker",
+        "compose",
+        "--env-file",
+        str(env_file),
+        "-f",
+        "compose/lite-local.yaml",
+        "ps",
+        "--status",
+        "running",
+        "-q",
+        "postgres",
+    ]
+    assert start_result.command == calls[0]
+    assert stop_result.command == calls[1]
+
+
 def test_runner_maps_nonzero_compose_result_to_command_error() -> None:
     def fake_runner(command: Sequence[str]) -> CompletedProcess[str]:
         return CompletedProcess(list(command), 2, stdout="", stderr="compose failed")
@@ -124,6 +188,50 @@ def test_service_handle_poll_and_terminate_use_injected_runner() -> None:
             "stop",
             "postgres",
         ],
+    ]
+
+
+def test_bootstrap_helper_loads_profile_by_id_without_filename_assumption(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    profiles_root = tmp_path / "profiles"
+    profiles_root.mkdir()
+    profile_path = profiles_root / "renamed-profile.yaml"
+    profile_path.write_text(
+        (Path(__file__).resolve().parents[2] / "profiles/lite-local.yaml").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+    profile = load_profile(profile_path)
+    for key in profile.required_env_keys:
+        monkeypatch.setenv(key, f"value-for-{key.lower()}")
+
+    class FakeRunner:
+        def start(self, plan: BootstrapPlan) -> BootstrapResult:
+            return BootstrapResult(
+                profile_id=plan.profile_id,
+                action="start",
+                command=["docker", "compose", "up"],
+                service_order=list(plan.startup_order),
+                returncode=0,
+            )
+
+    monkeypatch.setattr(bootstrap_api, "Runner", FakeRunner)
+
+    result = bootstrap_api.bootstrap(
+        "lite-local",
+        profiles_root=profiles_root,
+        bundle_root=Path(__file__).resolve().parents[2] / "bundles",
+        compose_file=Path(__file__).resolve().parents[2] / "compose/lite-local.yaml",
+    )
+
+    assert result.service_order == [
+        "postgres",
+        "neo4j",
+        "dagster-daemon",
+        "dagster-webserver",
     ]
 
 
