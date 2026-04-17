@@ -1,0 +1,15 @@
+bundle_name: neo4j
+services:
+  - name: neo4j
+    image_or_cmd: neo4j:5
+    health_probe: neo4j-ready
+    env: {}
+startup_order:
+  - neo4j
+shutdown_order:
+  - neo4j
+health_checks:
+  - neo4j-ready
+required_profiles:
+  - lite-local
+optional: false
