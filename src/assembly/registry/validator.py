@@ -19,7 +19,7 @@ REGISTRY_MD_COLUMNS = [
     "supported_profiles",
     "notes",
 ]
-CONSISTENCY_COLUMNS = ["module_id", "integration_status", "contract_version"]
+CONSISTENCY_COLUMNS = tuple(REGISTRY_MD_COLUMNS)
 
 
 class RegistryError(Exception):
@@ -117,14 +117,11 @@ def assert_md_yaml_consistent(md_path: Path, yaml_path: Path) -> None:
     for module_id in sorted(md_ids):
         md_row = md_by_id[module_id]
         yaml_entry = yaml_by_id[module_id]
-        yaml_values = {
-            "module_id": yaml_entry.module_id,
-            "integration_status": yaml_entry.integration_status.value,
-            "contract_version": yaml_entry.contract_version,
-        }
+        yaml_values = _registry_md_values(yaml_entry)
 
         for column in CONSISTENCY_COLUMNS:
-            if md_row[column] != yaml_values[column]:
+            md_value = _normalize_md_value(column, md_row[column])
+            if md_value != yaml_values[column]:
                 raise RegistryInconsistentError(
                     f"{module_id} has inconsistent {column}: "
                     f"md={md_row[column]!r}, yaml={yaml_values[column]!r}"
@@ -145,6 +142,36 @@ def _split_markdown_row(line: str) -> list[str] | None:
 
 def _is_separator_row(cells: list[str]) -> bool:
     return all(cell and set(cell) <= {"-", ":"} for cell in cells)
+
+
+def _registry_md_values(entry: ModuleRegistryEntry) -> dict[str, str]:
+    return {
+        "module_id": entry.module_id,
+        "module_version": entry.module_version,
+        "contract_version": entry.contract_version,
+        "owner": entry.owner,
+        "integration_status": entry.integration_status.value,
+        "supported_profiles": _format_list_cell(entry.supported_profiles),
+        "notes": entry.notes,
+    }
+
+
+def _normalize_md_value(column: str, value: str) -> str:
+    if column == "supported_profiles":
+        return _format_list_cell(_parse_list_cell(value))
+
+    return value
+
+
+def _parse_list_cell(value: str) -> list[str]:
+    if not value:
+        return []
+
+    return [item.strip() for item in value.split(",") if item.strip()]
+
+
+def _format_list_cell(values: list[str]) -> str:
+    return ", ".join(values)
 
 
 def _assert_unique_ids(module_ids: list[str], source_name: str) -> None:
