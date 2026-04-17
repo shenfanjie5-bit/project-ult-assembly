@@ -8,6 +8,9 @@ from assembly.registry.schema import (
     ModuleRegistryEntry,
     PublicEntrypoint,
 )
+from assembly.registry.exporter import RegistryExport, export_module_registry
+from assembly.registry.loader import Registry, load_all, load_compatibility_matrix
+from assembly.registry.resolver import RegistryResolutionError, resolve_for_profile
 from assembly.registry.validator import (
     RegistryError,
     RegistryInconsistentError,
@@ -21,9 +24,16 @@ __all__ = [
     "IntegrationStatus",
     "ModuleRegistryEntry",
     "PublicEntrypoint",
+    "Registry",
     "RegistryError",
+    "RegistryExport",
     "RegistryInconsistentError",
+    "RegistryResolutionError",
     "assert_md_yaml_consistent",
+    "export_module_registry",
+    "load_all",
+    "load_compatibility_matrix",
     "load_registry_yaml",
     "parse_registry_md",
+    "resolve_for_profile",
 ]
