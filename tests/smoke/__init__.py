@@ -1,0 +1,2 @@
+"""Smoke suite tests."""
+
