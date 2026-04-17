@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from collections import Counter
 from pathlib import Path
+from typing import Any, Literal
 
 import yaml
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from assembly.profiles.errors import ProfileError
 from assembly.profiles.loader import load_bundle
@@ -15,6 +16,36 @@ from assembly.profiles.schema import EnvironmentProfile, ProfileMode, ServiceSpe
 
 class BootstrapPlanError(Exception):
     """Raised when bootstrap artifacts cannot produce a valid plan."""
+
+
+BootstrapStageName = Literal[
+    "env_filesystem_readiness",
+    "service_startup",
+    "orchestrator_entrypoint_readiness",
+    "public_smoke_probes",
+]
+BootstrapStageStatus = Literal["planned", "passed", "failed"]
+
+
+class BootstrapStageSpec(BaseModel):
+    """A required stage in the Lite bootstrap contract."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    name: BootstrapStageName
+    description: str
+    required: bool = True
+
+
+class BootstrapStageResult(BaseModel):
+    """Observed result for one bootstrap stage."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    name: BootstrapStageName
+    status: BootstrapStageStatus
+    message: str
+    details: dict[str, Any] = Field(default_factory=dict)
 
 
 class BootstrapService(BaseModel):
@@ -37,6 +68,7 @@ class BootstrapPlan(BaseModel):
     profile_id: str
     mode: str
     compose_file: Path
+    stages: list[BootstrapStageSpec] = Field(default_factory=lambda: _stage_specs())
     services: list[BootstrapService]
     startup_order: list[str]
     shutdown_order: list[str]
@@ -119,10 +151,32 @@ def build_plan(
         profile_id=profile.profile_id,
         mode=profile.mode.value,
         compose_file=Path(compose_file),
+        stages=_stage_specs(),
         services=[services_by_name[name] for name in startup_order],
         startup_order=startup_order,
         shutdown_order=shutdown_order,
     )
+
+
+def _stage_specs() -> list[BootstrapStageSpec]:
+    return [
+        BootstrapStageSpec(
+            name="env_filesystem_readiness",
+            description="Resolve env and verify profile, bundle, compose, and report paths.",
+        ),
+        BootstrapStageSpec(
+            name="service_startup",
+            description="Start compose-managed Lite services in the hard ordered sequence.",
+        ),
+        BootstrapStageSpec(
+            name="orchestrator_entrypoint_readiness",
+            description="Exercise the orchestrator public readiness entrypoint.",
+        ),
+        BootstrapStageSpec(
+            name="public_smoke_probes",
+            description="Exercise enabled module public smoke hooks.",
+        ),
+    ]
 
 
 def _bootstrap_service(
