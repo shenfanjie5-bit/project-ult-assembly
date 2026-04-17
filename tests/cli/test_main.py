@@ -17,12 +17,14 @@ try:
     from assembly.bootstrap.runner import ComposeCommandError
     from assembly.cli import main
     from assembly.cli.main import entrypoint
+    from assembly.registry import RegistryExport
 
     CLICK_AVAILABLE = True
 except ModuleNotFoundError:
     CLICK_AVAILABLE = False
     CliRunner = None  # type: ignore[assignment]
     ComposeCommandError = None  # type: ignore[assignment]
+    RegistryExport = None  # type: ignore[assignment]
     entrypoint = None  # type: ignore[assignment]
     main = None  # type: ignore[assignment]
 
@@ -235,7 +237,7 @@ def test_bootstrap_maps_runner_error_to_nonzero_exit(
     assert payload["stages"][-1]["status"] == "failed"
 
 
-def test_export_registry_validates_and_copies_artifacts(tmp_path: Path) -> None:
+def test_export_registry_writes_runtime_artifacts(tmp_path: Path) -> None:
     out = tmp_path / "registry-export"
 
     result = CliRunner().invoke(
@@ -245,8 +247,59 @@ def test_export_registry_validates_and_copies_artifacts(tmp_path: Path) -> None:
 
     assert result.exit_code == 0
     assert (out / "MODULE_REGISTRY.md").exists()
-    assert (out / "module-registry.yaml").exists()
-    assert (out / "compatibility-matrix.yaml").exists()
+    assert json.loads((out / "registry.json").read_text(encoding="utf-8"))
+    assert json.loads((out / "matrix.json").read_text(encoding="utf-8"))
+    assert "modules=14" in result.output
+    assert "matrix=1" in result.output
+
+
+def test_export_registry_cli_uses_runtime_exporter(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    out = tmp_path / "registry-export"
+    fake_registry = object()
+    calls: dict[str, object] = {}
+
+    def fake_load_all(root: Path) -> object:
+        calls["load_root"] = root
+        return fake_registry
+
+    def fake_export_module_registry(
+        registry: object,
+        out_dir: Path,
+        *,
+        root: Path,
+    ) -> object:
+        calls["registry"] = registry
+        calls["out_dir"] = out_dir
+        calls["export_root"] = root
+        return RegistryExport(
+            out_dir=out_dir,
+            registry_json=out_dir / "registry.json",
+            matrix_json=out_dir / "matrix.json",
+            registry_md=out_dir / "MODULE_REGISTRY.md",
+            module_count=2,
+            matrix_count=3,
+        )
+
+    monkeypatch.setattr(main, "load_all", fake_load_all)
+    monkeypatch.setattr(main, "export_module_registry", fake_export_module_registry)
+
+    result = CliRunner().invoke(
+        entrypoint,
+        ["export-registry", "--out", str(out)],
+    )
+
+    assert result.exit_code == 0
+    assert calls == {
+        "load_root": Path("."),
+        "registry": fake_registry,
+        "out_dir": out,
+        "export_root": Path("."),
+    }
+    assert "modules=2" in result.output
+    assert "matrix=3" in result.output
 
 
 def _write_env_file(path: Path) -> Path:

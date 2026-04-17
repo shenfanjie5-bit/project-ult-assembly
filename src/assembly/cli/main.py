@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import os
-import shutil
 from pathlib import Path
 
 import click
@@ -15,7 +14,7 @@ from assembly.profiles.errors import ProfileError, ProfileNotFoundError
 from assembly.profiles.loader import list_profiles
 from assembly.profiles.resolver import render_profile
 from assembly.profiles.schema import EnvironmentProfile
-from assembly.registry import RegistryError, assert_md_yaml_consistent
+from assembly.registry import RegistryError, export_module_registry, load_all
 
 
 PROFILE_OPTION = click.option(
@@ -191,22 +190,19 @@ def shutdown_command(
 @entrypoint.command("export-registry")
 @OUT_OPTION
 def export_registry_command(out: Path | None) -> None:
-    """Validate and copy registry artifacts into reports."""
+    """Validate and export registry artifacts into reports."""
 
     output_dir = out or Path("reports/registry")
-    registry_md = Path("MODULE_REGISTRY.md")
-    registry_yaml = Path("module-registry.yaml")
-    matrix_yaml = Path("compatibility-matrix.yaml")
 
     try:
-        assert_md_yaml_consistent(registry_md, registry_yaml)
-        output_dir.mkdir(parents=True, exist_ok=True)
-        for artifact in (registry_md, registry_yaml, matrix_yaml):
-            shutil.copy2(artifact, output_dir / artifact.name)
+        registry = load_all(Path("."))
+        export = export_module_registry(registry, out_dir=output_dir, root=Path("."))
     except (RegistryError, OSError) as exc:
         raise click.ClickException(str(exc)) from exc
 
-    click.echo(str(output_dir))
+    click.echo(
+        f"{export.out_dir}\tmodules={export.module_count}\tmatrix={export.matrix_count}"
+    )
 
 
 def _load_profile_by_id(profile_id: str, profiles_dir: Path) -> EnvironmentProfile:
