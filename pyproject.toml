@@ -9,9 +9,13 @@ description = "Scaffold workspace for assembly."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "click>=8.1",
     "pydantic>=2.6",
     "pyyaml>=6.0",
 ]
+
+[project.scripts]
+assembly = "assembly.cli.main:entrypoint"
 
 [project.optional-dependencies]
 dev = [

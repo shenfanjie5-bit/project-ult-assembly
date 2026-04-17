@@ -1,0 +1,87 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  neo4j:
+    image: neo4j:5
+    environment:
+      NEO4J_AUTH: ${NEO4J_USER}/${NEO4J_PASSWORD}
+    ports:
+      - "127.0.0.1:7474:7474"
+      - "127.0.0.1:7687:7687"
+    volumes:
+      - neo4j_data:/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "cypher-shell -u ${NEO4J_USER} -p ${NEO4J_PASSWORD} 'RETURN 1'",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  dagster-daemon:
+    image: dagster/dagster:1.7.16
+    environment:
+      DAGSTER_HOME: ${DAGSTER_HOME}
+      DAGSTER_POSTGRES_HOST: ${POSTGRES_HOST}
+      DAGSTER_POSTGRES_PORT: ${POSTGRES_PORT}
+      DAGSTER_POSTGRES_DB: ${POSTGRES_DB}
+      DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
+      DAGSTER_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    command: ["dagster-daemon", "run"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "dagster-daemon liveness-check"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  dagster-webserver:
+    image: dagster/dagster:1.7.16
+    environment:
+      DAGSTER_HOME: ${DAGSTER_HOME}
+      DAGSTER_HOST: ${DAGSTER_HOST:-127.0.0.1}
+      DAGSTER_PORT: ${DAGSTER_PORT}
+    command:
+      [
+        "dagster-webserver",
+        "-h",
+        "${DAGSTER_HOST:-127.0.0.1}",
+        "-p",
+        "${DAGSTER_PORT:-3000}",
+      ]
+    ports:
+      - "127.0.0.1:${DAGSTER_PORT:-3000}:${DAGSTER_PORT:-3000}"
+    depends_on:
+      dagster-daemon:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:%s' % os.environ.get('DAGSTER_PORT', '3000'), timeout=2)\"",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  postgres_data:
+  neo4j_data:
