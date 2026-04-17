@@ -1,0 +1,15 @@
+bundle_name: postgres
+services:
+  - name: postgres
+    image_or_cmd: postgres:16
+    health_probe: postgres-ready
+    env: {}
+startup_order:
+  - postgres
+shutdown_order:
+  - postgres
+health_checks:
+  - postgres-ready
+required_profiles:
+  - lite-local
+optional: false

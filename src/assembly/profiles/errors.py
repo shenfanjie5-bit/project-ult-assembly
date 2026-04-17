@@ -16,3 +16,6 @@ class ProfileSchemaError(ProfileError):
 class ProfileConstraintError(ProfileError):
     """Raised when a profile violates a project-level hard constraint."""
 
+
+class ProfileEnvMissingError(ProfileError):
+    """Raised when required environment keys are missing during resolution."""

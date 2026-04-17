@@ -1,0 +1,22 @@
+bundle_name: dagster
+services:
+  - name: dagster-daemon
+    image_or_cmd: dagster-daemon
+    health_probe: dagster-daemon-ready
+    env: {}
+  - name: dagster-webserver
+    image_or_cmd: dagster-webserver
+    health_probe: dagster-webserver-ready
+    env: {}
+startup_order:
+  - dagster-daemon
+  - dagster-webserver
+shutdown_order:
+  - dagster-webserver
+  - dagster-daemon
+health_checks:
+  - dagster-daemon-ready
+  - dagster-webserver-ready
+required_profiles:
+  - lite-local
+optional: false
