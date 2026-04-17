@@ -108,6 +108,28 @@ def test_markdown_status_drift_raises_inconsistent_error(tmp_path: Path) -> None
         assert_md_yaml_consistent(drifted_md, REGISTRY_YAML)
 
 
+@pytest.mark.parametrize(
+    ("column", "drifted_value"),
+    [
+        ("module_version", "9.9.9"),
+        ("owner", "platform-team"),
+        ("supported_profiles", "full-dev"),
+        ("notes", "Drifted Markdown note."),
+    ],
+)
+def test_markdown_registry_field_drift_raises_inconsistent_error(
+    tmp_path: Path,
+    column: str,
+    drifted_value: str,
+) -> None:
+    rows = parse_registry_md(REGISTRY_MD)
+    rows[0] = {**rows[0], column: drifted_value}
+    drifted_md = write_registry_md(tmp_path / "MODULE_REGISTRY.md", rows)
+
+    with pytest.raises(RegistryInconsistentError, match=column):
+        assert_md_yaml_consistent(drifted_md, REGISTRY_YAML)
+
+
 def test_phase_zero_rejects_non_draft_matrix_status() -> None:
     raw = yaml.safe_load(MATRIX_YAML.read_text(encoding="utf-8"))
     raw[0]["status"] = "deprecated"
