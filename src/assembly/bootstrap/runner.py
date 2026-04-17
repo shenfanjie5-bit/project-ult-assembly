@@ -9,7 +9,7 @@ from typing import Literal, Sequence
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from assembly.bootstrap.plan import BootstrapPlan
+from assembly.bootstrap.plan import BootstrapPlan, BootstrapStageResult
 from assembly.bootstrap.service_handle import CommandRunner, ServiceHandle
 
 
@@ -19,12 +19,15 @@ class BootstrapResult(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     profile_id: str
-    action: Literal["start", "stop"]
+    action: Literal["plan", "start", "stop"]
     command: list[str]
     service_order: list[str]
     returncode: int
+    dry_run: bool = False
     stdout: str = ""
     stderr: str = ""
+    stage_results: list[BootstrapStageResult] = Field(default_factory=list)
+    report_path: Path | None = None
     handles: list[ServiceHandle] = Field(default_factory=list)
 
 

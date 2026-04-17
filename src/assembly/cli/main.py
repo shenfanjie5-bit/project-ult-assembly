@@ -8,8 +8,9 @@ from pathlib import Path
 
 import click
 
+from assembly.bootstrap import BootstrapStageError, bootstrap as execute_bootstrap
 from assembly.bootstrap.plan import BootstrapPlan, BootstrapPlanError, build_plan
-from assembly.bootstrap.runner import ComposeCommandError, Runner
+from assembly.bootstrap.runner import BootstrapResult, ComposeCommandError, Runner
 from assembly.profiles.errors import ProfileError, ProfileNotFoundError
 from assembly.profiles.loader import list_profiles
 from assembly.profiles.resolver import render_profile
@@ -129,25 +130,24 @@ def bootstrap_command(
     """Resolve a profile and start its compose-managed services."""
 
     try:
-        snapshot = render_profile(
+        compose_env_file = _compose_env_file(env_file)
+        result = execute_bootstrap(
             profile_id,
             profiles_root=profiles_dir,
-            bundles_root=bundles_dir,
+            bundle_root=bundles_dir,
             env=_combined_env(env_file),
+            env_file=compose_env_file,
+            runner=Runner(env_file=compose_env_file),
+            dry_run=dry_run,
+            report_path=out,
         )
-        if out is not None:
-            _dump_snapshot(snapshot, out)
-
-        profile = _load_profile_by_id(profile_id, profiles_dir)
-        plan = build_plan(profile, bundle_root=bundles_dir)
-        compose_env_file = _compose_env_file(env_file)
         if dry_run:
-            _print_start_plan(plan, compose_env_file)
+            _print_start_result(result)
             return
-
-        result = Runner(env_file=compose_env_file).start(plan)
     except (BootstrapPlanError, ProfileError) as exc:
         raise click.ClickException(str(exc)) from exc
+    except BootstrapStageError as exc:
+        raise click.ClickException(_format_stage_error(exc)) from exc
     except ComposeCommandError as exc:
         raise click.ClickException(_format_compose_error(exc)) from exc
     except OSError as exc:
@@ -273,6 +273,14 @@ def _print_start_plan(plan: BootstrapPlan, env_file: Path | None) -> None:
     click.echo("compose_command: " + " ".join(_start_command(plan, env_file)))
 
 
+def _print_start_result(result: BootstrapResult) -> None:
+    click.echo(f"Bootstrap plan for {result.profile_id}")
+    click.echo(f"startup_order: {' -> '.join(result.service_order)}")
+    click.echo("compose_command: " + " ".join(result.command))
+    if result.report_path is not None:
+        click.echo(f"report: {result.report_path}")
+
+
 def _print_stop_plan(plan: BootstrapPlan, env_file: Path | None) -> None:
     click.echo(f"Shutdown plan for {plan.profile_id}")
     click.echo(f"shutdown_order: {' -> '.join(plan.shutdown_order)}")
@@ -307,6 +315,14 @@ def _format_compose_error(exc: ComposeCommandError) -> str:
     details = str(exc)
     if exc.stderr.strip():
         details = f"{details}; stderr: {exc.stderr.strip()}"
+
+    return details
+
+
+def _format_stage_error(exc: BootstrapStageError) -> str:
+    details = f"{exc.stage} failed: {exc}"
+    if exc.result.report_path is not None:
+        details = f"{details}; report: {exc.result.report_path}"
 
     return details
 
