@@ -8,18 +8,29 @@ from pathlib import Path
 import yaml
 from pydantic import ValidationError
 
-from assembly.registry.schema import ModuleRegistryEntry
+from assembly.registry.schema import ModuleRegistryEntry, PublicEntrypoint
 
 REGISTRY_MD_COLUMNS = [
     "module_id",
     "module_version",
     "contract_version",
     "owner",
-    "integration_status",
+    "upstream_modules",
+    "downstream_modules",
+    "public_entrypoints",
+    "depends_on",
     "supported_profiles",
+    "integration_status",
+    "last_smoke_result",
     "notes",
 ]
 CONSISTENCY_COLUMNS = tuple(REGISTRY_MD_COLUMNS)
+LIST_COLUMNS = {
+    "upstream_modules",
+    "downstream_modules",
+    "depends_on",
+    "supported_profiles",
+}
 
 
 class RegistryError(Exception):
@@ -150,15 +161,26 @@ def _registry_md_values(entry: ModuleRegistryEntry) -> dict[str, str]:
         "module_version": entry.module_version,
         "contract_version": entry.contract_version,
         "owner": entry.owner,
-        "integration_status": entry.integration_status.value,
+        "upstream_modules": _format_list_cell(entry.upstream_modules),
+        "downstream_modules": _format_list_cell(entry.downstream_modules),
+        "public_entrypoints": _format_entrypoints_cell(entry.public_entrypoints),
+        "depends_on": _format_list_cell(entry.depends_on),
         "supported_profiles": _format_list_cell(entry.supported_profiles),
+        "integration_status": entry.integration_status.value,
+        "last_smoke_result": _format_nullable_cell(entry.last_smoke_result),
         "notes": entry.notes,
     }
 
 
 def _normalize_md_value(column: str, value: str) -> str:
-    if column == "supported_profiles":
+    if column in LIST_COLUMNS:
         return _format_list_cell(_parse_list_cell(value))
+
+    if column == "public_entrypoints":
+        return _format_entrypoints_cell(_parse_entrypoints_cell(value))
+
+    if column == "last_smoke_result":
+        return _format_nullable_cell(_parse_nullable_cell(value))
 
     return value
 
@@ -172,6 +194,64 @@ def _parse_list_cell(value: str) -> list[str]:
 
 def _format_list_cell(values: list[str]) -> str:
     return ", ".join(values)
+
+
+def _parse_entrypoints_cell(value: str) -> list[PublicEntrypoint]:
+    if not value:
+        return []
+
+    entrypoints: list[PublicEntrypoint] = []
+    for raw_item in value.split(";"):
+        item = raw_item.strip()
+        if not item:
+            continue
+
+        try:
+            name_and_kind, reference = item.split("=", 1)
+            name, kind = name_and_kind.split(":", 1)
+        except ValueError as exc:
+            raise RegistryError(
+                "MODULE_REGISTRY.md public_entrypoints must use "
+                "'name:kind=module.path:symbol' entries"
+            ) from exc
+
+        try:
+            entrypoints.append(
+                PublicEntrypoint.model_validate(
+                    {
+                        "name": name.strip(),
+                        "kind": kind.strip(),
+                        "reference": reference.strip(),
+                    }
+                )
+            )
+        except ValidationError as exc:
+            raise RegistryError(
+                f"Invalid public_entrypoints cell entry {item!r}: {exc}"
+            ) from exc
+
+    return entrypoints
+
+
+def _format_entrypoints_cell(values: list[PublicEntrypoint]) -> str:
+    return "; ".join(
+        f"{entrypoint.name}:{entrypoint.kind}={entrypoint.reference}"
+        for entrypoint in values
+    )
+
+
+def _parse_nullable_cell(value: str) -> str | None:
+    if not value or value == "null":
+        return None
+
+    return value
+
+
+def _format_nullable_cell(value: str | None) -> str:
+    if value is None:
+        return "null"
+
+    return value
 
 
 def _assert_unique_ids(module_ids: list[str], source_name: str) -> None:

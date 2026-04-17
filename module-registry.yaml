@@ -4,179 +4,389 @@
   owner: unassigned
   upstream_modules: []
   downstream_modules: []
-  public_entrypoints: []
+  public_entrypoints:
+    - name: health
+      kind: health_probe
+      reference: contracts.public:health_probe
+    - name: smoke
+      kind: smoke_hook
+      reference: contracts.public:smoke_hook
+    - name: init
+      kind: init_hook
+      reference: contracts.public:init_hook
+    - name: version
+      kind: version_declaration
+      reference: contracts.public:version_declaration
+    - name: cli
+      kind: cli
+      reference: contracts.public:cli
   depends_on: []
   supported_profiles:
     - lite-local
   integration_status: not_started
   last_smoke_result: null
-  notes: Stage 0 placeholder; public entrypoints intentionally empty.
+  notes: Stage 0 placeholder entrypoint declarations.
 - module_id: data-platform
   module_version: 0.0.0
   contract_version: v0.0.0
   owner: unassigned
   upstream_modules: []
   downstream_modules: []
-  public_entrypoints: []
+  public_entrypoints:
+    - name: health
+      kind: health_probe
+      reference: data_platform.public:health_probe
+    - name: smoke
+      kind: smoke_hook
+      reference: data_platform.public:smoke_hook
+    - name: init
+      kind: init_hook
+      reference: data_platform.public:init_hook
+    - name: version
+      kind: version_declaration
+      reference: data_platform.public:version_declaration
+    - name: cli
+      kind: cli
+      reference: data_platform.public:cli
   depends_on: []
   supported_profiles:
     - lite-local
   integration_status: not_started
   last_smoke_result: null
-  notes: Stage 0 placeholder; public entrypoints intentionally empty.
+  notes: Stage 0 placeholder entrypoint declarations.
 - module_id: entity-registry
   module_version: 0.0.0
   contract_version: v0.0.0
   owner: unassigned
   upstream_modules: []
   downstream_modules: []
-  public_entrypoints: []
+  public_entrypoints:
+    - name: health
+      kind: health_probe
+      reference: entity_registry.public:health_probe
+    - name: smoke
+      kind: smoke_hook
+      reference: entity_registry.public:smoke_hook
+    - name: init
+      kind: init_hook
+      reference: entity_registry.public:init_hook
+    - name: version
+      kind: version_declaration
+      reference: entity_registry.public:version_declaration
+    - name: cli
+      kind: cli
+      reference: entity_registry.public:cli
   depends_on: []
   supported_profiles:
     - lite-local
   integration_status: not_started
   last_smoke_result: null
-  notes: Stage 0 placeholder; public entrypoints intentionally empty.
+  notes: Stage 0 placeholder entrypoint declarations.
 - module_id: reasoner-runtime
   module_version: 0.0.0
   contract_version: v0.0.0
   owner: unassigned
   upstream_modules: []
   downstream_modules: []
-  public_entrypoints: []
+  public_entrypoints:
+    - name: health
+      kind: health_probe
+      reference: reasoner_runtime.public:health_probe
+    - name: smoke
+      kind: smoke_hook
+      reference: reasoner_runtime.public:smoke_hook
+    - name: init
+      kind: init_hook
+      reference: reasoner_runtime.public:init_hook
+    - name: version
+      kind: version_declaration
+      reference: reasoner_runtime.public:version_declaration
+    - name: cli
+      kind: cli
+      reference: reasoner_runtime.public:cli
   depends_on: []
   supported_profiles:
     - lite-local
   integration_status: not_started
   last_smoke_result: null
-  notes: Stage 0 placeholder; public entrypoints intentionally empty.
+  notes: Stage 0 placeholder entrypoint declarations.
 - module_id: graph-engine
   module_version: 0.0.0
   contract_version: v0.0.0
   owner: unassigned
   upstream_modules: []
   downstream_modules: []
-  public_entrypoints: []
+  public_entrypoints:
+    - name: health
+      kind: health_probe
+      reference: graph_engine.public:health_probe
+    - name: smoke
+      kind: smoke_hook
+      reference: graph_engine.public:smoke_hook
+    - name: init
+      kind: init_hook
+      reference: graph_engine.public:init_hook
+    - name: version
+      kind: version_declaration
+      reference: graph_engine.public:version_declaration
+    - name: cli
+      kind: cli
+      reference: graph_engine.public:cli
   depends_on: []
   supported_profiles:
     - lite-local
   integration_status: not_started
   last_smoke_result: null
-  notes: Stage 0 placeholder; public entrypoints intentionally empty.
+  notes: Stage 0 placeholder entrypoint declarations.
 - module_id: main-core
   module_version: 0.0.0
   contract_version: v0.0.0
   owner: unassigned
   upstream_modules: []
   downstream_modules: []
-  public_entrypoints: []
+  public_entrypoints:
+    - name: health
+      kind: health_probe
+      reference: main_core.public:health_probe
+    - name: smoke
+      kind: smoke_hook
+      reference: main_core.public:smoke_hook
+    - name: init
+      kind: init_hook
+      reference: main_core.public:init_hook
+    - name: version
+      kind: version_declaration
+      reference: main_core.public:version_declaration
+    - name: cli
+      kind: cli
+      reference: main_core.public:cli
   depends_on: []
   supported_profiles:
     - lite-local
   integration_status: not_started
   last_smoke_result: null
-  notes: Stage 0 placeholder; public entrypoints intentionally empty.
+  notes: Stage 0 placeholder entrypoint declarations.
 - module_id: audit-eval
   module_version: 0.0.0
   contract_version: v0.0.0
   owner: unassigned
   upstream_modules: []
   downstream_modules: []
-  public_entrypoints: []
+  public_entrypoints:
+    - name: health
+      kind: health_probe
+      reference: audit_eval.public:health_probe
+    - name: smoke
+      kind: smoke_hook
+      reference: audit_eval.public:smoke_hook
+    - name: init
+      kind: init_hook
+      reference: audit_eval.public:init_hook
+    - name: version
+      kind: version_declaration
+      reference: audit_eval.public:version_declaration
+    - name: cli
+      kind: cli
+      reference: audit_eval.public:cli
   depends_on: []
   supported_profiles:
     - lite-local
   integration_status: not_started
   last_smoke_result: null
-  notes: Stage 0 placeholder; public entrypoints intentionally empty.
+  notes: Stage 0 placeholder entrypoint declarations.
 - module_id: subsystem-sdk
   module_version: 0.0.0
   contract_version: v0.0.0
   owner: unassigned
   upstream_modules: []
   downstream_modules: []
-  public_entrypoints: []
+  public_entrypoints:
+    - name: health
+      kind: health_probe
+      reference: subsystem_sdk.public:health_probe
+    - name: smoke
+      kind: smoke_hook
+      reference: subsystem_sdk.public:smoke_hook
+    - name: init
+      kind: init_hook
+      reference: subsystem_sdk.public:init_hook
+    - name: version
+      kind: version_declaration
+      reference: subsystem_sdk.public:version_declaration
+    - name: cli
+      kind: cli
+      reference: subsystem_sdk.public:cli
   depends_on: []
   supported_profiles:
     - lite-local
   integration_status: not_started
   last_smoke_result: null
-  notes: Stage 0 placeholder; public entrypoints intentionally empty.
+  notes: Stage 0 placeholder entrypoint declarations.
 - module_id: orchestrator
   module_version: 0.0.0
   contract_version: v0.0.0
   owner: unassigned
   upstream_modules: []
   downstream_modules: []
-  public_entrypoints: []
+  public_entrypoints:
+    - name: health
+      kind: health_probe
+      reference: orchestrator.public:health_probe
+    - name: smoke
+      kind: smoke_hook
+      reference: orchestrator.public:smoke_hook
+    - name: init
+      kind: init_hook
+      reference: orchestrator.public:init_hook
+    - name: version
+      kind: version_declaration
+      reference: orchestrator.public:version_declaration
+    - name: cli
+      kind: cli
+      reference: orchestrator.public:cli
   depends_on: []
   supported_profiles:
     - lite-local
   integration_status: not_started
   last_smoke_result: null
-  notes: Stage 0 placeholder; public entrypoints intentionally empty.
+  notes: Stage 0 placeholder entrypoint declarations.
 - module_id: assembly
   module_version: 0.1.0
   contract_version: v0.0.0
   owner: assembly
   upstream_modules: []
   downstream_modules: []
-  public_entrypoints: []
+  public_entrypoints:
+    - name: health
+      kind: health_probe
+      reference: assembly.public:health_probe
+    - name: smoke
+      kind: smoke_hook
+      reference: assembly.public:smoke_hook
+    - name: init
+      kind: init_hook
+      reference: assembly.public:init_hook
+    - name: version
+      kind: version_declaration
+      reference: assembly.public:version_declaration
+    - name: cli
+      kind: cli
+      reference: assembly.public:cli
   depends_on: []
   supported_profiles:
     - lite-local
   integration_status: partial
   last_smoke_result: null
-  notes: Stage 0 registry implementation is partial.
+  notes: Stage 0 registry implementation is partial; entrypoints are placeholders.
 - module_id: feature-store
   module_version: 0.0.0
   contract_version: v0.0.0
   owner: unassigned
   upstream_modules: []
   downstream_modules: []
-  public_entrypoints: []
+  public_entrypoints:
+    - name: health
+      kind: health_probe
+      reference: feature_store.public:health_probe
+    - name: smoke
+      kind: smoke_hook
+      reference: feature_store.public:smoke_hook
+    - name: init
+      kind: init_hook
+      reference: feature_store.public:init_hook
+    - name: version
+      kind: version_declaration
+      reference: feature_store.public:version_declaration
+    - name: cli
+      kind: cli
+      reference: feature_store.public:cli
   depends_on: []
   supported_profiles:
     - lite-local
   integration_status: not_started
   last_smoke_result: null
-  notes: Stage 0 placeholder; public entrypoints intentionally empty.
+  notes: Stage 0 placeholder entrypoint declarations.
 - module_id: stream-layer
   module_version: 0.0.0
   contract_version: v0.0.0
   owner: unassigned
   upstream_modules: []
   downstream_modules: []
-  public_entrypoints: []
+  public_entrypoints:
+    - name: health
+      kind: health_probe
+      reference: stream_layer.public:health_probe
+    - name: smoke
+      kind: smoke_hook
+      reference: stream_layer.public:smoke_hook
+    - name: init
+      kind: init_hook
+      reference: stream_layer.public:init_hook
+    - name: version
+      kind: version_declaration
+      reference: stream_layer.public:version_declaration
+    - name: cli
+      kind: cli
+      reference: stream_layer.public:cli
   depends_on: []
   supported_profiles:
     - lite-local
   integration_status: not_started
   last_smoke_result: null
-  notes: Stage 0 placeholder; public entrypoints intentionally empty.
+  notes: Stage 0 placeholder entrypoint declarations.
 - module_id: subsystem-announcement
   module_version: 0.0.0
   contract_version: v0.0.0
   owner: unassigned
   upstream_modules: []
   downstream_modules: []
-  public_entrypoints: []
+  public_entrypoints:
+    - name: health
+      kind: health_probe
+      reference: subsystem_announcement.public:health_probe
+    - name: smoke
+      kind: smoke_hook
+      reference: subsystem_announcement.public:smoke_hook
+    - name: init
+      kind: init_hook
+      reference: subsystem_announcement.public:init_hook
+    - name: version
+      kind: version_declaration
+      reference: subsystem_announcement.public:version_declaration
+    - name: cli
+      kind: cli
+      reference: subsystem_announcement.public:cli
   depends_on: []
   supported_profiles:
     - lite-local
   integration_status: not_started
   last_smoke_result: null
-  notes: Stage 0 placeholder; public entrypoints intentionally empty.
+  notes: Stage 0 placeholder entrypoint declarations.
 - module_id: subsystem-news
   module_version: 0.0.0
   contract_version: v0.0.0
   owner: unassigned
   upstream_modules: []
   downstream_modules: []
-  public_entrypoints: []
+  public_entrypoints:
+    - name: health
+      kind: health_probe
+      reference: subsystem_news.public:health_probe
+    - name: smoke
+      kind: smoke_hook
+      reference: subsystem_news.public:smoke_hook
+    - name: init
+      kind: init_hook
+      reference: subsystem_news.public:init_hook
+    - name: version
+      kind: version_declaration
+      reference: subsystem_news.public:version_declaration
+    - name: cli
+      kind: cli
+      reference: subsystem_news.public:cli
   depends_on: []
   supported_profiles:
     - lite-local
   integration_status: not_started
   last_smoke_result: null
-  notes: Stage 0 placeholder; public entrypoints intentionally empty.
+  notes: Stage 0 placeholder entrypoint declarations.

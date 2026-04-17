@@ -6,6 +6,7 @@ import pytest
 import yaml
 from pydantic import ValidationError
 
+from assembly.profiles import list_profiles
 from assembly.registry import (
     CompatibilityMatrixEntry,
     IntegrationStatus,
@@ -14,7 +15,8 @@ from assembly.registry import (
     load_registry_yaml,
     parse_registry_md,
 )
-from assembly.profiles import list_profiles
+from assembly.registry.schema import ModuleRegistryEntry
+from assembly.registry.validator import REGISTRY_MD_COLUMNS
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 REGISTRY_MD = PROJECT_ROOT / "MODULE_REGISTRY.md"
@@ -39,15 +41,14 @@ EXPECTED_MODULE_IDS = {
     "subsystem-news",
 }
 
-MD_COLUMNS = [
-    "module_id",
-    "module_version",
-    "contract_version",
-    "owner",
-    "integration_status",
-    "supported_profiles",
-    "notes",
-]
+MD_COLUMNS = REGISTRY_MD_COLUMNS
+PHASE_ZERO_ENTRYPOINTS = {
+    "health_probe": ("health", "health_probe"),
+    "smoke_hook": ("smoke", "smoke_hook"),
+    "init_hook": ("init", "init_hook"),
+    "version_declaration": ("version", "version_declaration"),
+    "cli": ("cli", "cli"),
+}
 
 
 def write_registry_md(path: Path, rows: list[dict[str, str]]) -> Path:
@@ -55,7 +56,7 @@ def write_registry_md(path: Path, rows: list[dict[str, str]]) -> Path:
         "# MODULE_REGISTRY",
         "",
         "| " + " | ".join(MD_COLUMNS) + " |",
-        "|---|---|---|---|---|---|---|",
+        "|" + "|".join("---" for _ in MD_COLUMNS) + "|",
     ]
     table.extend(
         "| " + " | ".join(row[column] for column in MD_COLUMNS) + " |"
@@ -91,10 +92,11 @@ def test_registry_artifacts_cover_expected_fourteen_modules() -> None:
     assert all(
         entry.module_version == "0.0.0"
         and entry.contract_version == "v0.0.0"
-        and entry.public_entrypoints == []
         and entry.supported_profiles == ["lite-local"]
         for entry in unstarted_entries
     )
+    for entry in entries:
+        assert_phase_zero_public_entrypoints(entry)
 
     assembly = next(entry for entry in entries if entry.module_id == "assembly")
     assert assembly.module_version == "0.1.0"
@@ -115,7 +117,15 @@ def test_markdown_status_drift_raises_inconsistent_error(tmp_path: Path) -> None
     [
         ("module_version", "9.9.9"),
         ("owner", "platform-team"),
+        ("upstream_modules", "assembly"),
+        ("downstream_modules", "assembly"),
+        (
+            "public_entrypoints",
+            "health:health_probe=example.public:health_probe",
+        ),
+        ("depends_on", "assembly"),
         ("supported_profiles", "full-dev"),
+        ("last_smoke_result", "reports/smoke/manual.json"),
         ("notes", "Drifted Markdown note."),
     ],
 )
@@ -130,6 +140,18 @@ def test_markdown_registry_field_drift_raises_inconsistent_error(
 
     with pytest.raises(RegistryInconsistentError, match=column):
         assert_md_yaml_consistent(drifted_md, REGISTRY_YAML)
+
+
+def assert_phase_zero_public_entrypoints(entry: ModuleRegistryEntry) -> None:
+    package_name = entry.module_id.replace("-", "_")
+
+    assert {
+        entrypoint.kind: (entrypoint.name, entrypoint.reference)
+        for entrypoint in entry.public_entrypoints
+    } == {
+        kind: (name, f"{package_name}.public:{symbol}")
+        for kind, (name, symbol) in PHASE_ZERO_ENTRYPOINTS.items()
+    }
 
 
 def test_phase_zero_rejects_non_draft_matrix_status() -> None:
