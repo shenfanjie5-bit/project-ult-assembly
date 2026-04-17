@@ -8,11 +8,20 @@ version = "0.1.0"
 description = "Scaffold workspace for assembly."
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "pydantic>=2.6",
+    "pyyaml>=6.0",
+]
 
-[tool.setuptools]
-packages = []
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.pytest.ini_options]
 addopts = "-q"
 testpaths = ["tests"]
+pythonpath = ["src"]
