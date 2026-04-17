@@ -285,18 +285,39 @@ def _validate_image_or_command(
     compose_file: Path,
 ) -> None:
     compose_image = compose_service.get("image")
-    command_name = _compose_command_name(compose_service.get("command"))
-    matches_image = (
-        isinstance(compose_image, str) and compose_image == service.image_or_cmd
-    )
-    matches_command = command_name == service.image_or_cmd
-    if matches_image or matches_command:
-        return
+    compose_command = _compose_command(compose_service.get("command"))
+    command_name = _command_name(compose_command)
+    expected_image = service.image
+    expected_command = service.command
 
-    raise BootstrapPlanError(
-        f"Compose service {service.name!r} in {compose_file} does not match "
-        f"bundle image_or_cmd {service.image_or_cmd!r}"
-    )
+    if expected_image is None and expected_command is None:
+        if command_name is None:
+            expected_image = service.image_or_cmd
+        else:
+            expected_command = service.image_or_cmd
+
+    if expected_image is not None:
+        if compose_image != expected_image:
+            raise BootstrapPlanError(
+                f"Compose service {service.name!r} in {compose_file} image "
+                f"does not match bundle image {expected_image!r}"
+            )
+    elif compose_image is not None:
+        raise BootstrapPlanError(
+            f"Compose service {service.name!r} in {compose_file} image is not "
+            "declared by bundle manifest"
+        )
+
+    if expected_command is not None and compose_command != expected_command:
+        raise BootstrapPlanError(
+            f"Compose service {service.name!r} in {compose_file} command "
+            f"does not match bundle command {expected_command!r}"
+        )
+    if expected_command is None and compose_command is not None:
+        raise BootstrapPlanError(
+            f"Compose service {service.name!r} in {compose_file} command is not "
+            "declared by bundle manifest"
+        )
 
 
 def _validate_environment(
@@ -355,7 +376,7 @@ def _validate_startup_dependencies(
         )
 
 
-def _compose_command_name(command: object) -> str | None:
+def _compose_command(command: object) -> str | None:
     if command is None:
         return None
 
@@ -364,12 +385,20 @@ def _compose_command_name(command: object) -> str | None:
             parts = shlex.split(command)
         except ValueError:
             parts = command.split()
-        return parts[0] if parts else None
+        return " ".join(parts) if parts else None
 
     if isinstance(command, Sequence) and not isinstance(command, (str, bytes)):
-        return str(command[0]) if command else None
+        return " ".join(str(part) for part in command) if command else None
 
     return None
+
+
+def _command_name(command: str | None) -> str | None:
+    if command is None:
+        return None
+
+    parts = command.split()
+    return parts[0] if parts else None
 
 
 def _compose_environment(environment: object, service_name: str) -> dict[str, str]:
@@ -433,24 +462,31 @@ def _compose_dependencies(
         return []
 
     if isinstance(depends_on, Sequence) and not isinstance(depends_on, (str, bytes)):
-        return [str(dependency) for dependency in depends_on]
+        raise BootstrapPlanError(
+            f"Compose service {service_name!r} in {compose_file} depends_on "
+            "list form cannot require service_healthy"
+        )
 
     if not isinstance(depends_on, Mapping):
         raise BootstrapPlanError(
             f"Compose service {service_name!r} in {compose_file} depends_on "
-            "must be a mapping or list"
+            "must be a mapping with service_healthy conditions"
         )
 
     dependencies: list[str] = []
     for dependency, condition_config in depends_on.items():
         dependencies.append(str(dependency))
-        if isinstance(condition_config, Mapping):
-            condition = condition_config.get("condition")
-            if condition != "service_healthy":
-                raise BootstrapPlanError(
-                    f"Compose service {service_name!r} in {compose_file} "
-                    f"depends on {dependency!r} without service_healthy"
-                )
+        if not isinstance(condition_config, Mapping):
+            raise BootstrapPlanError(
+                f"Compose service {service_name!r} in {compose_file} "
+                f"depends on {dependency!r} without service_healthy"
+            )
+        condition = condition_config.get("condition")
+        if condition != "service_healthy":
+            raise BootstrapPlanError(
+                f"Compose service {service_name!r} in {compose_file} "
+                f"depends on {dependency!r} without service_healthy"
+            )
 
     return dependencies
 

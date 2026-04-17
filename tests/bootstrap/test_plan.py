@@ -173,7 +173,22 @@ def test_plan_rejects_compose_image_drift_from_bundle_manifest(tmp_path: Path) -
         lambda raw: raw["services"]["postgres"].update({"image": "postgres:15"}),
     )
 
-    with pytest.raises(BootstrapPlanError, match="postgres.*image_or_cmd"):
+    with pytest.raises(BootstrapPlanError, match="postgres.*image"):
+        build_plan(profile, bundle_root=BUNDLES_ROOT, compose_file=compose_file)
+
+
+def test_plan_rejects_command_service_image_drift_from_bundle_manifest(
+    tmp_path: Path,
+) -> None:
+    profile = load_profile(PROFILES_ROOT / "lite-local.yaml")
+    compose_file = _write_compose(
+        tmp_path,
+        lambda raw: raw["services"]["dagster-daemon"].update(
+            {"image": "dagster/dagster:1.8.0"}
+        ),
+    )
+
+    with pytest.raises(BootstrapPlanError, match="dagster-daemon.*image"):
         build_plan(profile, bundle_root=BUNDLES_ROOT, compose_file=compose_file)
 
 
@@ -184,11 +199,11 @@ def test_plan_rejects_compose_command_drift_from_bundle_manifest(
     compose_file = _write_compose(
         tmp_path,
         lambda raw: raw["services"]["dagster-daemon"].update(
-            {"command": ["dagster", "daemon", "run"]}
+            {"command": ["dagster-daemon", "run", "--verbose"]}
         ),
     )
 
-    with pytest.raises(BootstrapPlanError, match="dagster-daemon.*image_or_cmd"):
+    with pytest.raises(BootstrapPlanError, match="dagster-daemon.*command"):
         build_plan(profile, bundle_root=BUNDLES_ROOT, compose_file=compose_file)
 
 
@@ -236,6 +251,20 @@ def test_plan_rejects_compose_dependencies_outside_startup_order(
     compose_file = _write_compose(tmp_path, mutate)
 
     with pytest.raises(BootstrapPlanError, match="not earlier in startup_order"):
+        build_plan(profile, bundle_root=BUNDLES_ROOT, compose_file=compose_file)
+
+
+def test_plan_rejects_list_form_depends_on_without_service_healthy(
+    tmp_path: Path,
+) -> None:
+    profile = load_profile(PROFILES_ROOT / "lite-local.yaml")
+
+    def mutate(raw: dict[str, object]) -> None:
+        raw["services"]["dagster-daemon"]["depends_on"] = ["postgres"]
+
+    compose_file = _write_compose(tmp_path, mutate)
+
+    with pytest.raises(BootstrapPlanError, match="depends_on.*service_healthy"):
         build_plan(profile, bundle_root=BUNDLES_ROOT, compose_file=compose_file)
 
 

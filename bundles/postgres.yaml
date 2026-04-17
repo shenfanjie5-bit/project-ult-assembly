@@ -2,6 +2,7 @@ bundle_name: postgres
 services:
   - name: postgres
     image_or_cmd: postgres:16
+    image: postgres:16
     health_probe: pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}
     env:
       POSTGRES_DB: ${POSTGRES_DB}

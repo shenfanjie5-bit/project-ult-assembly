@@ -2,6 +2,8 @@ bundle_name: dagster
 services:
   - name: dagster-daemon
     image_or_cmd: dagster-daemon
+    image: dagster/dagster:1.7.16
+    command: dagster-daemon run
     health_probe: dagster-daemon liveness-check
     env:
       DAGSTER_HOME: ${DAGSTER_HOME}
@@ -12,6 +14,8 @@ services:
       DAGSTER_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
   - name: dagster-webserver
     image_or_cmd: dagster-webserver
+    image: dagster/dagster:1.7.16
+    command: dagster-webserver -h ${DAGSTER_HOST:-127.0.0.1} -p ${DAGSTER_PORT:-3000}
     health_probe: >-
       python -c "import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:%s' % os.environ.get('DAGSTER_PORT', '3000'), timeout=2)"
     env:
