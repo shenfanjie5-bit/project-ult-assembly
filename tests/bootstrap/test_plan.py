@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
@@ -159,6 +160,97 @@ def test_missing_compose_file_raises_plan_error(tmp_path: Path) -> None:
         )
 
 
+def test_plan_rejects_compose_image_drift_from_bundle_manifest(tmp_path: Path) -> None:
+    profile = load_profile(PROFILES_ROOT / "lite-local.yaml")
+    compose_file = _write_compose(
+        tmp_path,
+        lambda raw: raw["services"]["postgres"].update({"image": "postgres:15"}),
+    )
+
+    with pytest.raises(BootstrapPlanError, match="postgres.*image_or_cmd"):
+        build_plan(profile, bundle_root=BUNDLES_ROOT, compose_file=compose_file)
+
+
+def test_plan_rejects_compose_command_drift_from_bundle_manifest(
+    tmp_path: Path,
+) -> None:
+    profile = load_profile(PROFILES_ROOT / "lite-local.yaml")
+    compose_file = _write_compose(
+        tmp_path,
+        lambda raw: raw["services"]["dagster-daemon"].update(
+            {"command": ["dagster", "daemon", "run"]}
+        ),
+    )
+
+    with pytest.raises(BootstrapPlanError, match="dagster-daemon.*image_or_cmd"):
+        build_plan(profile, bundle_root=BUNDLES_ROOT, compose_file=compose_file)
+
+
+def test_plan_rejects_compose_environment_drift_from_bundle_manifest(
+    tmp_path: Path,
+) -> None:
+    profile = load_profile(PROFILES_ROOT / "lite-local.yaml")
+
+    def mutate(raw: dict[str, object]) -> None:
+        raw["services"]["postgres"]["environment"]["POSTGRES_DB"] = "${OTHER_DB}"
+
+    compose_file = _write_compose(tmp_path, mutate)
+
+    with pytest.raises(BootstrapPlanError, match="postgres.*environment"):
+        build_plan(profile, bundle_root=BUNDLES_ROOT, compose_file=compose_file)
+
+
+def test_plan_rejects_compose_health_probe_drift_from_bundle_manifest(
+    tmp_path: Path,
+) -> None:
+    profile = load_profile(PROFILES_ROOT / "lite-local.yaml")
+
+    def mutate(raw: dict[str, object]) -> None:
+        raw["services"]["postgres"]["healthcheck"]["test"] = [
+            "CMD-SHELL",
+            "pg_isready",
+        ]
+
+    compose_file = _write_compose(tmp_path, mutate)
+
+    with pytest.raises(BootstrapPlanError, match="postgres.*healthcheck"):
+        build_plan(profile, bundle_root=BUNDLES_ROOT, compose_file=compose_file)
+
+
+def test_plan_rejects_compose_dependencies_outside_startup_order(
+    tmp_path: Path,
+) -> None:
+    profile = load_profile(PROFILES_ROOT / "lite-local.yaml")
+
+    def mutate(raw: dict[str, object]) -> None:
+        raw["services"]["neo4j"]["depends_on"] = {
+            "dagster-daemon": {"condition": "service_healthy"}
+        }
+
+    compose_file = _write_compose(tmp_path, mutate)
+
+    with pytest.raises(BootstrapPlanError, match="not earlier in startup_order"):
+        build_plan(profile, bundle_root=BUNDLES_ROOT, compose_file=compose_file)
+
+
+def test_plan_rejects_shutdown_order_that_stops_dependency_first(
+    tmp_path: Path,
+) -> None:
+    profile = load_profile(PROFILES_ROOT / "lite-local.yaml")
+    bundle_root = _copy_bundle_root(tmp_path)
+    dagster_bundle = yaml.safe_load(
+        (bundle_root / "dagster.yaml").read_text(encoding="utf-8")
+    )
+    dagster_bundle["shutdown_order"] = ["dagster-daemon", "dagster-webserver"]
+    _write_bundle(bundle_root / "dagster.yaml", dagster_bundle)
+
+    with pytest.raises(
+        BootstrapPlanError,
+        match="shutdown_order.*dagster-webserver.*dagster-daemon",
+    ):
+        build_plan(profile, bundle_root=bundle_root, compose_file=COMPOSE_FILE)
+
+
 def test_lite_compose_file_contains_only_phase_one_services() -> None:
     raw = yaml.safe_load(COMPOSE_FILE.read_text(encoding="utf-8"))
 
@@ -207,3 +299,23 @@ def test_dagster_daemon_healthcheck_does_not_depend_on_pgrep() -> None:
 
 def _write_bundle(path: Path, data: dict[str, object]) -> None:
     path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
+
+
+def _write_compose(
+    tmp_path: Path,
+    mutate: Callable[[dict[str, object]], None],
+) -> Path:
+    raw = yaml.safe_load(COMPOSE_FILE.read_text(encoding="utf-8"))
+    mutate(raw)
+    compose_file = tmp_path / "compose.yaml"
+    compose_file.write_text(yaml.safe_dump(raw, sort_keys=False), encoding="utf-8")
+    return compose_file
+
+
+def _copy_bundle_root(tmp_path: Path) -> Path:
+    bundle_root = tmp_path / "bundles"
+    bundle_root.mkdir()
+    for bundle_path in BUNDLES_ROOT.glob("*.yaml"):
+        data = yaml.safe_load(bundle_path.read_text(encoding="utf-8"))
+        _write_bundle(bundle_root / bundle_path.name, data)
+    return bundle_root
