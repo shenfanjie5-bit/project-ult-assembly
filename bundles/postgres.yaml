@@ -2,14 +2,18 @@ bundle_name: postgres
 services:
   - name: postgres
     image_or_cmd: postgres:16
-    health_probe: postgres-ready
-    env: {}
+    image: postgres:16
+    health_probe: pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}
+    env:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
 startup_order:
   - postgres
 shutdown_order:
   - postgres
 health_checks:
-  - postgres-ready
+  - pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}
 required_profiles:
   - lite-local
 optional: false

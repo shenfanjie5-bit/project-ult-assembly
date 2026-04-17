@@ -2,14 +2,16 @@ bundle_name: neo4j
 services:
   - name: neo4j
     image_or_cmd: neo4j:5
-    health_probe: neo4j-ready
-    env: {}
+    image: neo4j:5
+    health_probe: cypher-shell -u ${NEO4J_USER} -p ${NEO4J_PASSWORD} 'RETURN 1'
+    env:
+      NEO4J_AUTH: ${NEO4J_USER}/${NEO4J_PASSWORD}
 startup_order:
   - neo4j
 shutdown_order:
   - neo4j
 health_checks:
-  - neo4j-ready
+  - cypher-shell -u ${NEO4J_USER} -p ${NEO4J_PASSWORD} 'RETURN 1'
 required_profiles:
   - lite-local
 optional: false

@@ -44,6 +44,8 @@ class ServiceSpec(BaseModel):
 
     name: str
     image_or_cmd: str
+    image: str | None = None
+    command: str | None = None
     health_probe: str
     env: dict[str, str] = Field(default_factory=dict)
 
@@ -101,4 +103,3 @@ class EnvironmentProfile(BaseModel):
             )
 
         return self
-

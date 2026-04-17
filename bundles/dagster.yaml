@@ -2,12 +2,26 @@ bundle_name: dagster
 services:
   - name: dagster-daemon
     image_or_cmd: dagster-daemon
-    health_probe: dagster-daemon-ready
-    env: {}
+    image: dagster/dagster:1.7.16
+    command: dagster-daemon run
+    health_probe: dagster-daemon liveness-check
+    env:
+      DAGSTER_HOME: ${DAGSTER_HOME}
+      DAGSTER_POSTGRES_HOST: ${POSTGRES_HOST}
+      DAGSTER_POSTGRES_PORT: ${POSTGRES_PORT}
+      DAGSTER_POSTGRES_DB: ${POSTGRES_DB}
+      DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
+      DAGSTER_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
   - name: dagster-webserver
     image_or_cmd: dagster-webserver
-    health_probe: dagster-webserver-ready
-    env: {}
+    image: dagster/dagster:1.7.16
+    command: dagster-webserver -h ${DAGSTER_HOST:-127.0.0.1} -p ${DAGSTER_PORT:-3000}
+    health_probe: >-
+      python -c "import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:%s' % os.environ.get('DAGSTER_PORT', '3000'), timeout=2)"
+    env:
+      DAGSTER_HOME: ${DAGSTER_HOME}
+      DAGSTER_HOST: ${DAGSTER_HOST:-127.0.0.1}
+      DAGSTER_PORT: ${DAGSTER_PORT}
 startup_order:
   - dagster-daemon
   - dagster-webserver
@@ -15,8 +29,9 @@ shutdown_order:
   - dagster-webserver
   - dagster-daemon
 health_checks:
-  - dagster-daemon-ready
-  - dagster-webserver-ready
+  - dagster-daemon liveness-check
+  - >-
+    python -c "import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:%s' % os.environ.get('DAGSTER_PORT', '3000'), timeout=2)"
 required_profiles:
   - lite-local
 optional: false
