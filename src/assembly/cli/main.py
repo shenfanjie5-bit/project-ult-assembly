@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 
@@ -10,11 +11,14 @@ import click
 from assembly.bootstrap import BootstrapStageError, bootstrap as execute_bootstrap
 from assembly.bootstrap.plan import BootstrapPlan, BootstrapPlanError, build_plan
 from assembly.bootstrap.runner import BootstrapResult, ComposeCommandError, Runner
+from assembly.contracts.models import HealthResult, HealthStatus, IntegrationRunRecord
+from assembly.health import healthcheck as execute_healthcheck
 from assembly.profiles.errors import ProfileError, ProfileNotFoundError
 from assembly.profiles.loader import list_profiles
 from assembly.profiles.resolver import render_profile
 from assembly.profiles.schema import EnvironmentProfile
 from assembly.registry import RegistryError, export_module_registry, load_all
+from assembly.tests.smoke import run_smoke as execute_smoke
 
 
 PROFILE_OPTION = click.option(
@@ -50,6 +54,20 @@ OUT_OPTION = click.option(
     type=click.Path(path_type=Path),
     default=None,
     help="Output file or directory, depending on the command.",
+)
+TIMEOUT_SEC_OPTION = click.option(
+    "--timeout-sec",
+    type=float,
+    default=30.0,
+    show_default=True,
+    help="Per-probe timeout in seconds.",
+)
+REPORTS_DIR_OPTION = click.option(
+    "--reports-dir",
+    type=click.Path(path_type=Path, file_okay=False),
+    default=Path("reports/smoke"),
+    show_default=True,
+    help="Directory where smoke reports are written.",
 )
 DRY_RUN_OPTION = click.option(
     "--dry-run",
@@ -187,6 +205,82 @@ def shutdown_command(
     click.echo(f"stopped {profile_id}: {' '.join(result.service_order)}")
 
 
+@entrypoint.command("healthcheck")
+@PROFILE_OPTION
+@PROFILES_DIR_OPTION
+@BUNDLES_DIR_OPTION
+@ENV_FILE_OPTION
+@OUT_OPTION
+@TIMEOUT_SEC_OPTION
+def healthcheck_command(
+    profile_id: str,
+    profiles_dir: Path,
+    bundles_dir: Path,
+    env_file: Path,
+    out: Path | None,
+    timeout_sec: float,
+) -> None:
+    """Run healthcheck convergence for a resolved profile."""
+
+    try:
+        results = execute_healthcheck(
+            profile_id,
+            profiles_root=profiles_dir,
+            bundles_root=bundles_dir,
+            registry_root=Path("."),
+            env=_combined_env(env_file),
+            timeout_sec=timeout_sec,
+        )
+        if out is not None:
+            _dump_health_results(results, out)
+    except (ProfileError, RegistryError, OSError) as exc:
+        raise click.ClickException(str(exc)) from exc
+
+    for result in results:
+        click.echo(
+            f"{result.module_id}\t{result.probe_name}\t{result.status.value}\t"
+            f"{result.message}"
+        )
+
+    raise click.exceptions.Exit(_health_exit_code(results))
+
+
+@entrypoint.command("smoke")
+@PROFILE_OPTION
+@PROFILES_DIR_OPTION
+@BUNDLES_DIR_OPTION
+@ENV_FILE_OPTION
+@REPORTS_DIR_OPTION
+@TIMEOUT_SEC_OPTION
+def smoke_command(
+    profile_id: str,
+    profiles_dir: Path,
+    bundles_dir: Path,
+    env_file: Path,
+    reports_dir: Path,
+    timeout_sec: float,
+) -> None:
+    """Run the system-level smoke suite for a resolved profile."""
+
+    try:
+        record = execute_smoke(
+            profile_id,
+            profiles_root=profiles_dir,
+            bundles_root=bundles_dir,
+            registry_root=Path("."),
+            reports_dir=reports_dir,
+            env=_combined_env(env_file),
+            timeout_sec=timeout_sec,
+        )
+    except (ProfileError, RegistryError, OSError) as exc:
+        raise click.ClickException(str(exc)) from exc
+
+    click.echo(
+        f"{record.status}\t{record.run_id}\tfailing={','.join(record.failing_modules)}"
+    )
+    raise click.exceptions.Exit(_smoke_exit_code(record))
+
+
 @entrypoint.command("export-registry")
 @OUT_OPTION
 def export_registry_command(out: Path | None) -> None:
@@ -261,6 +355,37 @@ def _dump_snapshot(snapshot: object, output_path: Path) -> None:
     path = Path(output_path)
     path.parent.mkdir(parents=True, exist_ok=True)
     snapshot.dump(path)
+
+
+def _dump_health_results(results: list[HealthResult], output_path: Path) -> None:
+    path = Path(output_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(
+            [result.model_dump(mode="json") for result in results],
+            ensure_ascii=False,
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+
+def _health_exit_code(results: list[HealthResult]) -> int:
+    if any(result.status == HealthStatus.blocked for result in results):
+        return 2
+    if any(result.status == HealthStatus.degraded for result in results):
+        return 1
+    return 0
+
+
+def _smoke_exit_code(record: IntegrationRunRecord) -> int:
+    if record.status == "failed":
+        return 2
+    if record.status == "partial":
+        return 1
+    return 0
 
 
 def _print_start_plan(plan: BootstrapPlan, env_file: Path | None) -> None:

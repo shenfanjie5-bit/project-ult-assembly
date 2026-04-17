@@ -4,10 +4,12 @@ import json
 import os
 import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
 
+from assembly.contracts import HealthResult, HealthStatus, IntegrationRunRecord
 from assembly.profiles.loader import load_profile
 
 try:
@@ -47,6 +49,8 @@ def test_entrypoint_help_lists_subcommands() -> None:
         "render-profile",
         "bootstrap",
         "shutdown",
+        "healthcheck",
+        "smoke",
         "export-registry",
     ):
         assert command in result.output
@@ -67,6 +71,8 @@ def test_module_invocation_help_lists_subcommands() -> None:
 
     assert result.returncode == 0
     assert "list-profiles" in result.stdout
+    assert "healthcheck" in result.stdout
+    assert "smoke" in result.stdout
     assert "export-registry" in result.stdout
 
 
@@ -184,6 +190,123 @@ def test_shutdown_dry_run_prints_stop_plan(tmp_path: Path) -> None:
         f"docker compose --env-file {env_file} -f compose/lite-local.yaml stop "
         "dagster-webserver dagster-daemon neo4j postgres"
     ) in result.output
+
+
+@pytest.mark.parametrize(
+    ("status", "expected_exit_code"),
+    [
+        (HealthStatus.healthy, 0),
+        (HealthStatus.degraded, 1),
+        (HealthStatus.blocked, 2),
+    ],
+)
+def test_healthcheck_cli_maps_health_status_to_exit_code(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    status: HealthStatus,
+    expected_exit_code: int,
+) -> None:
+    out = tmp_path / "health.json"
+
+    def fake_healthcheck(profile_id: str, **kwargs: object) -> list[HealthResult]:
+        return [
+            HealthResult(
+                module_id="postgres",
+                probe_name="postgres-ready",
+                status=status,
+                latency_ms=0.0,
+                message=status.value,
+            )
+        ]
+
+    monkeypatch.setattr(main, "execute_healthcheck", fake_healthcheck)
+
+    result = CliRunner().invoke(
+        entrypoint,
+        [
+            "healthcheck",
+            "--profile",
+            "lite-local",
+            "--timeout-sec",
+            "1",
+            "--out",
+            str(out),
+        ],
+    )
+
+    assert result.exit_code == expected_exit_code
+    payload = json.loads(out.read_text(encoding="utf-8"))
+    assert payload[0]["status"] == status.value
+
+
+def test_healthcheck_cli_uses_env_file_then_process_env_override(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    env_file = tmp_path / ".env"
+    env_file.write_text(
+        "POSTGRES_HOST=file-host\nONLY_IN_FILE=file-value\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("POSTGRES_HOST", "process-host")
+    captured: dict[str, object] = {}
+
+    def fake_healthcheck(profile_id: str, **kwargs: object) -> list[HealthResult]:
+        captured.update(kwargs)
+        return [
+            HealthResult(
+                module_id="postgres",
+                probe_name="postgres-ready",
+                status=HealthStatus.healthy,
+                latency_ms=0.0,
+                message="healthy",
+            )
+        ]
+
+    monkeypatch.setattr(main, "execute_healthcheck", fake_healthcheck)
+
+    result = CliRunner().invoke(
+        entrypoint,
+        ["healthcheck", "--env-file", str(env_file)],
+    )
+
+    assert result.exit_code == 0
+    env = captured["env"]
+    assert env["POSTGRES_HOST"] == "process-host"
+    assert env["ONLY_IN_FILE"] == "file-value"
+
+
+def test_smoke_cli_maps_failed_record_to_exit_code_and_report(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    def fake_smoke(profile_id: str, **kwargs: object) -> IntegrationRunRecord:
+        reports_dir = kwargs["reports_dir"]
+        report_path = reports_dir / "fake-smoke.json"
+        report_path.write_text('{"status":"failed"}\n', encoding="utf-8")
+        now = datetime.now(timezone.utc)
+        return IntegrationRunRecord(
+            run_id="fake-smoke",
+            profile_id="lite-local",
+            run_type="smoke",
+            started_at=now,
+            finished_at=now,
+            status="failed",
+            artifacts=[{"kind": "smoke_report", "path": str(report_path)}],
+            failing_modules=["assembly"],
+            summary="Smoke failed",
+        )
+
+    monkeypatch.setattr(main, "execute_smoke", fake_smoke)
+
+    result = CliRunner().invoke(
+        entrypoint,
+        ["smoke", "--profile", "lite-local", "--reports-dir", str(tmp_path)],
+    )
+
+    assert result.exit_code == 2
+    assert (tmp_path / "fake-smoke.json").exists()
+    assert "failed\tfake-smoke\tfailing=assembly" in result.output
 
 
 def test_bootstrap_maps_runner_error_to_nonzero_exit(

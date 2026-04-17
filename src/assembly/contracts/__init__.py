@@ -5,6 +5,7 @@ from __future__ import annotations
 from assembly.contracts.models import (
     HealthResult,
     HealthStatus,
+    IntegrationRunRecord,
     SmokeResult,
     VersionInfo,
 )
@@ -30,6 +31,7 @@ __all__ = [
     "HealthProbe",
     "HealthResult",
     "HealthStatus",
+    "IntegrationRunRecord",
     "InitHook",
     "SmokeHook",
     "SmokeResult",
