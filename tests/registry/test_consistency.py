@@ -14,11 +14,13 @@ from assembly.registry import (
     load_registry_yaml,
     parse_registry_md,
 )
+from assembly.profiles import list_profiles
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 REGISTRY_MD = PROJECT_ROOT / "MODULE_REGISTRY.md"
 REGISTRY_YAML = PROJECT_ROOT / "module-registry.yaml"
 MATRIX_YAML = PROJECT_ROOT / "compatibility-matrix.yaml"
+PROFILES_DIR = PROJECT_ROOT / "profiles"
 
 EXPECTED_MODULE_IDS = {
     "contracts",
@@ -127,6 +129,26 @@ def test_compatibility_matrix_is_draft_and_covers_registry_modules() -> None:
     assert {
         module.module_id for module in entries[0].module_set
     } == EXPECTED_MODULE_IDS
+
+
+def test_registry_and_matrix_profile_references_are_loadable() -> None:
+    registry_entries = load_registry_yaml(REGISTRY_YAML)
+    matrix_entries = [
+        CompatibilityMatrixEntry.model_validate(item)
+        for item in yaml.safe_load(MATRIX_YAML.read_text(encoding="utf-8"))
+    ]
+    profiles_by_id = {
+        profile.profile_id: profile for profile in list_profiles(PROFILES_DIR)
+    }
+
+    referenced_profile_ids = {
+        profile_id
+        for entry in registry_entries
+        for profile_id in entry.supported_profiles
+    }
+    referenced_profile_ids.update(entry.profile_id for entry in matrix_entries)
+
+    assert referenced_profile_ids <= set(profiles_by_id)
 
 
 def test_duplicate_module_id_in_markdown_is_rejected(tmp_path: Path) -> None:
