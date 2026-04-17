@@ -1,0 +1,182 @@
+- module_id: contracts
+  module_version: 0.0.0
+  contract_version: v0.0.0
+  owner: unassigned
+  upstream_modules: []
+  downstream_modules: []
+  public_entrypoints: []
+  depends_on: []
+  supported_profiles:
+    - lite-local
+  integration_status: not_started
+  last_smoke_result: null
+  notes: Stage 0 placeholder; public entrypoints pending owner registration.
+- module_id: data-platform
+  module_version: 0.0.0
+  contract_version: v0.0.0
+  owner: unassigned
+  upstream_modules: []
+  downstream_modules: []
+  public_entrypoints: []
+  depends_on: []
+  supported_profiles:
+    - lite-local
+  integration_status: not_started
+  last_smoke_result: null
+  notes: Stage 0 placeholder; public entrypoints pending owner registration.
+- module_id: entity-registry
+  module_version: 0.0.0
+  contract_version: v0.0.0
+  owner: unassigned
+  upstream_modules: []
+  downstream_modules: []
+  public_entrypoints: []
+  depends_on: []
+  supported_profiles:
+    - lite-local
+  integration_status: not_started
+  last_smoke_result: null
+  notes: Stage 0 placeholder; public entrypoints pending owner registration.
+- module_id: reasoner-runtime
+  module_version: 0.0.0
+  contract_version: v0.0.0
+  owner: unassigned
+  upstream_modules: []
+  downstream_modules: []
+  public_entrypoints: []
+  depends_on: []
+  supported_profiles:
+    - lite-local
+  integration_status: not_started
+  last_smoke_result: null
+  notes: Stage 0 placeholder; public entrypoints pending owner registration.
+- module_id: graph-engine
+  module_version: 0.0.0
+  contract_version: v0.0.0
+  owner: unassigned
+  upstream_modules: []
+  downstream_modules: []
+  public_entrypoints: []
+  depends_on: []
+  supported_profiles:
+    - lite-local
+  integration_status: not_started
+  last_smoke_result: null
+  notes: Stage 0 placeholder; public entrypoints pending owner registration.
+- module_id: main-core
+  module_version: 0.0.0
+  contract_version: v0.0.0
+  owner: unassigned
+  upstream_modules: []
+  downstream_modules: []
+  public_entrypoints: []
+  depends_on: []
+  supported_profiles:
+    - lite-local
+  integration_status: not_started
+  last_smoke_result: null
+  notes: Stage 0 placeholder; public entrypoints pending owner registration.
+- module_id: audit-eval
+  module_version: 0.0.0
+  contract_version: v0.0.0
+  owner: unassigned
+  upstream_modules: []
+  downstream_modules: []
+  public_entrypoints: []
+  depends_on: []
+  supported_profiles:
+    - lite-local
+  integration_status: not_started
+  last_smoke_result: null
+  notes: Stage 0 placeholder; public entrypoints pending owner registration.
+- module_id: subsystem-sdk
+  module_version: 0.0.0
+  contract_version: v0.0.0
+  owner: unassigned
+  upstream_modules: []
+  downstream_modules: []
+  public_entrypoints: []
+  depends_on: []
+  supported_profiles:
+    - lite-local
+  integration_status: not_started
+  last_smoke_result: null
+  notes: Stage 0 placeholder; public entrypoints pending owner registration.
+- module_id: orchestrator
+  module_version: 0.0.0
+  contract_version: v0.0.0
+  owner: unassigned
+  upstream_modules: []
+  downstream_modules: []
+  public_entrypoints: []
+  depends_on: []
+  supported_profiles:
+    - lite-local
+  integration_status: not_started
+  last_smoke_result: null
+  notes: Stage 0 placeholder; public entrypoints pending owner registration.
+- module_id: assembly
+  module_version: 0.1.0
+  contract_version: v0.0.0
+  owner: assembly
+  upstream_modules: []
+  downstream_modules: []
+  public_entrypoints: []
+  depends_on: []
+  supported_profiles:
+    - lite-local
+  integration_status: partial
+  last_smoke_result: null
+  notes: Stage 0 registry package and artifacts are present.
+- module_id: feature-store
+  module_version: 0.0.0
+  contract_version: v0.0.0
+  owner: unassigned
+  upstream_modules: []
+  downstream_modules: []
+  public_entrypoints: []
+  depends_on: []
+  supported_profiles:
+    - lite-local
+  integration_status: not_started
+  last_smoke_result: null
+  notes: Stage 0 placeholder; public entrypoints pending owner registration.
+- module_id: stream-layer
+  module_version: 0.0.0
+  contract_version: v0.0.0
+  owner: unassigned
+  upstream_modules: []
+  downstream_modules: []
+  public_entrypoints: []
+  depends_on: []
+  supported_profiles:
+    - lite-local
+  integration_status: not_started
+  last_smoke_result: null
+  notes: Stage 0 placeholder; public entrypoints pending owner registration.
+- module_id: subsystem-announcement
+  module_version: 0.0.0
+  contract_version: v0.0.0
+  owner: unassigned
+  upstream_modules: []
+  downstream_modules: []
+  public_entrypoints: []
+  depends_on: []
+  supported_profiles:
+    - lite-local
+  integration_status: not_started
+  last_smoke_result: null
+  notes: Stage 0 placeholder; public entrypoints pending owner registration.
+- module_id: subsystem-news
+  module_version: 0.0.0
+  contract_version: v0.0.0
+  owner: unassigned
+  upstream_modules: []
+  downstream_modules: []
+  public_entrypoints: []
+  depends_on: []
+  supported_profiles:
+    - lite-local
+  integration_status: not_started
+  last_smoke_result: null
+  notes: Stage 0 placeholder; public entrypoints pending owner registration.
