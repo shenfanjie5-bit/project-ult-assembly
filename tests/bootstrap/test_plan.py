@@ -50,6 +50,12 @@ def test_lite_local_plan_uses_hard_ordered_startup_sequence() -> None:
         "dagster",
         "dagster",
     ]
+    assert [stage.name for stage in plan.stages] == [
+        "env_filesystem_readiness",
+        "service_startup",
+        "orchestrator_entrypoint_readiness",
+        "public_smoke_probes",
+    ]
 
 
 def test_lite_local_shutdown_order_stops_dagster_before_databases() -> None:

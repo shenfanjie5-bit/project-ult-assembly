@@ -121,6 +121,7 @@ def test_render_profile_writes_redacted_snapshot(tmp_path: Path) -> None:
 
 def test_bootstrap_dry_run_prints_plan_without_docker(tmp_path: Path) -> None:
     env_file = _write_env_file(tmp_path / ".env")
+    report_path = tmp_path / "reports/bootstrap/dry-run.json"
 
     result = CliRunner().invoke(
         entrypoint,
@@ -134,6 +135,8 @@ def test_bootstrap_dry_run_prints_plan_without_docker(tmp_path: Path) -> None:
             str(BUNDLES_ROOT),
             "--env-file",
             str(env_file),
+            "--out",
+            str(report_path),
             "--dry-run",
         ],
     )
@@ -144,6 +147,14 @@ def test_bootstrap_dry_run_prints_plan_without_docker(tmp_path: Path) -> None:
         f"docker compose --env-file {env_file} -f compose/lite-local.yaml up -d --wait "
         "postgres neo4j dagster-daemon dagster-webserver"
     ) in result.output
+    payload = json.loads(report_path.read_text(encoding="utf-8"))
+    assert payload["dry_run"] is True
+    assert [stage["status"] for stage in payload["stages"]] == [
+        "passed",
+        "planned",
+        "planned",
+        "planned",
+    ]
 
 
 def test_shutdown_dry_run_prints_stop_plan(tmp_path: Path) -> None:
@@ -178,6 +189,7 @@ def test_bootstrap_maps_runner_error_to_nonzero_exit(
     tmp_path: Path,
 ) -> None:
     env_file = _write_env_file(tmp_path / ".env")
+    report_path = tmp_path / "reports/bootstrap/failure.json"
 
     class FailingRunner:
         def __init__(self, env_file: Path | None = None) -> None:
@@ -210,12 +222,17 @@ def test_bootstrap_maps_runner_error_to_nonzero_exit(
             str(BUNDLES_ROOT),
             "--env-file",
             str(env_file),
+            "--out",
+            str(report_path),
         ],
     )
 
     assert result.exit_code != 0
     assert f"docker compose --env-file {env_file} up" in result.output
     assert "docker unavailable" in result.output
+    payload = json.loads(report_path.read_text(encoding="utf-8"))
+    assert payload["stages"][-1]["name"] == "service_startup"
+    assert payload["stages"][-1]["status"] == "failed"
 
 
 def test_export_registry_validates_and_copies_artifacts(tmp_path: Path) -> None:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from subprocess import CompletedProcess
 from typing import Sequence
@@ -14,7 +15,13 @@ from assembly.bootstrap.runner import (
     DockerComposeUnavailableError,
     Runner,
 )
+from assembly.contracts.models import HealthResult, SmokeResult
 from assembly.profiles.loader import load_profile
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+PROFILES_ROOT = PROJECT_ROOT / "profiles"
+BUNDLES_ROOT = PROJECT_ROOT / "bundles"
+COMPOSE_FILE = PROJECT_ROOT / "compose/lite-local.yaml"
 
 
 def test_runner_start_uses_docker_compose_wait_in_startup_order() -> None:
@@ -192,7 +199,6 @@ def test_service_handle_poll_and_terminate_use_injected_runner() -> None:
 
 
 def test_bootstrap_helper_loads_profile_by_id_without_filename_assumption(
-    monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
     profiles_root = tmp_path / "profiles"
@@ -205,8 +211,7 @@ def test_bootstrap_helper_loads_profile_by_id_without_filename_assumption(
         encoding="utf-8",
     )
     profile = load_profile(profile_path)
-    for key in profile.required_env_keys:
-        monkeypatch.setenv(key, f"value-for-{key.lower()}")
+    env = {key: f"value-for-{key.lower()}" for key in profile.required_env_keys}
 
     class FakeRunner:
         def start(self, plan: BootstrapPlan) -> BootstrapResult:
@@ -218,13 +223,16 @@ def test_bootstrap_helper_loads_profile_by_id_without_filename_assumption(
                 returncode=0,
             )
 
-    monkeypatch.setattr(bootstrap_api, "Runner", FakeRunner)
-
     result = bootstrap_api.bootstrap(
         "lite-local",
         profiles_root=profiles_root,
         bundle_root=Path(__file__).resolve().parents[2] / "bundles",
         compose_file=Path(__file__).resolve().parents[2] / "compose/lite-local.yaml",
+        env=env,
+        runner=FakeRunner(),
+        report_path=tmp_path / "reports/bootstrap/helper.json",
+        orchestrator_entrypoint=_HealthyOrchestrator(),
+        smoke_hooks=[_PassingSmokeHook()],
     )
 
     assert result.service_order == [
@@ -232,6 +240,71 @@ def test_bootstrap_helper_loads_profile_by_id_without_filename_assumption(
         "neo4j",
         "dagster-daemon",
         "dagster-webserver",
+    ]
+
+
+def test_bootstrap_executes_boundaries_after_services_and_writes_report(
+    tmp_path: Path,
+) -> None:
+    profile = load_profile(PROFILES_ROOT / "lite-local.yaml")
+    env = {key: f"value-for-{key.lower()}" for key in profile.required_env_keys}
+    calls: list[str] = []
+
+    class FakeRunner:
+        def start(self, plan: BootstrapPlan) -> BootstrapResult:
+            calls.append("service_startup")
+            return BootstrapResult(
+                profile_id=plan.profile_id,
+                action="start",
+                command=["docker", "compose", "up"],
+                service_order=list(plan.startup_order),
+                returncode=0,
+            )
+
+    class RecordingOrchestrator(_HealthyOrchestrator):
+        def check(self, *, timeout_sec: float) -> HealthResult:
+            calls.append("orchestrator_entrypoint")
+            return super().check(timeout_sec=timeout_sec)
+
+    class RecordingSmokeHook(_PassingSmokeHook):
+        def run(self, *, profile_id: str) -> SmokeResult:
+            calls.append(f"public_smoke:{profile_id}")
+            return super().run(profile_id=profile_id)
+
+    report_path = tmp_path / "reports/bootstrap/lite-local.json"
+
+    result = bootstrap_api.bootstrap(
+        "lite-local",
+        profiles_root=PROFILES_ROOT,
+        bundle_root=BUNDLES_ROOT,
+        compose_file=COMPOSE_FILE,
+        env=env,
+        runner=FakeRunner(),
+        report_path=report_path,
+        orchestrator_entrypoint=RecordingOrchestrator(),
+        smoke_hooks=[RecordingSmokeHook()],
+    )
+
+    assert calls == [
+        "service_startup",
+        "orchestrator_entrypoint",
+        "public_smoke:lite-local",
+    ]
+    assert [stage.name for stage in result.stage_results] == [
+        "env_filesystem_readiness",
+        "service_startup",
+        "orchestrator_entrypoint_readiness",
+        "public_smoke_probes",
+    ]
+    assert all(stage.status == "passed" for stage in result.stage_results)
+    assert report_path.exists()
+    assert "reports/bootstrap" in str(report_path)
+    payload = json.loads(report_path.read_text(encoding="utf-8"))
+    assert [stage["name"] for stage in payload["stages"]] == [
+        "env_filesystem_readiness",
+        "service_startup",
+        "orchestrator_entrypoint_readiness",
+        "public_smoke_probes",
     ]
 
 
@@ -265,3 +338,24 @@ def _plan() -> BootstrapPlan:
         startup_order=startup_order,
         shutdown_order=shutdown_order,
     )
+
+
+class _HealthyOrchestrator:
+    def check(self, *, timeout_sec: float) -> HealthResult:
+        return HealthResult(
+            module_id="orchestrator",
+            probe_name="health",
+            status="healthy",
+            latency_ms=timeout_sec,
+            message="ready",
+        )
+
+
+class _PassingSmokeHook:
+    def run(self, *, profile_id: str) -> SmokeResult:
+        return SmokeResult(
+            module_id="contracts",
+            hook_name=f"{profile_id}-smoke",
+            passed=True,
+            duration_ms=1.0,
+        )
