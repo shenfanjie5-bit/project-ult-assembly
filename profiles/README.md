@@ -15,6 +15,7 @@ Required schema fields:
 - `max_long_running_daemons`
 - `notes`
 
-Stage 0 freezes the schema and directory shape only. Real profile files such as
-`lite-local.yaml` are intentionally out of scope for this issue.
-
+Stage 0 includes a minimal `lite-local.yaml` artifact so registry and
+compatibility matrix profile references resolve to a loadable profile. Service
+bundle details and required environment keys are introduced by the bootstrap
+milestone.

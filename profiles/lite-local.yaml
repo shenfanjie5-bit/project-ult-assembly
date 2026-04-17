@@ -1,0 +1,27 @@
+profile_id: lite-local
+mode: lite
+enabled_modules:
+  - contracts
+  - data-platform
+  - entity-registry
+  - reasoner-runtime
+  - graph-engine
+  - main-core
+  - audit-eval
+  - subsystem-sdk
+  - orchestrator
+  - assembly
+  - feature-store
+  - stream-layer
+  - subsystem-announcement
+  - subsystem-news
+enabled_service_bundles: []
+required_env_keys: []
+optional_env_keys: []
+storage_backends: {}
+resource_expectation:
+  cpu_cores: 2
+  memory_gb: 4
+  disk_gb: 20
+max_long_running_daemons: 4
+notes: Phase 0 loadable profile artifact for registry and compatibility matrix references; service bundles and env keys are introduced by the bootstrap milestone.
