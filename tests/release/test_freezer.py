@@ -274,11 +274,12 @@ def test_freeze_rejects_missing_supporting_run_record(tmp_path: Path) -> None:
 def test_freeze_rejects_stale_supporting_run_record_matrix_context(tmp_path: Path) -> None:
     project = _write_project(tmp_path)
     matrix_entry = _matrix_entry(project)
+    contract_path = project / "reports/contract/contract-success.json"
     stale_data = matrix_entry.model_dump(mode="json")
     stale_data["matrix_version"] = "9.9.9"
     stale_entry = CompatibilityMatrixEntry.model_validate(stale_data)
     _write_run_record(
-        project / "reports/contract/contract-success.json",
+        contract_path,
         "contract",
         matrix_entry,
     )
@@ -292,9 +293,47 @@ def test_freeze_rejects_stale_supporting_run_record_matrix_context(tmp_path: Pat
         "e2e",
         matrix_entry,
         nested=True,
+        contract_report_path=contract_path,
     )
 
     with pytest.raises(ReleaseFreezeError, match="smoke"):
+        freeze_profile(
+            "lite-local",
+            registry_root=project,
+            reports_root=project / "reports",
+            out_dir=project / "version-lock",
+            now=_NOW,
+        )
+
+    assert not (project / "version-lock").exists()
+
+
+def test_freeze_rejects_e2e_record_with_mismatched_contract_report_context(
+    tmp_path: Path,
+) -> None:
+    project = _write_project(tmp_path)
+    matrix_entry = _matrix_entry(project)
+    stale_data = matrix_entry.model_dump(mode="json")
+    stale_data["matrix_version"] = "9.9.9"
+    stale_entry = CompatibilityMatrixEntry.model_validate(stale_data)
+    contract_path = project / "reports/contract/contract-success.json"
+    e2e_contract_path = project / "reports/contract/e2e-preflight.json"
+    _write_run_record(contract_path, "contract", matrix_entry)
+    _write_run_record(
+        project / "reports/smoke/smoke-success.json",
+        "smoke",
+        matrix_entry,
+    )
+    _write_run_record(e2e_contract_path, "contract", stale_entry)
+    _write_run_record(
+        project / "reports/e2e/e2e-success.json",
+        "e2e",
+        matrix_entry,
+        nested=True,
+        contract_report_path=e2e_contract_path,
+    )
+
+    with pytest.raises(ReleaseFreezeError, match="e2e"):
         freeze_profile(
             "lite-local",
             registry_root=project,
@@ -724,8 +763,9 @@ def _write_required_run_records(
     include_e2e: bool = True,
 ) -> None:
     matrix_entry = _matrix_entry(project)
+    contract_path = project / "reports/contract/contract-success.json"
     _write_run_record(
-        project / "reports/contract/contract-success.json",
+        contract_path,
         "contract",
         matrix_entry,
     )
@@ -740,6 +780,7 @@ def _write_required_run_records(
             "e2e",
             matrix_entry,
             nested=True,
+            contract_report_path=contract_path,
         )
     assert matrix_entry.status == "verified"
 
@@ -756,14 +797,16 @@ def _write_run_record(
     matrix_entry: CompatibilityMatrixEntry,
     *,
     nested: bool = False,
+    contract_report_path: Path | None = None,
 ) -> None:
     record = _run_record(run_type, path, matrix_entry)
     path.parent.mkdir(parents=True, exist_ok=True)
-    payload: object = (
-        {"run_record": record.model_dump(mode="json")}
-        if nested
-        else record.model_dump(mode="json")
-    )
+    if nested:
+        payload: object = {"run_record": record.model_dump(mode="json")}
+        if contract_report_path is not None:
+            payload["contract_report_path"] = str(contract_report_path)
+    else:
+        payload = record.model_dump(mode="json")
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 

@@ -73,6 +73,10 @@ def test_fake_orchestrator_success_writes_required_artifacts(
     payload = json.loads(report_path.read_text(encoding="utf-8"))
     assert payload["run_record"]["run_id"] == record.run_id
     assert payload["scenario_id"] == "test-minimal-cycle"
+    contract_payload = json.loads(Path(payload["contract_report_path"]).read_text())
+    assert _compatibility_context(payload["run_record"]) == _compatibility_context(
+        contract_payload["run_record"]
+    )
     assert all(
         assertion["status"] == "passed"
         for assertion in payload["assertion_results"]
@@ -449,6 +453,73 @@ def test_registry_matrix_drift_fails_before_orchestrator_call(
     assert state["invoked"] is False
     assert record.status == "failed"
     assert "registry/profile preflight" in record.summary
+
+
+def test_contract_context_drift_fails_before_orchestrator_call(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    state = {
+        "phases": ["phase-a"],
+        "required_artifact": "cycle_summary",
+        "artifact_path": "cycle-summary.json",
+        "invoked": False,
+    }
+    _install_public_module(monkeypatch, module_name="e2e_orchestrator_public", state=state)
+    project = _write_project(
+        tmp_path,
+        modules=[_module_data("orchestrator", "e2e_orchestrator_public")],
+        profile_modules=["orchestrator"],
+        matrix_modules=[{"module_id": "orchestrator", "module_version": "0.1.0"}],
+    )
+    fixture_dir = _write_fixture(tmp_path)
+
+    import assembly.tests.e2e.runner as e2e_runner
+
+    original_run_contract_suite = e2e_runner.run_contract_suite
+
+    def drift_then_run_contract_suite(*args: object, **kwargs: object) -> object:
+        matrix_path = project / "compatibility-matrix.yaml"
+        matrix_payload = yaml.safe_load(matrix_path.read_text(encoding="utf-8"))
+        matrix_payload[0]["matrix_version"] = "0.2.0"
+        matrix_path.write_text(
+            yaml.safe_dump(matrix_payload, sort_keys=False),
+            encoding="utf-8",
+        )
+        return original_run_contract_suite(*args, **kwargs)
+
+    monkeypatch.setattr(
+        e2e_runner,
+        "run_contract_suite",
+        drift_then_run_contract_suite,
+    )
+
+    record = run_min_cycle_e2e(
+        "full-local",
+        profiles_root=project / "profiles",
+        bundles_root=project / "bundles",
+        registry_root=project,
+        fixture_dir=fixture_dir,
+        reports_dir=project / "reports/e2e",
+        env={},
+        timeout_sec=1.0,
+        bootstrap_if_needed=False,
+    )
+
+    assert state["invoked"] is False
+    assert record.status == "failed"
+    assert "compatibility context changed" in record.summary
+    report_payload = json.loads(_artifact_path(record, "e2e_report").read_text())
+    contract_payload = json.loads(
+        Path(report_payload["contract_report_path"]).read_text()
+    )
+    assert _compatibility_context(
+        report_payload["run_record"]
+    ) == _compatibility_context(contract_payload["run_record"])
+    assert (
+        _compatibility_context(record.model_dump(mode="json"))["matrix_version"]
+        == "0.2.0"
+    )
 
 
 def test_blocked_health_without_bootstrap_is_not_success(
@@ -857,3 +928,13 @@ def _assertion_payload(record: object) -> list[dict[str, object]]:
     payload = json.loads(_artifact_path(record, "assertion_results").read_text())
     assert isinstance(payload, list)
     return payload
+
+
+def _compatibility_context(record_payload: object) -> dict[str, str]:
+    if not isinstance(record_payload, dict):
+        artifacts = getattr(record_payload, "artifacts")
+    else:
+        artifacts = record_payload["artifacts"]
+    return next(
+        artifact for artifact in artifacts if artifact["kind"] == "compatibility_context"
+    )

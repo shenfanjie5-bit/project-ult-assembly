@@ -314,6 +314,13 @@ def _find_successful_run_record(
             and record.status == "success"
             and record_matches_matrix_context(record, matrix_entry)
         ):
+            if run_type == "e2e" and not _e2e_contract_context_matches(
+                path,
+                record,
+                reports_root=reports_root,
+            ):
+                continue
+
             return VersionLockRunRef(
                 run_type=record.run_type,
                 run_id=record.run_id,
@@ -322,6 +329,69 @@ def _find_successful_run_record(
             )
 
     return None
+
+
+def _e2e_contract_context_matches(
+    e2e_report_path: Path,
+    e2e_record: IntegrationRunRecord,
+    *,
+    reports_root: Path,
+) -> bool:
+    try:
+        payload = json.loads(e2e_report_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return False
+    if not isinstance(payload, dict):
+        return False
+
+    raw_contract_path = payload.get("contract_report_path")
+    if not isinstance(raw_contract_path, str) or not raw_contract_path:
+        return False
+
+    contract_record = _load_run_record(
+        _resolve_report_path(raw_contract_path, reports_root=reports_root)
+    )
+    if contract_record is None:
+        return False
+    if (
+        contract_record.profile_id != e2e_record.profile_id
+        or contract_record.run_type != "contract"
+    ):
+        return False
+
+    e2e_context = _compatibility_context(e2e_record)
+    contract_context = _compatibility_context(contract_record)
+    return e2e_context is not None and e2e_context == contract_context
+
+
+def _resolve_report_path(raw_path: str, *, reports_root: Path) -> Path:
+    path = Path(raw_path)
+    if path.is_absolute():
+        return path
+
+    reports_root = Path(reports_root)
+    candidates = [
+        reports_root.parent / path,
+        reports_root / path,
+        path,
+    ]
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+
+    return candidates[0]
+
+
+def _compatibility_context(record: IntegrationRunRecord) -> dict[str, str] | None:
+    context_artifacts = [
+        dict(artifact)
+        for artifact in record.artifacts
+        if artifact.get("kind") == "compatibility_context"
+    ]
+    if len(context_artifacts) != 1:
+        return None
+
+    return context_artifacts[0]
 
 
 def _load_run_record(path: Path) -> IntegrationRunRecord | None:
