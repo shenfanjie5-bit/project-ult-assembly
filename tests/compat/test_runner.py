@@ -248,6 +248,61 @@ def test_promote_atomic_write_failure_preserves_matrix(
     assert load_all(project).compatibility_matrix[0].status == "draft"
 
 
+def test_promote_directory_fsync_failure_keeps_matrix_and_report_consistent(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    _install_app_module(monkeypatch)
+    project = _write_project(
+        tmp_path,
+        modules=[_module_data("app")],
+        profile_modules=["app"],
+        matrix_modules=[{"module_id": "app", "module_version": "0.1.0"}],
+        required_tests=["contract-suite", "smoke", "min-cycle-e2e"],
+    )
+    matrix_entry = _matrix_entry(project)
+    _write_run_record(
+        project / "reports/smoke/smoke-success.json",
+        "smoke",
+        matrix_entry,
+    )
+    _write_run_record(
+        project / "reports/e2e/e2e-success.json",
+        "e2e",
+        matrix_entry,
+    )
+
+    def fail_directory_fsync(directory: Path) -> None:
+        raise OSError(f"simulated fsync failure for {directory}")
+
+    monkeypatch.setattr(compat_runner, "_fsync_directory", fail_directory_fsync)
+
+    report = run_contract_suite(
+        "full-local",
+        profiles_root=project / "profiles",
+        bundles_root=project / "bundles",
+        registry_root=project,
+        reports_dir=project / "reports/contract",
+        env={},
+        promote=True,
+    )
+
+    assert report.run_record.status == "success"
+    assert report.promoted is True
+    assert load_all(project).compatibility_matrix[0].status == "verified"
+
+    payload = json.loads(report.report_path.read_text(encoding="utf-8"))
+    assert payload["promoted"] is True
+    assert payload["run_record"]["status"] == "success"
+    warning_artifacts = [
+        artifact
+        for artifact in payload["run_record"]["artifacts"]
+        if artifact["kind"] == "promotion_warning"
+    ]
+    assert len(warning_artifacts) == 1
+    assert "directory fsync failed" in warning_artifacts[0]["message"]
+
+
 def test_promote_rejects_deprecated_matrix_entry(tmp_path: Path) -> None:
     project = _write_project(
         tmp_path,

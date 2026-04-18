@@ -47,6 +47,11 @@ class _RunRecordRef:
     path: Path | None
 
 
+@dataclass(frozen=True)
+class _MatrixWriteResult:
+    post_commit_warnings: tuple[str, ...] = ()
+
+
 class CompatRunner:
     """Run contract compatibility checks for a resolved profile."""
 
@@ -120,7 +125,11 @@ class CompatRunner:
         _persist_report(report)
 
         if promote:
-            promoted_entry, supporting_records = _promote_matrix_entry(
+            (
+                promoted_entry,
+                supporting_records,
+                promotion_warnings,
+            ) = _promote_matrix_entry(
                 profile_id,
                 registry_root=registry_root,
                 reports_root=_reports_root(Path(reports_dir)),
@@ -132,6 +141,7 @@ class CompatRunner:
                     "artifacts": [
                         *record.artifacts,
                         *_promotion_support_artifacts(supporting_records),
+                        *_promotion_warning_artifacts(promotion_warnings),
                     ]
                 }
             )
@@ -179,14 +189,14 @@ def promote_matrix_entry(
 ) -> CompatibilityMatrixEntry:
     """Promote a draft matrix entry after all required run records are successful."""
 
-    promoted_entry, _supporting_records = _promote_matrix_entry(
+    promoted_entry = _promote_matrix_entry(
         profile_id,
         registry_root=registry_root,
         reports_root=reports_root,
         matrix_entry=matrix_entry,
         contract_run_record=contract_run_record,
         now=now,
-    )
+    )[0]
     return promoted_entry
 
 
@@ -198,7 +208,7 @@ def _promote_matrix_entry(
     matrix_entry: CompatibilityMatrixEntry,
     contract_run_record: IntegrationRunRecord,
     now: datetime | None = None,
-) -> tuple[CompatibilityMatrixEntry, list[_RunRecordRef]]:
+) -> tuple[CompatibilityMatrixEntry, list[_RunRecordRef], tuple[str, ...]]:
     """Promote a matrix entry while holding the matrix file lock."""
 
     matrix_path = Path(registry_root) / "compatibility-matrix.yaml"
@@ -231,8 +241,16 @@ def _promote_matrix_entry(
         updated_item["verified_at"] = _isoformat_utc(verified_at)
         promoted_entry = CompatibilityMatrixEntry.model_validate(updated_item)
         raw[target_index] = promoted_entry.model_dump(mode="json")
-        _atomic_write_yaml(matrix_path, raw)
-        return promoted_entry, supporting_records
+        write_result = _atomic_write_yaml(matrix_path, raw)
+        promoted_entry, reload_warnings = _reload_promoted_matrix_entry(
+            matrix_path,
+            promoted_entry,
+        )
+        return (
+            promoted_entry,
+            supporting_records,
+            (*write_result.post_commit_warnings, *reload_warnings),
+        )
 
 
 def _validate_promotable_matrix_entry(
@@ -339,7 +357,7 @@ def _load_raw_matrix(matrix_path: Path) -> list[object]:
     return raw
 
 
-def _atomic_write_yaml(matrix_path: Path, raw: Sequence[object]) -> None:
+def _atomic_write_yaml(matrix_path: Path, raw: Sequence[object]) -> _MatrixWriteResult:
     serialized = yaml.safe_dump(list(raw), sort_keys=False)
     matrix_path.parent.mkdir(parents=True, exist_ok=True)
     fd, tmp_name = tempfile.mkstemp(
@@ -356,7 +374,6 @@ def _atomic_write_yaml(matrix_path: Path, raw: Sequence[object]) -> None:
             os.fsync(tmp_file.fileno())
 
         os.replace(tmp_path, matrix_path)
-        _fsync_directory(matrix_path.parent)
     except OSError as exc:
         if fd != -1:
             os.close(fd)
@@ -364,6 +381,52 @@ def _atomic_write_yaml(matrix_path: Path, raw: Sequence[object]) -> None:
         raise CompatibilityPromotionError(
             f"Could not atomically write compatibility matrix {matrix_path}: {exc}"
         ) from exc
+
+    try:
+        _fsync_directory(matrix_path.parent)
+    except OSError as exc:
+        return _MatrixWriteResult(
+            post_commit_warnings=(
+                "Compatibility matrix promotion was committed, but directory "
+                f"fsync failed: {exc}",
+            )
+        )
+
+    return _MatrixWriteResult()
+
+
+def _reload_promoted_matrix_entry(
+    matrix_path: Path,
+    promoted_entry: CompatibilityMatrixEntry,
+) -> tuple[CompatibilityMatrixEntry, tuple[str, ...]]:
+    try:
+        raw = _load_raw_matrix(matrix_path)
+        target_index = _find_raw_matrix_entry(raw, promoted_entry)
+        if target_index is None:
+            return promoted_entry, (
+                "Compatibility matrix promotion was committed, but the promoted "
+                "entry could not be reloaded",
+            )
+
+        reloaded_entry = CompatibilityMatrixEntry.model_validate(raw[target_index])
+    except (
+        OSError,
+        yaml.YAMLError,
+        ValidationError,
+        CompatibilityPromotionError,
+    ) as exc:
+        return promoted_entry, (
+            "Compatibility matrix promotion was committed, but reloading the "
+            f"promoted entry failed: {exc}",
+        )
+
+    if reloaded_entry.status != "verified":
+        return promoted_entry, (
+            "Compatibility matrix promotion was committed, but reloaded entry "
+            f"status is {reloaded_entry.status}",
+        )
+
+    return reloaded_entry, ()
 
 
 def _fsync_directory(directory: Path) -> None:
@@ -624,6 +687,16 @@ def _promotion_support_artifacts(
         artifacts.append(artifact)
 
     return artifacts
+
+
+def _promotion_warning_artifacts(warnings: Sequence[str]) -> list[dict[str, str]]:
+    return [
+        {
+            "kind": "promotion_warning",
+            "message": warning,
+        }
+        for warning in warnings
+    ]
 
 
 def _dedupe_run_refs(refs: Sequence[_RunRecordRef]) -> list[_RunRecordRef]:
