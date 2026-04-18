@@ -62,6 +62,46 @@ def test_full_dev_default_render_resolves_only_core_bundles() -> None:
         "neo4j",
         "dagster",
     ]
+    assert set(snapshot.storage_backends) == {
+        "postgres",
+        "neo4j",
+        "dagster_home",
+    }
+    assert "minio" not in snapshot.storage_backends
+
+
+def test_full_dev_minio_backend_requires_selected_bundle() -> None:
+    profile = load_profile(PROFILES_ROOT / "full-dev.yaml")
+    env = _required_env(profile.required_env_keys)
+    env.update(
+        {
+            "MINIO_ROOT_USER": "assembly-minio-user",
+            "MINIO_ROOT_PASSWORD": "assembly-minio-password",
+        }
+    )
+
+    snapshot = render_profile(
+        "full-dev",
+        profiles_root=PROFILES_ROOT,
+        bundles_root=BUNDLES_ROOT,
+        env=env,
+        extra_bundles=["minio"],
+    )
+
+    assert snapshot.enabled_service_bundles == [
+        "postgres",
+        "neo4j",
+        "dagster",
+        "minio",
+    ]
+    assert snapshot.storage_backends["minio"] == {
+        "kind": "minio",
+        "connection": {
+            "endpoint_env": "MINIO_PORT",
+            "root_user_env": "MINIO_ROOT_USER",
+            "root_password_env": "MINIO_ROOT_PASSWORD",
+        },
+    }
 
 
 def test_full_dev_optional_bundle_manifests_are_closed() -> None:

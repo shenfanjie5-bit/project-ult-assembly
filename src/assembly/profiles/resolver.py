@@ -24,11 +24,24 @@ from assembly.profiles.schema import (
     EnvironmentProfile,
     ProfileMode,
     ServiceBundleManifest,
+    StorageBackend,
 )
 
 _REDACTED_VALUE = "<redacted>"
 _SENSITIVE_KEY_PARTS = ("PASSWORD", "SECRET", "TOKEN")
 _ENV_REF_PATTERN = re.compile(r"\$\{([A-Za-z_][A-Za-z0-9_]*)([^}]*)\}")
+_OPTIONAL_BUNDLE_STORAGE_BACKENDS: dict[str, dict[str, StorageBackend]] = {
+    "minio": {
+        "minio": StorageBackend(
+            kind="minio",
+            connection={
+                "endpoint_env": "MINIO_PORT",
+                "root_user_env": "MINIO_ROOT_USER",
+                "root_password_env": "MINIO_ROOT_PASSWORD",
+            },
+        )
+    }
+}
 
 
 class ResolvedConfigSnapshot(BaseModel):
@@ -175,8 +188,17 @@ def with_extra_bundles(
                 f"{profile.profile_id}"
             )
 
+    storage_backends = dict(profile.storage_backends)
+    for bundle_name in normalized_extras:
+        storage_backends.update(
+            _OPTIONAL_BUNDLE_STORAGE_BACKENDS.get(bundle_name, {})
+        )
+
     return profile.model_copy(
-        update={"enabled_service_bundles": merged_bundles}
+        update={
+            "enabled_service_bundles": merged_bundles,
+            "storage_backends": storage_backends,
+        }
     )
 
 
