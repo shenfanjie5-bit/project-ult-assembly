@@ -7,6 +7,7 @@ import os
 import re
 from collections import Counter
 from collections.abc import Sequence
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping
@@ -71,6 +72,14 @@ class ResolvedConfigSnapshot(BaseModel):
         )
 
 
+@dataclass(frozen=True)
+class ResolvedBundleSet:
+    """Profile plus the validated bundle manifests it selects."""
+
+    profile: EnvironmentProfile
+    service_bundles: list[ServiceBundleManifest]
+
+
 def resolve(
     profile: EnvironmentProfile,
     env: Mapping[str, str],
@@ -80,11 +89,13 @@ def resolve(
 ) -> ResolvedConfigSnapshot:
     """Resolve a loaded profile against env and referenced service bundles."""
 
-    resolved_profile = with_extra_bundles(
+    bundle_set = resolve_profile_bundles(
         profile,
-        extra_bundles,
         bundle_root=bundle_root,
+        extra_bundles=extra_bundles,
     )
+    resolved_profile = bundle_set.profile
+    service_bundles = bundle_set.service_bundles
 
     missing_keys = [key for key in resolved_profile.required_env_keys if key not in env]
     if missing_keys:
@@ -93,13 +104,7 @@ def resolve(
             f"{resolved_profile.profile_id}: {', '.join(missing_keys)}"
         )
 
-    service_bundles = [
-        _load_profile_bundle(resolved_profile, bundle_name, bundle_root)
-        for bundle_name in resolved_profile.enabled_service_bundles
-    ]
     _enforce_selected_optional_env(resolved_profile, service_bundles, env)
-    _enforce_unique_service_names(resolved_profile, service_bundles)
-    _enforce_lite_service_count(resolved_profile, service_bundles)
 
     return ResolvedConfigSnapshot(
         profile_id=resolved_profile.profile_id,
@@ -118,6 +123,32 @@ def resolve(
         max_long_running_daemons=resolved_profile.max_long_running_daemons,
         service_bundles=service_bundles,
         resolved_at=datetime.now(timezone.utc),
+    )
+
+
+def resolve_profile_bundles(
+    profile: EnvironmentProfile,
+    *,
+    bundle_root: Path = Path("bundles"),
+    extra_bundles: Sequence[str] | None = None,
+) -> ResolvedBundleSet:
+    """Resolve and validate the service bundle set selected by a profile."""
+
+    resolved_profile = with_extra_bundles(
+        profile,
+        extra_bundles,
+        bundle_root=bundle_root,
+    )
+    service_bundles = [
+        _load_profile_bundle(resolved_profile, bundle_name, bundle_root)
+        for bundle_name in resolved_profile.enabled_service_bundles
+    ]
+    _enforce_no_lite_optional_bundles(resolved_profile, service_bundles)
+    _enforce_unique_service_names(resolved_profile, service_bundles)
+    _enforce_lite_service_count(resolved_profile, service_bundles)
+    return ResolvedBundleSet(
+        profile=resolved_profile,
+        service_bundles=service_bundles,
     )
 
 
@@ -260,6 +291,23 @@ def _enforce_lite_service_count(
             f"Lite profile {profile.profile_id} resolves {len(service_names)} "
             "long-running services; expected "
             f"{profile.max_long_running_daemons}"
+        )
+
+
+def _enforce_no_lite_optional_bundles(
+    profile: EnvironmentProfile,
+    service_bundles: list[ServiceBundleManifest],
+) -> None:
+    if profile.mode != ProfileMode.lite:
+        return
+
+    optional_bundles = sorted(
+        bundle.bundle_name for bundle in service_bundles if bundle.optional
+    )
+    if optional_bundles:
+        raise ProfileConstraintError(
+            f"Lite profile {profile.profile_id} cannot enable optional bundles: "
+            f"{optional_bundles}"
         )
 
 

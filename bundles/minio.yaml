@@ -4,7 +4,7 @@ services:
     image_or_cmd: minio/minio:RELEASE.2024-07-16T23-46-41Z
     image: minio/minio:RELEASE.2024-07-16T23-46-41Z
     command: server /data --console-address :${MINIO_CONSOLE_PORT:-9001}
-    health_probe: curl -f http://127.0.0.1:${MINIO_PORT:-9000}/minio/health/ready
+    health_probe: curl -f http://127.0.0.1:9000/minio/health/ready
     env:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
@@ -13,7 +13,7 @@ startup_order:
 shutdown_order:
   - minio
 health_checks:
-  - curl -f http://127.0.0.1:${MINIO_PORT:-9000}/minio/health/ready
+  - curl -f http://127.0.0.1:9000/minio/health/ready
 required_profiles:
   - full-dev
 optional: true

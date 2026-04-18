@@ -63,7 +63,7 @@ services:
       [
         "dagster-webserver",
         "-h",
-        "${DAGSTER_HOST:-127.0.0.1}",
+        "0.0.0.0",
         "-p",
         "${DAGSTER_PORT:-3000}",
       ]

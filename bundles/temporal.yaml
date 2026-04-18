@@ -3,7 +3,7 @@ services:
   - name: temporal
     image_or_cmd: temporalio/auto-setup:1.25.2
     image: temporalio/auto-setup:1.25.2
-    health_probe: tctl --address 127.0.0.1:${TEMPORAL_PORT:-7233} cluster health
+    health_probe: tctl --address 127.0.0.1:7233 cluster health
     env:
       DB: postgresql
       POSTGRES_SEEDS: postgres
@@ -24,7 +24,7 @@ shutdown_order:
   - temporal-ui
   - temporal
 health_checks:
-  - tctl --address 127.0.0.1:${TEMPORAL_PORT:-7233} cluster health
+  - tctl --address 127.0.0.1:7233 cluster health
   - wget -q -O- http://127.0.0.1:${TEMPORAL_UI_PORT:-8080}
 required_profiles:
   - full-dev

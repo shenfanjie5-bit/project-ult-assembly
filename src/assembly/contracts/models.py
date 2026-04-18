@@ -10,6 +10,8 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from assembly.contracts.primitives import ContractVersion, ModuleId, Semver
+
 
 _SEMVER_PATTERN = (
     r"v?(0|[1-9]\d*)\."
@@ -95,9 +97,9 @@ class VersionInfo(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    module_id: str
-    module_version: str
-    contract_version: str
+    module_id: ModuleId
+    module_version: Semver
+    contract_version: ContractVersion
     compatible_contract_range: str
 
     @field_validator("compatible_contract_range")

@@ -113,7 +113,7 @@ def test_bundle_required_profiles_must_include_profile(tmp_path: Path) -> None:
         update={"enabled_service_bundles": ["postgres"]}
     )
 
-    with pytest.raises(BootstrapPlanError, match="not required by profile"):
+    with pytest.raises(BootstrapPlanError, match="not declared for profile"):
         build_plan(profile, bundle_root=bundle_root, compose_file=COMPOSE_FILE)
 
 
@@ -199,6 +199,42 @@ def test_full_dev_plan_allows_optional_extra_bundles() -> None:
         "grafana",
         "superset",
     ]
+
+
+def test_full_dev_plan_validates_all_optional_bundle_classes() -> None:
+    profile = load_profile(PROFILES_ROOT / "full-dev.yaml")
+
+    plan = build_plan(
+        profile,
+        bundle_root=BUNDLES_ROOT,
+        compose_file=FULL_COMPOSE_FILE,
+        extra_bundles=[
+            "minio",
+            "grafana",
+            "superset",
+            "temporal",
+            "feast",
+            "kafka-flink",
+        ],
+    )
+
+    assert len(plan.startup_order) == profile.max_long_running_daemons
+    assert plan.startup_order[-3:] == [
+        "kafka",
+        "flink-jobmanager",
+        "flink-taskmanager",
+    ]
+
+
+def test_build_plan_derives_default_compose_file_from_profile() -> None:
+    lite = load_profile(PROFILES_ROOT / "lite-local.yaml")
+    full = load_profile(PROFILES_ROOT / "full-dev.yaml")
+
+    lite_plan = build_plan(lite, bundle_root=BUNDLES_ROOT)
+    full_plan = build_plan(full, bundle_root=BUNDLES_ROOT)
+
+    assert lite_plan.compose_file == Path("compose/lite-local.yaml")
+    assert full_plan.compose_file == Path("compose/full-dev.yaml")
 
 
 def test_missing_compose_file_raises_plan_error(tmp_path: Path) -> None:
@@ -380,8 +416,38 @@ def test_lite_compose_published_ports_bind_loopback_only() -> None:
 
     assert published_ports
     assert all(port.startswith("127.0.0.1:") for port in published_ports)
-    assert "${DAGSTER_HOST:-127.0.0.1}" in raw["services"]["dagster-webserver"][
-        "command"
+    dagster_command = raw["services"]["dagster-webserver"]["command"]
+    assert raw["services"]["dagster-webserver"]["ports"] == [
+        "127.0.0.1:${DAGSTER_PORT:-3000}:${DAGSTER_PORT:-3000}"
+    ]
+    assert dagster_command[dagster_command.index("-h") + 1] == "0.0.0.0"
+
+
+def test_full_optional_healthchecks_use_container_ports_for_fixed_port_services() -> None:
+    raw = yaml.safe_load(FULL_COMPOSE_FILE.read_text(encoding="utf-8"))
+
+    assert _healthcheck_command(raw, "minio") == (
+        "curl -f http://127.0.0.1:9000/minio/health/ready"
+    )
+    assert _healthcheck_command(raw, "temporal") == (
+        "tctl --address 127.0.0.1:7233 cluster health"
+    )
+    assert _healthcheck_command(raw, "kafka") == (
+        "kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --list"
+    )
+    assert _healthcheck_command(raw, "flink-jobmanager") == (
+        "curl -f http://127.0.0.1:8081/overview"
+    )
+    assert _healthcheck_command(raw, "flink-taskmanager") == (
+        "curl -f http://flink-jobmanager:8081/taskmanagers"
+    )
+
+    assert raw["services"]["minio"]["ports"] == [
+        "127.0.0.1:${MINIO_PORT:-9000}:9000",
+        "127.0.0.1:${MINIO_CONSOLE_PORT:-9001}:9001",
+    ]
+    assert raw["services"]["kafka"]["ports"] == [
+        "127.0.0.1:${KAFKA_PORT:-9092}:9092"
     ]
 
 
@@ -406,6 +472,12 @@ def _write_compose(
     compose_file = tmp_path / "compose.yaml"
     compose_file.write_text(yaml.safe_dump(raw, sort_keys=False), encoding="utf-8")
     return compose_file
+
+
+def _healthcheck_command(raw: dict[str, object], service_name: str) -> str:
+    test = raw["services"][service_name]["healthcheck"]["test"]
+    assert test[0] == "CMD-SHELL"
+    return test[1]
 
 
 def _copy_bundle_root(tmp_path: Path) -> Path:

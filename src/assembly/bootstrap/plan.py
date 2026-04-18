@@ -12,9 +12,9 @@ from typing import Any, Literal
 import yaml
 from pydantic import BaseModel, ConfigDict, Field
 
+from assembly.bootstrap.compose import resolve_compose_file
 from assembly.profiles.errors import ProfileError
-from assembly.profiles.loader import load_bundle
-from assembly.profiles.resolver import with_extra_bundles
+from assembly.profiles.resolver import resolve_profile_bundles
 from assembly.profiles.schema import (
     EnvironmentProfile,
     ProfileMode,
@@ -90,51 +90,28 @@ def build_plan(
     profile: EnvironmentProfile,
     *,
     bundle_root: Path = Path("bundles"),
-    compose_file: Path = Path("compose/lite-local.yaml"),
+    compose_file: Path | None = None,
     extra_bundles: Sequence[str] | None = None,
 ) -> BootstrapPlan:
     """Build an ordered bootstrap plan from enabled service bundles."""
 
     try:
-        profile = with_extra_bundles(
+        bundle_set = resolve_profile_bundles(
             profile,
-            extra_bundles,
             bundle_root=bundle_root,
+            extra_bundles=extra_bundles,
         )
     except ProfileError as exc:
         raise BootstrapPlanError(str(exc)) from exc
-    compose_services = _load_compose_services(compose_file)
+
+    profile = bundle_set.profile
+    resolved_compose_file = resolve_compose_file(profile.profile_id, compose_file)
+    compose_services = _load_compose_services(resolved_compose_file)
     services_by_name: dict[str, BootstrapService] = {}
     startup_order: list[str] = []
     shutdown_order: list[str] = []
 
-    for bundle_name in profile.enabled_service_bundles:
-        bundle_path = Path(bundle_root) / f"{bundle_name}.yaml"
-        try:
-            bundle = load_bundle(bundle_path)
-        except ProfileError as exc:
-            raise BootstrapPlanError(
-                f"Unable to load bundle {bundle_name!r} from {bundle_path}: {exc}"
-            ) from exc
-
-        if bundle.bundle_name != bundle_name:
-            raise BootstrapPlanError(
-                f"Bundle artifact {bundle_path} declares bundle_name "
-                f"{bundle.bundle_name!r}, expected {bundle_name!r}"
-            )
-
-        if profile.profile_id not in bundle.required_profiles:
-            raise BootstrapPlanError(
-                f"Bundle {bundle.bundle_name} is not required by profile "
-                f"{profile.profile_id}"
-            )
-
-        if bundle.optional and profile.mode == ProfileMode.lite:
-            raise BootstrapPlanError(
-                f"Bundle {bundle.bundle_name} is optional and cannot be part of "
-                f"the {profile.profile_id} bootstrap plan"
-            )
-
+    for bundle in bundle_set.service_bundles:
         _validate_bundle_health_checks(bundle)
         service_specs = {service.name: service for service in bundle.services}
         for service_name in bundle.startup_order:
@@ -144,7 +121,7 @@ def build_plan(
                 )
             if service_name not in compose_services:
                 raise BootstrapPlanError(
-                    f"Compose file {compose_file} does not define service "
+                    f"Compose file {resolved_compose_file} does not define service "
                     f"{service_name!r}"
                 )
 
@@ -154,7 +131,7 @@ def build_plan(
                 compose_service=compose_services[service_name],
                 previous_services=set(startup_order),
                 profile=profile,
-                compose_file=compose_file,
+                compose_file=resolved_compose_file,
             )
             service = _bootstrap_service(
                 bundle_name=bundle.bundle_name,
@@ -163,29 +140,21 @@ def build_plan(
             services_by_name[service.name] = service
             startup_order.append(service.name)
 
-    for bundle_name in reversed(profile.enabled_service_bundles):
-        bundle_path = Path(bundle_root) / f"{bundle_name}.yaml"
-        try:
-            bundle = load_bundle(bundle_path)
-        except ProfileError as exc:
-            raise BootstrapPlanError(
-                f"Unable to load bundle {bundle_name!r} from {bundle_path}: {exc}"
-            ) from exc
-
+    for bundle in reversed(bundle_set.service_bundles):
         shutdown_order.extend(bundle.shutdown_order)
 
     _validate_shutdown_order(startup_order, shutdown_order)
     _validate_shutdown_respects_dependencies(
         shutdown_order,
         compose_services,
-        compose_file,
+        resolved_compose_file,
     )
     _validate_lite_service_count(profile, startup_order)
 
     return BootstrapPlan(
         profile_id=profile.profile_id,
         mode=profile.mode.value,
-        compose_file=Path(compose_file),
+        compose_file=resolved_compose_file,
         stages=_stage_specs(),
         services=[services_by_name[name] for name in startup_order],
         startup_order=startup_order,

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import importlib
 import json
 import multiprocessing
 import queue
@@ -22,6 +21,7 @@ from assembly.compat import (
     run_contract_suite,
 )
 from assembly.contracts.models import HealthResult, HealthStatus, IntegrationRunRecord
+from assembly.contracts.entrypoints import load_reference
 from assembly.contracts.protocols import CliEntrypoint
 from assembly.contracts.reporting import record_matches_matrix_context
 from assembly.health import healthcheck
@@ -561,7 +561,7 @@ def load_orchestrator_cli(
 
     public_entrypoint = cli_entrypoints[0]
     try:
-        loaded = _load_reference(public_entrypoint.reference)
+        loaded = load_reference(public_entrypoint.reference)
     except Exception as exc:
         raise E2EBlocker(
             "Blocker: orchestrator cli entrypoint could not be imported: "
@@ -1064,15 +1064,6 @@ def _failed_assertion(
         message=message,
         details={} if details is None else details,
     )
-
-
-def _load_reference(reference: str) -> Any:
-    module_name, _, symbol_name = reference.partition(":")
-    if not module_name or not symbol_name:
-        raise ValueError(f"Invalid public entrypoint reference: {reference}")
-
-    module = importlib.import_module(module_name)
-    return getattr(module, symbol_name)
 
 
 def _run_id(profile_id: str, started_at: datetime) -> str:

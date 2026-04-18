@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import json
 from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
+import yaml
 
 try:
     import click  # noqa: F401
@@ -11,7 +13,10 @@ try:
 
     from assembly.cli import main
     from assembly.cli.main import entrypoint
+    from assembly.contracts.models import IntegrationRunRecord
+    from assembly.contracts.reporting import compatibility_context_artifact
     from assembly.registry import (
+        CompatibilityMatrixEntry,
         IntegrationStatus,
         ReleaseFreezeError,
         VersionLock,
@@ -144,6 +149,73 @@ def test_release_freeze_passes_path_options_to_executor(
     }
 
 
+def test_release_freeze_cli_uses_real_executor_for_lock_and_failure(
+    tmp_path: Path,
+) -> None:
+    project = _write_release_project(tmp_path / "project", include_contract=True)
+    out_dir = tmp_path / "locks"
+
+    result = CliRunner().invoke(
+        entrypoint,
+        [
+            "release-freeze",
+            "--profile",
+            "lite-local",
+            "--registry-root",
+            str(project),
+            "--profiles-dir",
+            str(project / "profiles"),
+            "--reports-root",
+            str(project / "reports"),
+            "--out",
+            str(out_dir),
+        ],
+    )
+
+    assert result.exit_code == 0
+    lock_path = _lock_path_from_output(result.output)
+    payload = yaml.safe_load(lock_path.read_text(encoding="utf-8"))
+    assert payload["profile_id"] == "lite-local"
+    assert payload["matrix_version"] == "0.1.0"
+    assert payload["modules"] == [
+        {
+            "module_id": "app",
+            "module_version": "0.1.0",
+            "contract_version": "v0.0.0",
+            "integration_status": "verified",
+        }
+    ]
+    assert payload["supporting_runs"][0]["run_type"] == "contract"
+
+    failing_project = _write_release_project(
+        tmp_path / "failing-project",
+        include_contract=False,
+    )
+    failing_out_dir = tmp_path / "failing-locks"
+
+    failing_result = CliRunner().invoke(
+        entrypoint,
+        [
+            "release-freeze",
+            "--profile",
+            "lite-local",
+            "--registry-root",
+            str(failing_project),
+            "--profiles-dir",
+            str(failing_project / "profiles"),
+            "--reports-root",
+            str(failing_project / "reports"),
+            "--out",
+            str(failing_out_dir),
+        ],
+    )
+
+    assert failing_result.exit_code != 0
+    assert "Missing successful supporting run records" in failing_result.output
+    assert "Traceback" not in failing_result.output
+    assert not failing_out_dir.exists()
+
+
 def _version_lock(profile_id: str, lock_file: Path) -> VersionLock:
     now = datetime(2026, 4, 18, 12, 30, tzinfo=timezone.utc)
     return VersionLock(
@@ -177,3 +249,156 @@ def _version_lock(profile_id: str, lock_file: Path) -> VersionLock:
         },
         lock_file=lock_file,
     )
+
+
+def _write_release_project(root: Path, *, include_contract: bool) -> Path:
+    root.mkdir(parents=True)
+    modules = [_release_module()]
+    matrix_entry = CompatibilityMatrixEntry.model_validate(
+        {
+            "matrix_version": "0.1.0",
+            "profile_id": "lite-local",
+            "module_set": [{"module_id": "app", "module_version": "0.1.0"}],
+            "contract_version": "v0.0.0",
+            "required_tests": ["contract-suite"],
+            "status": "verified",
+            "verified_at": "2026-04-17T09:00:00Z",
+        }
+    )
+
+    profiles_root = root / "profiles"
+    profiles_root.mkdir()
+    (profiles_root / "lite-local.yaml").write_text(
+        yaml.safe_dump(
+            {
+                "profile_id": "lite-local",
+                "mode": "lite",
+                "enabled_modules": ["app"],
+                "enabled_service_bundles": [],
+                "required_env_keys": [],
+                "optional_env_keys": [],
+                "storage_backends": {},
+                "resource_expectation": {
+                    "cpu_cores": 1,
+                    "memory_gb": 1,
+                    "disk_gb": 1,
+                },
+                "max_long_running_daemons": 4,
+                "notes": "release cli e2e profile",
+            },
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+    (root / "module-registry.yaml").write_text(
+        yaml.safe_dump(modules, sort_keys=False),
+        encoding="utf-8",
+    )
+    (root / "MODULE_REGISTRY.md").write_text(
+        _release_registry_markdown(modules),
+        encoding="utf-8",
+    )
+    (root / "compatibility-matrix.yaml").write_text(
+        yaml.safe_dump([matrix_entry.model_dump(mode="json")], sort_keys=False),
+        encoding="utf-8",
+    )
+
+    if include_contract:
+        _write_contract_record(root / "reports/contract/contract-success.json", matrix_entry)
+
+    return root
+
+
+def _release_module() -> dict[str, object]:
+    return {
+        "module_id": "app",
+        "module_version": "0.1.0",
+        "contract_version": "v0.0.0",
+        "owner": "test",
+        "upstream_modules": [],
+        "downstream_modules": [],
+        "public_entrypoints": [],
+        "depends_on": [],
+        "supported_profiles": ["lite-local"],
+        "integration_status": "verified",
+        "last_smoke_result": None,
+        "notes": "release cli test module",
+    }
+
+
+def _write_contract_record(
+    path: Path,
+    matrix_entry: CompatibilityMatrixEntry,
+) -> None:
+    now = datetime(2026, 4, 18, 12, 30, tzinfo=timezone.utc)
+    record = IntegrationRunRecord(
+        run_id="contract-success",
+        profile_id="lite-local",
+        run_type="contract",
+        started_at=now,
+        finished_at=now,
+        status="success",
+        artifacts=[
+            {"kind": "contract_report", "path": str(path)},
+            compatibility_context_artifact(matrix_entry),
+        ],
+        failing_modules=[],
+        summary="contract succeeded",
+    )
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(record.model_dump(mode="json"), indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+
+def _release_registry_markdown(modules: list[dict[str, object]]) -> str:
+    columns = [
+        "module_id",
+        "module_version",
+        "contract_version",
+        "owner",
+        "upstream_modules",
+        "downstream_modules",
+        "public_entrypoints",
+        "depends_on",
+        "supported_profiles",
+        "integration_status",
+        "last_smoke_result",
+        "notes",
+    ]
+    lines = [
+        "# MODULE_REGISTRY",
+        "",
+        "| " + " | ".join(columns) + " |",
+        "|" + "|".join("---" for _ in columns) + "|",
+    ]
+    for module in modules:
+        lines.append(
+            "| "
+            + " | ".join(
+                _release_markdown_value(column, module[column]) for column in columns
+            )
+            + " |"
+        )
+    return "\n".join(lines) + "\n"
+
+
+def _release_markdown_value(column: str, value: object) -> str:
+    if column in {
+        "upstream_modules",
+        "downstream_modules",
+        "depends_on",
+        "supported_profiles",
+    }:
+        return ", ".join(value)  # type: ignore[arg-type]
+    if column == "public_entrypoints":
+        return ""
+    if column == "last_smoke_result" and value is None:
+        return "null"
+    return str(value)
+
+
+def _lock_path_from_output(output: str) -> Path:
+    lock_cell = next(cell for cell in output.strip().split("\t") if cell.startswith("lock="))
+    return Path(lock_cell.removeprefix("lock="))

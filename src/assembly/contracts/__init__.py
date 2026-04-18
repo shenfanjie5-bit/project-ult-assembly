@@ -9,6 +9,13 @@ from assembly.contracts.models import (
     SmokeResult,
     VersionInfo,
 )
+from assembly.contracts.primitives import (
+    ContractVersion,
+    EntrypointKind,
+    ModuleId,
+    ProfileId,
+    Semver,
+)
 from assembly.contracts.protocols import (
     CliEntrypoint,
     HealthProbe,
@@ -27,14 +34,19 @@ ENTRYPOINT_KIND_TO_PROTOCOL: dict[str, type] = {
 
 __all__ = [
     "CliEntrypoint",
+    "ContractVersion",
     "ENTRYPOINT_KIND_TO_PROTOCOL",
+    "EntrypointKind",
     "HealthProbe",
     "HealthResult",
     "HealthStatus",
     "IntegrationRunRecord",
     "InitHook",
+    "ModuleId",
+    "ProfileId",
     "SmokeHook",
     "SmokeResult",
+    "Semver",
     "VersionDeclaration",
     "VersionInfo",
 ]
