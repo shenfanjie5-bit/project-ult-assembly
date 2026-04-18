@@ -9,6 +9,8 @@ from pathlib import Path
 
 import pytest
 
+from assembly.compat import CompatibilityReport
+from assembly.compat.schema import CompatibilityCheckResult, CompatibilityCheckStatus
 from assembly.contracts import HealthResult, HealthStatus, IntegrationRunRecord
 from assembly.profiles.loader import load_profile
 
@@ -51,6 +53,7 @@ def test_entrypoint_help_lists_subcommands() -> None:
         "shutdown",
         "healthcheck",
         "smoke",
+        "contract-suite",
         "export-registry",
     ):
         assert command in result.output
@@ -73,6 +76,7 @@ def test_module_invocation_help_lists_subcommands() -> None:
     assert "list-profiles" in result.stdout
     assert "healthcheck" in result.stdout
     assert "smoke" in result.stdout
+    assert "contract-suite" in result.stdout
     assert "export-registry" in result.stdout
 
 
@@ -307,6 +311,62 @@ def test_smoke_cli_maps_failed_record_to_exit_code_and_report(
     assert result.exit_code == 2
     assert (tmp_path / "fake-smoke.json").exists()
     assert "failed\tfake-smoke\tfailing=assembly" in result.output
+
+
+def test_contract_suite_cli_maps_partial_report_to_exit_code(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    def fake_contract_suite(profile_id: str, **kwargs: object) -> CompatibilityReport:
+        reports_dir = kwargs["reports_dir"]
+        report_path = reports_dir / "fake-contract.json"
+        now = datetime.now(timezone.utc)
+        record = IntegrationRunRecord(
+            run_id="fake-contract",
+            profile_id=profile_id,
+            run_type="contract",
+            started_at=now,
+            finished_at=now,
+            status="partial",
+            artifacts=[{"kind": "contract_report", "path": str(report_path)}],
+            failing_modules=["subsystem-sdk"],
+            summary="Contract suite partially passed",
+        )
+        report = CompatibilityReport(
+            run_record=record,
+            checks=[
+                CompatibilityCheckResult(
+                    check_name="sdk_boundary",
+                    module_id="subsystem-sdk",
+                    status=CompatibilityCheckStatus.not_started,
+                    message="not started",
+                )
+            ],
+            matrix_version="0.1.0",
+            promoted=False,
+            report_path=report_path,
+        )
+        report_path.parent.mkdir(parents=True, exist_ok=True)
+        report_path.write_text(report.model_dump_json(), encoding="utf-8")
+        return report
+
+    monkeypatch.setattr(main, "execute_contract_suite", fake_contract_suite)
+
+    result = CliRunner().invoke(
+        entrypoint,
+        [
+            "contract-suite",
+            "--profile",
+            "lite-local",
+            "--reports-dir",
+            str(tmp_path),
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert (tmp_path / "fake-contract.json").exists()
+    assert "partial\tfake-contract\tfailing=subsystem-sdk" in result.output
+    assert f"report={tmp_path / 'fake-contract.json'}" in result.output
 
 
 def test_bootstrap_maps_runner_error_to_nonzero_exit(

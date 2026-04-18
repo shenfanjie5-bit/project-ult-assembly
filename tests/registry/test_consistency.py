@@ -4,7 +4,6 @@ from pathlib import Path
 
 import pytest
 import yaml
-from pydantic import ValidationError
 
 from assembly.profiles import list_profiles
 from assembly.registry import (
@@ -154,12 +153,13 @@ def assert_phase_zero_public_entrypoints(entry: ModuleRegistryEntry) -> None:
     }
 
 
-def test_phase_zero_rejects_non_draft_matrix_status() -> None:
+def test_deprecated_matrix_status_is_valid_but_not_current() -> None:
     raw = yaml.safe_load(MATRIX_YAML.read_text(encoding="utf-8"))
     raw[0]["status"] = "deprecated"
 
-    with pytest.raises(ValidationError, match="Phase 0"):
-        CompatibilityMatrixEntry.model_validate(raw[0])
+    entry = CompatibilityMatrixEntry.model_validate(raw[0])
+
+    assert entry.status == "deprecated"
 
 
 def test_compatibility_matrix_is_draft_and_covers_registry_modules() -> None:

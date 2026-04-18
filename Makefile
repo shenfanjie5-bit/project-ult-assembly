@@ -4,7 +4,7 @@ DRY_RUN ?=
 ASSEMBLY := PYTHONPATH=src $(PYTHON) -m assembly.cli.main
 DRY_RUN_FLAG := $(if $(DRY_RUN),--dry-run,)
 
-.PHONY: list-profiles render-profile bootstrap shutdown healthcheck smoke export-registry test
+.PHONY: list-profiles render-profile bootstrap shutdown healthcheck smoke contract-suite export-registry test
 
 list-profiles:
 	$(ASSEMBLY) list-profiles
@@ -24,8 +24,11 @@ healthcheck:
 smoke:
 	$(ASSEMBLY) smoke --profile $(PROFILE)
 
+contract-suite:
+	$(ASSEMBLY) contract-suite --profile $(PROFILE)
+
 export-registry:
 	$(ASSEMBLY) export-registry
 
 test:
-	$(PYTHON) -m pytest tests/profiles tests/registry tests/bootstrap tests/health tests/smoke tests/contracts tests/cli -q
+	$(PYTHON) -m pytest tests/profiles tests/registry tests/bootstrap tests/health tests/smoke tests/contracts tests/compat tests/cli -q

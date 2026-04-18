@@ -11,6 +11,11 @@ import click
 from assembly.bootstrap import BootstrapStageError, bootstrap as execute_bootstrap
 from assembly.bootstrap.plan import BootstrapPlan, BootstrapPlanError, build_plan
 from assembly.bootstrap.runner import BootstrapResult, ComposeCommandError, Runner
+from assembly.compat import (
+    CompatibilityError,
+    CompatibilityReport,
+    run_contract_suite as execute_contract_suite,
+)
 from assembly.contracts.models import HealthResult, HealthStatus, IntegrationRunRecord
 from assembly.health import healthcheck as execute_healthcheck
 from assembly.profiles.errors import ProfileError, ProfileNotFoundError
@@ -68,6 +73,13 @@ REPORTS_DIR_OPTION = click.option(
     default=Path("reports/smoke"),
     show_default=True,
     help="Directory where smoke reports are written.",
+)
+CONTRACT_REPORTS_DIR_OPTION = click.option(
+    "--reports-dir",
+    type=click.Path(path_type=Path, file_okay=False),
+    default=Path("reports/contract"),
+    show_default=True,
+    help="Directory where contract reports are written.",
 )
 DRY_RUN_OPTION = click.option(
     "--dry-run",
@@ -281,6 +293,59 @@ def smoke_command(
     raise click.exceptions.Exit(_smoke_exit_code(record))
 
 
+@entrypoint.command("contract-suite")
+@PROFILE_OPTION
+@PROFILES_DIR_OPTION
+@BUNDLES_DIR_OPTION
+@ENV_FILE_OPTION
+@CONTRACT_REPORTS_DIR_OPTION
+@TIMEOUT_SEC_OPTION
+@click.option(
+    "--promote",
+    is_flag=True,
+    help=(
+        "Promote a matching draft compatibility matrix entry when all required "
+        "runs passed."
+    ),
+)
+def contract_suite_command(
+    profile_id: str,
+    profiles_dir: Path,
+    bundles_dir: Path,
+    env_file: Path,
+    reports_dir: Path,
+    timeout_sec: float,
+    promote: bool,
+) -> None:
+    """Run the contract compatibility suite for a resolved profile."""
+
+    try:
+        report = execute_contract_suite(
+            profile_id,
+            profiles_root=profiles_dir,
+            bundles_root=bundles_dir,
+            registry_root=Path("."),
+            reports_dir=reports_dir,
+            env=_combined_env(env_file),
+            timeout_sec=timeout_sec,
+            promote=promote,
+        )
+    except (
+        ProfileError,
+        RegistryError,
+        CompatibilityError,
+        OSError,
+    ) as exc:
+        raise click.ClickException(str(exc)) from exc
+
+    click.echo(
+        f"{report.run_record.status}\t{report.run_record.run_id}\t"
+        f"failing={','.join(report.run_record.failing_modules)}\t"
+        f"report={report.report_path}"
+    )
+    raise click.exceptions.Exit(_contract_exit_code(report))
+
+
 @entrypoint.command("export-registry")
 @OUT_OPTION
 def export_registry_command(out: Path | None) -> None:
@@ -384,6 +449,14 @@ def _smoke_exit_code(record: IntegrationRunRecord) -> int:
     if record.status == "failed":
         return 2
     if record.status == "partial":
+        return 1
+    return 0
+
+
+def _contract_exit_code(report: CompatibilityReport) -> int:
+    if report.run_record.status == "failed":
+        return 2
+    if report.run_record.status == "partial":
         return 1
     return 0
 
