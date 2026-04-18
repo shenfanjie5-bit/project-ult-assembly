@@ -56,6 +56,7 @@ def test_entrypoint_help_lists_subcommands() -> None:
         "contract-suite",
         "e2e",
         "export-registry",
+        "release-freeze",
     ):
         assert command in result.output
 
@@ -80,6 +81,7 @@ def test_module_invocation_help_lists_subcommands() -> None:
     assert "contract-suite" in result.stdout
     assert "e2e" in result.stdout
     assert "export-registry" in result.stdout
+    assert "release-freeze" in result.stdout
 
 
 def test_pyproject_registers_assembly_script() -> None:

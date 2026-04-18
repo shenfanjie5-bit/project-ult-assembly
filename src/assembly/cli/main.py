@@ -11,6 +11,7 @@ import click
 from assembly.bootstrap import BootstrapStageError, bootstrap as execute_bootstrap
 from assembly.bootstrap.plan import BootstrapPlan, BootstrapPlanError, build_plan
 from assembly.bootstrap.runner import BootstrapResult, ComposeCommandError, Runner
+from assembly.cli.release import make_release_freeze_command
 from assembly.compat import (
     CompatibilityError,
     CompatibilityReport,
@@ -22,7 +23,13 @@ from assembly.profiles.errors import ProfileError, ProfileNotFoundError
 from assembly.profiles.loader import list_profiles
 from assembly.profiles.resolver import render_profile, with_extra_bundles
 from assembly.profiles.schema import EnvironmentProfile
-from assembly.registry import RegistryError, export_module_registry, load_all
+from assembly.registry import (
+    RegistryError,
+    VersionLock,
+    export_module_registry,
+    freeze_profile,
+    load_all,
+)
 from assembly.tests.e2e import run_min_cycle_e2e as execute_e2e
 from assembly.tests.smoke import run_smoke as execute_smoke
 
@@ -464,6 +471,40 @@ def export_registry_command(out: Path | None) -> None:
     click.echo(
         f"{export.out_dir}\tmodules={export.module_count}\tmatrix={export.matrix_count}"
     )
+
+
+def execute_release_freeze(
+    profile_id: str,
+    *,
+    registry_root: Path,
+    profiles_root: Path,
+    reports_root: Path,
+    out_dir: Path,
+) -> VersionLock:
+    """Freeze the verified compatibility matrix entry for a profile."""
+
+    return freeze_profile(
+        profile_id,
+        registry_root=registry_root,
+        profiles_root=profiles_root,
+        reports_root=reports_root,
+        out_dir=out_dir,
+    )
+
+
+entrypoint.add_command(
+    make_release_freeze_command(
+        lambda profile_id, registry_root, profiles_root, reports_root, out_dir: (
+            execute_release_freeze(
+                profile_id,
+                registry_root=registry_root,
+                profiles_root=profiles_root,
+                reports_root=reports_root,
+                out_dir=out_dir,
+            )
+        )
+    )
+)
 
 
 def _load_profile_by_id(profile_id: str, profiles_dir: Path) -> EnvironmentProfile:
