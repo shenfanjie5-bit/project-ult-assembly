@@ -57,8 +57,9 @@ class HealthcheckRunner:
         """Run health probes in resolved Lite service order, then registry order."""
 
         results: list[HealthResult] = []
+        builtin_plan = _builtin_probe_plan(snapshot)
         probes = self._builtin_probes
-        if probes is None:
+        if probes is None and builtin_plan:
             probes = build_builtin_probes(
                 snapshot,
                 compose_file=self._compose_file,
@@ -66,7 +67,7 @@ class HealthcheckRunner:
                 command_runner=self._command_runner,
             )
 
-        for spec in _builtin_probe_plan(snapshot):
+        for spec in builtin_plan:
             probe = probes.get(spec.probe_name)
             if probe is None:
                 result = _builtin_missing_result(spec)
@@ -148,7 +149,13 @@ def _run_registry_health_probes(
     for module_id in snapshot.enabled_modules:
         entry = entries_by_id.get(module_id)
         if entry is None:
-            results.append(_skipped_health_result(module_id, "unregistered"))
+            results.append(
+                _unavailable_health_result(
+                    module_id,
+                    "unregistered",
+                    status=HealthStatus.blocked,
+                )
+            )
             continue
 
         health_entrypoints = [
@@ -159,16 +166,23 @@ def _run_registry_health_probes(
         if entry.integration_status == IntegrationStatus.not_started:
             probe_name = health_entrypoints[0].name if health_entrypoints else "health"
             results.append(
-                _skipped_health_result(
+                _unavailable_health_result(
                     module_id,
                     entry.integration_status.value,
+                    status=HealthStatus.degraded,
                     probe_name=probe_name,
                 )
             )
             continue
 
         if not health_entrypoints:
-            results.append(_skipped_health_result(module_id, "missing_health_probe"))
+            results.append(
+                _unavailable_health_result(
+                    module_id,
+                    "missing_health_probe",
+                    status=HealthStatus.blocked,
+                )
+            )
             continue
 
         for entrypoint in health_entrypoints:
@@ -303,21 +317,21 @@ def _builtin_missing_result(spec: _BuiltinProbeSpec) -> HealthResult:
     )
 
 
-def _skipped_health_result(
+def _unavailable_health_result(
     module_id: str,
-    integration_status: str,
+    reason: str,
     *,
+    status: HealthStatus,
     probe_name: str = "health",
 ) -> HealthResult:
     return HealthResult(
         module_id=module_id,
         probe_name=probe_name,
-        status=HealthStatus.healthy,
+        status=status,
         latency_ms=0.0,
-        message=f"{module_id} health_probe skipped",
+        message=f"{module_id} health_probe unavailable: {reason}",
         details={
-            "skipped": True,
-            "integration_status": integration_status,
+            "registry_reason": reason,
         },
     )
 

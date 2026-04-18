@@ -111,7 +111,7 @@ def test_optional_bundle_failure_maps_to_degraded() -> None:
     assert results[0].details["optional"] is True
 
 
-def test_not_started_registry_health_probe_is_skipped_without_import() -> None:
+def test_not_started_registry_health_probe_is_degraded_without_import() -> None:
     snapshot = _snapshot().model_copy(
         update={"enabled_modules": ["contracts"], "service_bundles": []}
     )
@@ -131,11 +131,32 @@ def test_not_started_registry_health_probe_is_skipped_without_import() -> None:
 
     assert len(results) == 1
     assert results[0].module_id == "contracts"
-    assert results[0].status == HealthStatus.healthy
-    assert results[0].details == {
-        "skipped": True,
-        "integration_status": "not_started",
-    }
+    assert results[0].status == HealthStatus.degraded
+    assert results[0].details == {"registry_reason": "not_started"}
+
+
+def test_missing_registry_health_probe_is_blocked() -> None:
+    snapshot = _snapshot().model_copy(
+        update={"enabled_modules": ["contracts"], "service_bundles": []}
+    )
+    registry = Registry(
+        root=PROJECT_ROOT,
+        modules=[
+            _registry_entry(
+                "contracts",
+                IntegrationStatus.partial,
+                None,
+            )
+        ],
+        compatibility_matrix=[],
+    )
+
+    results = HealthcheckRunner().run(snapshot, registry)
+
+    assert len(results) == 1
+    assert results[0].module_id == "contracts"
+    assert results[0].status == HealthStatus.blocked
+    assert results[0].details == {"registry_reason": "missing_health_probe"}
 
 
 def _snapshot() -> ResolvedConfigSnapshot:
@@ -165,8 +186,18 @@ def _env() -> dict[str, str]:
 def _registry_entry(
     module_id: str,
     integration_status: IntegrationStatus,
-    reference: str,
+    reference: str | None,
 ) -> ModuleRegistryEntry:
+    public_entrypoints = []
+    if reference is not None:
+        public_entrypoints.append(
+            {
+                "name": "health",
+                "kind": "health_probe",
+                "reference": reference,
+            }
+        )
+
     return ModuleRegistryEntry(
         module_id=module_id,
         module_version="0.0.0",
@@ -174,17 +205,10 @@ def _registry_entry(
         owner="test",
         upstream_modules=[],
         downstream_modules=[],
-        public_entrypoints=[
-            {
-                "name": "health",
-                "kind": "health_probe",
-                "reference": reference,
-            }
-        ],
+        public_entrypoints=public_entrypoints,
         depends_on=[],
         supported_profiles=["lite-local"],
         integration_status=integration_status,
         last_smoke_result=None,
         notes="test entry",
     )
-
