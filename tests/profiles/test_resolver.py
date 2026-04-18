@@ -6,9 +6,11 @@ from pathlib import Path
 import pytest
 
 from assembly.profiles import (
+    ProfileConstraintError,
     ProfileEnvMissingError,
     render_profile,
     resolve,
+    with_extra_bundles,
 )
 from assembly.profiles.loader import load_profile
 
@@ -51,6 +53,117 @@ def test_render_profile_loads_profile_by_public_id() -> None:
 
     assert snapshot.profile_id == profile.profile_id
     assert snapshot.enabled_service_bundles == ["postgres", "neo4j", "dagster"]
+
+
+def test_render_profile_merges_full_extra_bundles_in_order() -> None:
+    profile = load_profile(PROFILES_ROOT / "full-dev.yaml")
+    env = _required_env(profile.required_env_keys)
+    env.update(_optional_bundle_credentials())
+
+    snapshot = render_profile(
+        "full-dev",
+        profiles_root=PROFILES_ROOT,
+        bundles_root=BUNDLES_ROOT,
+        env=env,
+        extra_bundles=["grafana", "superset"],
+    )
+
+    assert snapshot.enabled_service_bundles == [
+        "postgres",
+        "neo4j",
+        "dagster",
+        "grafana",
+        "superset",
+    ]
+    assert [bundle.bundle_name for bundle in snapshot.service_bundles] == [
+        "postgres",
+        "neo4j",
+        "dagster",
+        "grafana",
+        "superset",
+    ]
+
+
+@pytest.mark.parametrize(
+    ("extra_bundles", "expected_missing"),
+    [
+        (["minio"], ["MINIO_ROOT_USER", "MINIO_ROOT_PASSWORD"]),
+        (["grafana"], ["GRAFANA_ADMIN_USER", "GRAFANA_ADMIN_PASSWORD"]),
+        (["superset"], ["SUPERSET_SECRET_KEY"]),
+    ],
+)
+def test_render_profile_requires_selected_optional_bundle_credentials(
+    extra_bundles: list[str],
+    expected_missing: list[str],
+) -> None:
+    profile = load_profile(PROFILES_ROOT / "full-dev.yaml")
+    env = _required_env(profile.required_env_keys)
+
+    with pytest.raises(ProfileEnvMissingError) as exc_info:
+        render_profile(
+            "full-dev",
+            profiles_root=PROFILES_ROOT,
+            bundles_root=BUNDLES_ROOT,
+            env=env,
+            extra_bundles=extra_bundles,
+        )
+
+    message = str(exc_info.value)
+    assert "selected optional bundles" in message
+    for key in expected_missing:
+        assert key in message
+
+
+def test_render_profile_rejects_empty_selected_optional_bundle_credentials() -> None:
+    profile = load_profile(PROFILES_ROOT / "full-dev.yaml")
+    env = _required_env(profile.required_env_keys)
+    env.update(_optional_bundle_credentials())
+    env["SUPERSET_SECRET_KEY"] = " "
+
+    with pytest.raises(ProfileEnvMissingError, match="SUPERSET_SECRET_KEY"):
+        render_profile(
+            "full-dev",
+            profiles_root=PROFILES_ROOT,
+            bundles_root=BUNDLES_ROOT,
+            env=env,
+            extra_bundles=["superset"],
+        )
+
+
+def test_with_extra_bundles_returns_copy_without_mutating_profile() -> None:
+    profile = load_profile(PROFILES_ROOT / "full-dev.yaml")
+
+    updated = with_extra_bundles(
+        profile,
+        ["grafana"],
+        bundle_root=BUNDLES_ROOT,
+    )
+
+    assert updated is not profile
+    assert profile.enabled_service_bundles == ["postgres", "neo4j", "dagster"]
+    assert updated.enabled_service_bundles == [
+        "postgres",
+        "neo4j",
+        "dagster",
+        "grafana",
+    ]
+
+
+def test_with_extra_bundles_rejects_duplicate_and_unknown_bundles() -> None:
+    profile = load_profile(PROFILES_ROOT / "full-dev.yaml")
+
+    with pytest.raises(ProfileConstraintError, match="Duplicate"):
+        with_extra_bundles(profile, ["grafana", "grafana"], bundle_root=BUNDLES_ROOT)
+
+    with pytest.raises(ProfileConstraintError, match="Unknown extra bundle"):
+        with_extra_bundles(profile, ["missing"], bundle_root=BUNDLES_ROOT)
+
+
+def test_lite_profile_rejects_optional_extra_bundle() -> None:
+    profile = load_profile(PROFILE_PATH)
+
+    with pytest.raises(ProfileConstraintError, match="Lite profile.*optional"):
+        with_extra_bundles(profile, ["grafana"], bundle_root=BUNDLES_ROOT)
 
 
 def test_resolve_missing_required_env_fails_fast_with_all_missing_keys() -> None:
@@ -106,3 +219,13 @@ def test_snapshot_dump_writes_redacted_utf8_json(tmp_path: Path) -> None:
 
 def _required_env(keys: list[str]) -> dict[str, str]:
     return {key: f"value-for-{key.lower()}" for key in keys}
+
+
+def _optional_bundle_credentials() -> dict[str, str]:
+    return {
+        "MINIO_ROOT_USER": "assembly-minio-user",
+        "MINIO_ROOT_PASSWORD": "assembly-minio-password",
+        "GRAFANA_ADMIN_USER": "assembly-grafana-user",
+        "GRAFANA_ADMIN_PASSWORD": "assembly-grafana-password",
+        "SUPERSET_SECRET_KEY": "assembly-superset-secret",
+    }

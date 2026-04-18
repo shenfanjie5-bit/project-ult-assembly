@@ -1,0 +1,20 @@
+bundle_name: feast
+services:
+  - name: feast
+    image_or_cmd: python:3.11-slim
+    image: python:3.11-slim
+    command: python -m http.server ${FEAST_PORT:-6566}
+    health_probe: >-
+      python -c "import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:%s' % os.environ.get('FEAST_PORT', '6566'), timeout=2)"
+    env:
+      FEAST_PORT: ${FEAST_PORT:-6566}
+startup_order:
+  - feast
+shutdown_order:
+  - feast
+health_checks:
+  - >-
+    python -c "import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:%s' % os.environ.get('FEAST_PORT', '6566'), timeout=2)"
+required_profiles:
+  - full-dev
+optional: true

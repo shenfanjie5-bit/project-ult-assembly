@@ -28,7 +28,7 @@ from assembly.bootstrap.service_handle import ServiceHandle
 from assembly.contracts.models import HealthResult, HealthStatus, SmokeResult
 from assembly.profiles.errors import ProfileError, ProfileNotFoundError
 from assembly.profiles.loader import list_profiles
-from assembly.profiles.resolver import resolve
+from assembly.profiles.resolver import resolve, with_extra_bundles
 from assembly.profiles.schema import EnvironmentProfile
 from assembly.registry import (
     ModuleRegistryEntry,
@@ -63,10 +63,11 @@ def bootstrap(
     *,
     profiles_root: Path = Path("profiles"),
     bundle_root: Path = Path("bundles"),
-    compose_file: Path = Path("compose/lite-local.yaml"),
+    compose_file: Path | None = None,
     registry_path: Path = Path("module-registry.yaml"),
     env: Mapping[str, str] | None = None,
     env_file: Path | None = None,
+    extra_bundles: Sequence[str] | None = None,
     runner: Runner | None = None,
     dry_run: bool = False,
     reports_root: Path = _DEFAULT_BOOTSTRAP_REPORT_ROOT,
@@ -88,8 +89,20 @@ def bootstrap(
     stage_results: list[BootstrapStageResult] = []
 
     try:
+        profile = with_extra_bundles(
+            profile,
+            extra_bundles,
+            bundle_root=bundle_root,
+        )
+        resolved_compose_file = compose_file or _default_compose_file(
+            profile.profile_id
+        )
         resolve(profile, os.environ if env is None else env, bundle_root=bundle_root)
-        plan = build_plan(profile, bundle_root=bundle_root, compose_file=compose_file)
+        plan = build_plan(
+            profile,
+            bundle_root=bundle_root,
+            compose_file=resolved_compose_file,
+        )
     except (BootstrapPlanError, ProfileError, OSError) as exc:
         result = BootstrapResult(
             profile_id=profile_id,
@@ -172,7 +185,7 @@ def bootstrap(
         _stage_result(
             "service_startup",
             "passed",
-            "Compose services started in Lite startup order.",
+            "Compose services started in profile startup order.",
             {
                 "command": list(result.command),
                 "service_order": list(result.service_order),
@@ -246,6 +259,13 @@ def _load_profile_by_id(profile_id: str, profiles_root: Path) -> EnvironmentProf
             return profile
 
     raise ProfileNotFoundError(f"Profile id not found in {profiles_root}: {profile_id}")
+
+
+def _default_compose_file(profile_id: str) -> Path:
+    if profile_id == "full-dev":
+        return Path("compose/full-dev.yaml")
+
+    return Path("compose/lite-local.yaml")
 
 
 def _exercise_orchestrator_entrypoint(

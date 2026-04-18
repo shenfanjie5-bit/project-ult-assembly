@@ -161,6 +161,40 @@ def test_optional_bundle_failure_maps_to_degraded() -> None:
     assert results[0].details["optional"] is True
 
 
+def test_full_dev_optional_missing_builtin_probe_maps_to_degraded() -> None:
+    snapshot = render_profile(
+        "full-dev",
+        profiles_root=PROFILES_ROOT,
+        bundles_root=BUNDLES_ROOT,
+        env=_full_env(),
+        extra_bundles=["grafana"],
+    )
+    order: list[str] = []
+    runner = HealthcheckRunner(
+        builtin_probes={
+            probe_name: RecordingProbe(probe_name, order)
+            for probe_name in (
+                "postgres-ready",
+                "neo4j-ready",
+                "dagster-daemon-ready",
+                "dagster-webserver-ready",
+            )
+        }
+    )
+
+    results = runner.run(snapshot)
+
+    assert [result.probe_name for result in results] == [
+        "postgres-ready",
+        "neo4j-ready",
+        "dagster-daemon-ready",
+        "dagster-webserver-ready",
+        "grafana-ready",
+    ]
+    assert results[-1].status == HealthStatus.degraded
+    assert results[-1].details["optional"] is True
+
+
 def test_optional_probe_timeout_reports_convergence_deadline_exhaustion() -> None:
     snapshot = _snapshot()
     optional_postgres = snapshot.service_bundles[0].model_copy(
@@ -253,6 +287,23 @@ def _env() -> dict[str, str]:
             "NEO4J_URI": "bolt://127.0.0.1:7687",
             "DAGSTER_HOST": "127.0.0.1",
             "DAGSTER_PORT": "3000",
+        }
+    )
+    return values
+
+
+def _full_env() -> dict[str, str]:
+    profile = load_profile(PROFILES_ROOT / "full-dev.yaml")
+    values = {key: f"value-for-{key.lower()}" for key in profile.required_env_keys}
+    values.update(
+        {
+            "POSTGRES_HOST": "127.0.0.1",
+            "POSTGRES_PORT": "5432",
+            "NEO4J_URI": "bolt://127.0.0.1:7687",
+            "DAGSTER_HOST": "127.0.0.1",
+            "DAGSTER_PORT": "3000",
+            "GRAFANA_ADMIN_USER": "assembly-grafana-user",
+            "GRAFANA_ADMIN_PASSWORD": "assembly-grafana-password",
         }
     )
     return values

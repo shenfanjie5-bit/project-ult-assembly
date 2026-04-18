@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Mapping
+from typing import Mapping, Sequence
 
 from assembly.contracts.models import IntegrationRunRecord
 from assembly.profiles.resolver import render_profile
@@ -19,6 +19,7 @@ def run_smoke(
     registry_root: Path = Path("."),
     reports_dir: Path = Path("reports/smoke"),
     env: Mapping[str, str] | None = None,
+    extra_bundles: Sequence[str] | None = None,
     timeout_sec: float = 30.0,
 ) -> IntegrationRunRecord:
     """Resolve a profile and run the system-level smoke suite."""
@@ -34,6 +35,7 @@ def run_smoke(
         profiles_root=profiles_root,
         bundles_root=bundles_root,
         env=env,
+        extra_bundles=extra_bundles,
     ).model_copy(
         update={
             "enabled_modules": [entry.module_id for entry in resolved_entries],

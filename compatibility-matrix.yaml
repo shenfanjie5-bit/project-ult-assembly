@@ -36,3 +36,41 @@
     - min-cycle-e2e
   status: draft
   verified_at: null
+- matrix_version: 0.1.0
+  profile_id: full-dev
+  module_set:
+    - module_id: contracts
+      module_version: 0.0.0
+    - module_id: data-platform
+      module_version: 0.0.0
+    - module_id: entity-registry
+      module_version: 0.0.0
+    - module_id: reasoner-runtime
+      module_version: 0.0.0
+    - module_id: graph-engine
+      module_version: 0.0.0
+    - module_id: main-core
+      module_version: 0.0.0
+    - module_id: audit-eval
+      module_version: 0.0.0
+    - module_id: subsystem-sdk
+      module_version: 0.0.0
+    - module_id: orchestrator
+      module_version: 0.0.0
+    - module_id: assembly
+      module_version: 0.1.0
+    - module_id: feature-store
+      module_version: 0.0.0
+    - module_id: stream-layer
+      module_version: 0.0.0
+    - module_id: subsystem-announcement
+      module_version: 0.0.0
+    - module_id: subsystem-news
+      module_version: 0.0.0
+  contract_version: v0.0.0
+  required_tests:
+    - contract-suite
+    - smoke
+    - min-cycle-e2e
+  status: draft
+  verified_at: null

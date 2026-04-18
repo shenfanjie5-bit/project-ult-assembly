@@ -17,6 +17,7 @@ from assembly.profiles.resolver import (
     ResolvedConfigSnapshot,
     render_profile,
     resolve,
+    with_extra_bundles,
 )
 from assembly.profiles.schema import EnvironmentProfile, ServiceBundleManifest
 
@@ -35,4 +36,5 @@ __all__ = [
     "load_profile",
     "render_profile",
     "resolve",
+    "with_extra_bundles",
 ]

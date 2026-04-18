@@ -103,6 +103,7 @@ def test_list_profiles_outputs_lite_local() -> None:
 
     assert result.exit_code == 0
     assert "lite-local" in result.output
+    assert "full-dev" in result.output
 
 
 def test_render_profile_writes_redacted_snapshot(tmp_path: Path) -> None:
@@ -131,6 +132,43 @@ def test_render_profile_writes_redacted_snapshot(tmp_path: Path) -> None:
     assert payload["profile_id"] == "lite-local"
     assert payload["required_env"]["POSTGRES_PASSWORD"] == "<redacted>"
     assert "plain-postgres-password" not in out.read_text(encoding="utf-8")
+
+
+def test_render_profile_accepts_extra_bundles(tmp_path: Path) -> None:
+    env_file = _write_env_file(
+        tmp_path / ".env",
+        include_optional_bundle_credentials=True,
+    )
+    out = tmp_path / "snapshot.json"
+
+    result = CliRunner().invoke(
+        entrypoint,
+        [
+            "render-profile",
+            "--profile",
+            "full-dev",
+            "--profiles-dir",
+            str(PROFILES_ROOT),
+            "--bundles-dir",
+            str(BUNDLES_ROOT),
+            "--env-file",
+            str(env_file),
+            "--extra-bundles",
+            "grafana, superset",
+            "--out",
+            str(out),
+        ],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(out.read_text(encoding="utf-8"))
+    assert payload["enabled_service_bundles"] == [
+        "postgres",
+        "neo4j",
+        "dagster",
+        "grafana",
+        "superset",
+    ]
 
 
 def test_bootstrap_dry_run_prints_plan_without_docker(tmp_path: Path) -> None:
@@ -171,6 +209,116 @@ def test_bootstrap_dry_run_prints_plan_without_docker(tmp_path: Path) -> None:
     ]
 
 
+def test_bootstrap_full_dev_extra_bundles_dry_run_uses_full_compose(
+    tmp_path: Path,
+) -> None:
+    env_file = _write_env_file(
+        tmp_path / ".env",
+        include_optional_bundle_credentials=True,
+    )
+    report_path = tmp_path / "reports/bootstrap/full-dev-dry-run.json"
+
+    result = CliRunner().invoke(
+        entrypoint,
+        [
+            "bootstrap",
+            "--profile",
+            "full-dev",
+            "--profiles-dir",
+            str(PROFILES_ROOT),
+            "--bundles-dir",
+            str(BUNDLES_ROOT),
+            "--env-file",
+            str(env_file),
+            "--extra-bundles",
+            "grafana,superset",
+            "--out",
+            str(report_path),
+            "--dry-run",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert (
+        "postgres -> neo4j -> dagster-daemon -> dagster-webserver -> "
+        "grafana -> superset"
+    ) in result.output
+    assert (
+        f"docker compose --env-file {env_file} -f compose/full-dev.yaml up -d "
+        "--wait postgres neo4j dagster-daemon dagster-webserver grafana superset"
+    ) in result.output
+    payload = json.loads(report_path.read_text(encoding="utf-8"))
+    assert payload["compose_file"] == "compose/full-dev.yaml"
+    assert payload["service_order"] == [
+        "postgres",
+        "neo4j",
+        "dagster-daemon",
+        "dagster-webserver",
+        "grafana",
+        "superset",
+    ]
+
+
+def test_bootstrap_full_dev_extra_bundles_requires_explicit_credentials(
+    tmp_path: Path,
+) -> None:
+    env_file = _write_env_file(tmp_path / ".env")
+
+    result = CliRunner().invoke(
+        entrypoint,
+        [
+            "bootstrap",
+            "--profile",
+            "full-dev",
+            "--profiles-dir",
+            str(PROFILES_ROOT),
+            "--bundles-dir",
+            str(BUNDLES_ROOT),
+            "--env-file",
+            str(env_file),
+            "--extra-bundles",
+            "grafana,superset",
+            "--dry-run",
+        ],
+    )
+
+    assert result.exit_code != 0
+    assert "Missing non-empty environment keys for selected optional bundles" in (
+        result.output
+    )
+    assert "GRAFANA_ADMIN_USER" in result.output
+    assert "GRAFANA_ADMIN_PASSWORD" in result.output
+    assert "SUPERSET_SECRET_KEY" in result.output
+    assert "docker compose" not in result.output
+
+
+def test_bootstrap_lite_rejects_extra_optional_bundle(tmp_path: Path) -> None:
+    env_file = _write_env_file(tmp_path / ".env")
+
+    result = CliRunner().invoke(
+        entrypoint,
+        [
+            "bootstrap",
+            "--profile",
+            "lite-local",
+            "--profiles-dir",
+            str(PROFILES_ROOT),
+            "--bundles-dir",
+            str(BUNDLES_ROOT),
+            "--env-file",
+            str(env_file),
+            "--extra-bundles",
+            "grafana",
+            "--dry-run",
+        ],
+    )
+
+    assert result.exit_code != 0
+    assert "Lite profile lite-local cannot enable optional bundle grafana" in (
+        result.output
+    )
+
+
 def test_shutdown_dry_run_prints_stop_plan(tmp_path: Path) -> None:
     env_file = _write_env_file(tmp_path / ".env")
 
@@ -196,6 +344,53 @@ def test_shutdown_dry_run_prints_stop_plan(tmp_path: Path) -> None:
         f"docker compose --env-file {env_file} -f compose/lite-local.yaml stop "
         "dagster-webserver dagster-daemon neo4j postgres"
     ) in result.output
+
+
+def test_shutdown_full_dev_extra_bundles_dry_run_uses_reverse_plan(
+    tmp_path: Path,
+) -> None:
+    env_file = _write_env_file(
+        tmp_path / ".env",
+        include_optional_bundle_credentials=True,
+    )
+
+    result = CliRunner().invoke(
+        entrypoint,
+        [
+            "shutdown",
+            "--profile",
+            "full-dev",
+            "--profiles-dir",
+            str(PROFILES_ROOT),
+            "--bundles-dir",
+            str(BUNDLES_ROOT),
+            "--env-file",
+            str(env_file),
+            "--extra-bundles",
+            "grafana,superset",
+            "--dry-run",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "superset -> grafana -> dagster-webserver" in result.output
+    assert (
+        f"docker compose --env-file {env_file} -f compose/full-dev.yaml stop "
+        "superset grafana dagster-webserver dagster-daemon neo4j postgres"
+    ) in result.output
+
+
+def test_parse_extra_bundles_rejects_empty_and_duplicate_items() -> None:
+    assert main._parse_extra_bundles(" grafana, superset ") == [
+        "grafana",
+        "superset",
+    ]
+
+    with pytest.raises(ValueError, match="empty"):
+        main._parse_extra_bundles("grafana,,superset")
+
+    with pytest.raises(ValueError, match="duplicate"):
+        main._parse_extra_bundles("grafana,grafana")
 
 
 @pytest.mark.parametrize(
@@ -477,7 +672,7 @@ def test_export_registry_writes_runtime_artifacts(tmp_path: Path) -> None:
     assert json.loads((out / "registry.json").read_text(encoding="utf-8"))
     assert json.loads((out / "matrix.json").read_text(encoding="utf-8"))
     assert "modules=14" in result.output
-    assert "matrix=1" in result.output
+    assert "matrix=2" in result.output
 
 
 def test_export_registry_cli_uses_runtime_exporter(
@@ -529,7 +724,11 @@ def test_export_registry_cli_uses_runtime_exporter(
     assert "matrix=3" in result.output
 
 
-def _write_env_file(path: Path) -> Path:
+def _write_env_file(
+    path: Path,
+    *,
+    include_optional_bundle_credentials: bool = False,
+) -> Path:
     profile = load_profile(PROFILES_ROOT / "lite-local.yaml")
     values = []
     for key in profile.required_env_keys:
@@ -542,5 +741,15 @@ def _write_env_file(path: Path) -> Path:
         values.append(f"{key}={value}")
 
     values.extend(f"{key}=" for key in profile.optional_env_keys)
+    if include_optional_bundle_credentials:
+        values.extend(
+            [
+                "MINIO_ROOT_USER=assembly-minio-user",
+                "MINIO_ROOT_PASSWORD=assembly-minio-password",
+                "GRAFANA_ADMIN_USER=assembly-grafana-user",
+                "GRAFANA_ADMIN_PASSWORD=assembly-grafana-password",
+                "SUPERSET_SECRET_KEY=assembly-superset-secret",
+            ]
+        )
     path.write_text("\n".join(values) + "\n", encoding="utf-8")
     return path

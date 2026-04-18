@@ -14,6 +14,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from assembly.profiles.errors import ProfileError
 from assembly.profiles.loader import load_bundle
+from assembly.profiles.resolver import with_extra_bundles
 from assembly.profiles.schema import (
     EnvironmentProfile,
     ProfileMode,
@@ -90,9 +91,18 @@ def build_plan(
     *,
     bundle_root: Path = Path("bundles"),
     compose_file: Path = Path("compose/lite-local.yaml"),
+    extra_bundles: Sequence[str] | None = None,
 ) -> BootstrapPlan:
     """Build an ordered bootstrap plan from enabled service bundles."""
 
+    try:
+        profile = with_extra_bundles(
+            profile,
+            extra_bundles,
+            bundle_root=bundle_root,
+        )
+    except ProfileError as exc:
+        raise BootstrapPlanError(str(exc)) from exc
     compose_services = _load_compose_services(compose_file)
     services_by_name: dict[str, BootstrapService] = {}
     startup_order: list[str] = []
@@ -119,7 +129,7 @@ def build_plan(
                 f"{profile.profile_id}"
             )
 
-        if bundle.optional:
+        if bundle.optional and profile.mode == ProfileMode.lite:
             raise BootstrapPlanError(
                 f"Bundle {bundle.bundle_name} is optional and cannot be part of "
                 f"the {profile.profile_id} bootstrap plan"
@@ -443,7 +453,12 @@ def _compose_health_probe(
             raise BootstrapPlanError(
                 f"Compose service {service_name!r} healthcheck test cannot be empty"
             )
-        if parts[0] in {"CMD", "CMD-SHELL"}:
+        if parts[0] == "CMD":
+            raise BootstrapPlanError(
+                f"Compose service {service_name!r} healthcheck test must use "
+                "CMD-SHELL so shell probes match bundle manifests"
+            )
+        if parts[0] == "CMD-SHELL":
             return " ".join(parts[1:])
         return " ".join(parts)
 

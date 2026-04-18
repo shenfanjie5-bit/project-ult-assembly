@@ -23,6 +23,7 @@
   depends_on: []
   supported_profiles:
     - lite-local
+    - full-dev
   integration_status: not_started
   last_smoke_result: null
   notes: Stage 0 placeholder entrypoint declarations.
@@ -51,6 +52,7 @@
   depends_on: []
   supported_profiles:
     - lite-local
+    - full-dev
   integration_status: not_started
   last_smoke_result: null
   notes: Stage 0 placeholder entrypoint declarations.
@@ -79,6 +81,7 @@
   depends_on: []
   supported_profiles:
     - lite-local
+    - full-dev
   integration_status: not_started
   last_smoke_result: null
   notes: Stage 0 placeholder entrypoint declarations.
@@ -107,6 +110,7 @@
   depends_on: []
   supported_profiles:
     - lite-local
+    - full-dev
   integration_status: not_started
   last_smoke_result: null
   notes: Stage 0 placeholder entrypoint declarations.
@@ -135,6 +139,7 @@
   depends_on: []
   supported_profiles:
     - lite-local
+    - full-dev
   integration_status: not_started
   last_smoke_result: null
   notes: Stage 0 placeholder entrypoint declarations.
@@ -163,6 +168,7 @@
   depends_on: []
   supported_profiles:
     - lite-local
+    - full-dev
   integration_status: not_started
   last_smoke_result: null
   notes: Stage 0 placeholder entrypoint declarations.
@@ -191,6 +197,7 @@
   depends_on: []
   supported_profiles:
     - lite-local
+    - full-dev
   integration_status: not_started
   last_smoke_result: null
   notes: Stage 0 placeholder entrypoint declarations.
@@ -219,6 +226,7 @@
   depends_on: []
   supported_profiles:
     - lite-local
+    - full-dev
   integration_status: not_started
   last_smoke_result: null
   notes: Stage 0 placeholder entrypoint declarations.
@@ -247,6 +255,7 @@
   depends_on: []
   supported_profiles:
     - lite-local
+    - full-dev
   integration_status: not_started
   last_smoke_result: null
   notes: Stage 0 placeholder entrypoint declarations.
@@ -275,6 +284,7 @@
   depends_on: []
   supported_profiles:
     - lite-local
+    - full-dev
   integration_status: partial
   last_smoke_result: null
   notes: Stage 0 registry implementation is partial; entrypoints are placeholders.
@@ -303,6 +313,7 @@
   depends_on: []
   supported_profiles:
     - lite-local
+    - full-dev
   integration_status: not_started
   last_smoke_result: null
   notes: Stage 0 placeholder entrypoint declarations.
@@ -331,6 +342,7 @@
   depends_on: []
   supported_profiles:
     - lite-local
+    - full-dev
   integration_status: not_started
   last_smoke_result: null
   notes: Stage 0 placeholder entrypoint declarations.
@@ -359,6 +371,7 @@
   depends_on: []
   supported_profiles:
     - lite-local
+    - full-dev
   integration_status: not_started
   last_smoke_result: null
   notes: Stage 0 placeholder entrypoint declarations.
@@ -387,6 +400,7 @@
   depends_on: []
   supported_profiles:
     - lite-local
+    - full-dev
   integration_status: not_started
   last_smoke_result: null
   notes: Stage 0 placeholder entrypoint declarations.
