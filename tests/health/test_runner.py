@@ -43,6 +43,32 @@ class RecordingProbe:
         )
 
 
+class SequenceProbe:
+    def __init__(
+        self,
+        probe_name: str,
+        order: list[str],
+        statuses: list[HealthStatus],
+    ) -> None:
+        self.probe_name = probe_name
+        self.order = order
+        self.statuses = statuses
+        self.calls = 0
+
+    def check(self, *, timeout_sec: float) -> HealthResult:
+        self.order.append(self.probe_name)
+        status = self.statuses[min(self.calls, len(self.statuses) - 1)]
+        self.calls += 1
+        return HealthResult(
+            module_id=self.probe_name.removesuffix("-ready"),
+            probe_name=self.probe_name,
+            status=status,
+            latency_ms=0.0,
+            message=f"{self.probe_name} {status.value}",
+            details={"timeout_sec": str(timeout_sec)},
+        )
+
+
 def test_healthcheck_runner_executes_lite_builtin_probes_in_order() -> None:
     snapshot = _snapshot()
     order: list[str] = []
@@ -65,6 +91,30 @@ def test_healthcheck_runner_executes_lite_builtin_probes_in_order() -> None:
         "dagster-webserver-ready",
     ]
     assert [result.status for result in results] == [HealthStatus.healthy] * 4
+
+
+def test_required_builtin_probe_retries_until_healthy_before_timeout() -> None:
+    snapshot = _snapshot().model_copy(
+        update={"service_bundles": [_snapshot().service_bundles[0]]}
+    )
+    order: list[str] = []
+    runner = HealthcheckRunner(
+        builtin_probes={
+            "postgres-ready": SequenceProbe(
+                "postgres-ready",
+                order,
+                [HealthStatus.blocked, HealthStatus.healthy],
+            )
+        }
+    )
+
+    results = runner.run(snapshot, timeout_sec=1.0)
+
+    assert order == ["postgres-ready", "postgres-ready"]
+    assert results[0].status == HealthStatus.healthy
+    assert results[0].details["convergence_attempts"] == 2
+    assert results[0].details["deadline_exceeded"] is False
+    assert results[0].details["last_failure_status"] == HealthStatus.blocked.value
 
 
 def test_timeout_maps_required_builtin_probe_to_blocked() -> None:
@@ -108,6 +158,31 @@ def test_optional_bundle_failure_maps_to_degraded() -> None:
     results = runner.run(snapshot)
 
     assert results[0].status == HealthStatus.degraded
+    assert results[0].details["optional"] is True
+
+
+def test_optional_probe_timeout_reports_convergence_deadline_exhaustion() -> None:
+    snapshot = _snapshot()
+    optional_postgres = snapshot.service_bundles[0].model_copy(
+        update={"optional": True}
+    )
+    snapshot = snapshot.model_copy(update={"service_bundles": [optional_postgres]})
+    order: list[str] = []
+    runner = HealthcheckRunner(
+        builtin_probes={
+            "postgres-ready": RecordingProbe(
+                "postgres-ready",
+                order,
+                delay_sec=0.05,
+            )
+        }
+    )
+
+    results = runner.run(snapshot, timeout_sec=0.001)
+
+    assert results[0].status == HealthStatus.degraded
+    assert results[0].details["timeout"] == "true"
+    assert results[0].details["deadline_exceeded"] is True
     assert results[0].details["optional"] is True
 
 
