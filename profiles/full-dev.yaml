@@ -67,12 +67,6 @@ storage_backends:
     kind: local_fs
     connection:
       path_env: DAGSTER_HOME
-  minio:
-    kind: minio
-    connection:
-      endpoint_env: MINIO_PORT
-      root_user_env: MINIO_ROOT_USER
-      root_password_env: MINIO_ROOT_PASSWORD
 resource_expectation:
   cpu_cores: 6
   memory_gb: 16
