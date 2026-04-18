@@ -153,6 +153,32 @@ def test_resolve_for_profile_requires_matrix_to_cover_versions(
         resolve_for_profile(registry, "lite-local")
 
 
+def test_resolve_for_profile_rejects_matrix_extra_modules(tmp_path: Path) -> None:
+    _write_profile(tmp_path, ["app"])
+    registry = _registry(
+        tmp_path,
+        [_module("app"), _module("extra")],
+        matrix_modules=["app", "extra"],
+    )
+
+    with pytest.raises(RegistryResolutionError, match="extra"):
+        resolve_for_profile(registry, "lite-local")
+
+
+def test_resolve_for_profile_rejects_only_deprecated_matrix_entry(
+    tmp_path: Path,
+) -> None:
+    _write_profile(tmp_path, ["app"])
+    registry = _registry(
+        tmp_path,
+        [_module("app")],
+        matrix_status="deprecated",
+    )
+
+    with pytest.raises(RegistryResolutionError, match="No active compatibility"):
+        resolve_for_profile(registry, "lite-local")
+
+
 def _registry(
     root: Path,
     modules: list[ModuleRegistryEntry],
@@ -160,6 +186,7 @@ def _registry(
     matrix_profile_id: str = "lite-local",
     matrix_modules: list[str] | None = None,
     matrix_versions: dict[str, str] | None = None,
+    matrix_status: str = "draft",
 ) -> Registry:
     module_ids = matrix_modules or [module.module_id for module in modules]
     versions = {
@@ -185,7 +212,7 @@ def _registry(
                     ],
                     "contract_version": "v0.0.0",
                     "required_tests": ["contract-suite"],
-                    "status": "draft",
+                    "status": matrix_status,
                     "verified_at": None,
                 }
             )

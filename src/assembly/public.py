@@ -2,7 +2,12 @@
 
 from __future__ import annotations
 
-from assembly.contracts.models import HealthResult, HealthStatus, SmokeResult
+from assembly.contracts.models import (
+    HealthResult,
+    HealthStatus,
+    SmokeResult,
+    VersionInfo,
+)
 
 
 class _AssemblyHealthProbe:
@@ -28,6 +33,28 @@ class _AssemblySmokeHook:
         )
 
 
+class _AssemblyInitHook:
+    def initialize(self, *, resolved_env: dict[str, str]) -> None:
+        return None
+
+
+class _AssemblyVersionDeclaration:
+    def declare(self) -> VersionInfo:
+        return VersionInfo(
+            module_id="assembly",
+            module_version="0.1.0",
+            contract_version="v0.0.0",
+            compatible_contract_range=">=0.0.0 <1.0.0",
+        )
+
+
+class _AssemblyCliEntrypoint:
+    def invoke(self, argv: list[str]) -> int:
+        return 0
+
+
 health_probe = _AssemblyHealthProbe()
 smoke_hook = _AssemblySmokeHook()
-
+init_hook = _AssemblyInitHook()
+version_declaration = _AssemblyVersionDeclaration()
+cli = _AssemblyCliEntrypoint()

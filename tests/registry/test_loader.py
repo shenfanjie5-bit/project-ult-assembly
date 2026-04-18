@@ -116,7 +116,7 @@ def test_load_compatibility_matrix_wraps_schema_errors(tmp_path: Path) -> None:
                     "contract_version": "v0.0.0",
                     "required_tests": ["contract-suite"],
                     "status": "verified",
-                    "verified_at": "2026-04-18T00:00:00+00:00",
+                    "verified_at": None,
                 }
             ],
             sort_keys=False,
@@ -124,7 +124,7 @@ def test_load_compatibility_matrix_wraps_schema_errors(tmp_path: Path) -> None:
         encoding="utf-8",
     )
 
-    with pytest.raises(RegistryError, match="Phase 0"):
+    with pytest.raises(RegistryError, match="verified_at"):
         load_compatibility_matrix(matrix_path)
 
 

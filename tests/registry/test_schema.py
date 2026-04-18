@@ -132,11 +132,20 @@ def test_verified_matrix_entry_requires_verified_at() -> None:
         )
 
 
-def test_phase_zero_rejects_verified_matrix_entry_even_with_timestamp() -> None:
-    with pytest.raises(ValidationError, match="Phase 0"):
-        CompatibilityMatrixEntry.model_validate(
-            valid_matrix_entry(
-                status="verified",
-                verified_at=datetime(2026, 4, 18, tzinfo=timezone.utc),
-            )
+def test_verified_matrix_entry_accepts_verified_at() -> None:
+    entry = CompatibilityMatrixEntry.model_validate(
+        valid_matrix_entry(
+            status="verified",
+            verified_at=datetime(2026, 4, 18, tzinfo=timezone.utc),
         )
+    )
+
+    assert entry.status == "verified"
+
+
+def test_deprecated_matrix_entry_is_loadable() -> None:
+    entry = CompatibilityMatrixEntry.model_validate(
+        valid_matrix_entry(status="deprecated")
+    )
+
+    assert entry.status == "deprecated"

@@ -165,23 +165,35 @@ def _assert_matrix_covers_profile(
     }
     mismatch_summaries: list[str] = []
 
-    for matrix_entry in entries:
+    active_entries = [
+        entry for entry in entries if entry.status != "deprecated"
+    ]
+    if not active_entries:
+        raise RegistryResolutionError(
+            "No active compatibility matrix entry found for profile "
+            f"{profile_id}; deprecated entries cannot satisfy runtime resolution"
+        )
+
+    for matrix_entry in active_entries:
         matrix_versions = {
             module.module_id: module.module_version
             for module in matrix_entry.module_set
         }
         missing_ids = sorted(set(expected_versions) - set(matrix_versions))
+        extra_ids = sorted(set(matrix_versions) - set(expected_versions))
         version_mismatches = sorted(
             module_id
             for module_id, version in expected_versions.items()
             if matrix_versions.get(module_id) not in {None, version}
         )
-        if not missing_ids and not version_mismatches:
+        if not missing_ids and not extra_ids and not version_mismatches:
             return
 
         details: list[str] = []
         if missing_ids:
             details.append(f"missing={missing_ids}")
+        if extra_ids:
+            details.append(f"extra={extra_ids}")
         if version_mismatches:
             details.append(f"version_mismatches={version_mismatches}")
         mismatch_summaries.append(

@@ -87,11 +87,8 @@ class CompatibilityMatrixEntry(BaseModel):
     verified_at: datetime | None
 
     @model_validator(mode="after")
-    def enforce_phase_zero_status(self) -> CompatibilityMatrixEntry:
+    def enforce_status_fields(self) -> CompatibilityMatrixEntry:
         if self.status == "verified" and self.verified_at is None:
             raise ValueError("verified compatibility entries require verified_at")
-
-        if self.status != "draft":
-            raise ValueError("Phase 0 compatibility matrix entries must be draft")
 
         return self
