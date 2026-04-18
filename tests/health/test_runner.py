@@ -43,6 +43,35 @@ class RecordingProbe:
         )
 
 
+class FlakyProbe:
+    def __init__(
+        self,
+        probe_name: str,
+        statuses: list[HealthStatus],
+        order: list[str],
+        timeouts: list[float],
+    ) -> None:
+        self.probe_name = probe_name
+        self.statuses = statuses
+        self.order = order
+        self.timeouts = timeouts
+        self.calls = 0
+
+    def check(self, *, timeout_sec: float) -> HealthResult:
+        self.order.append(self.probe_name)
+        self.timeouts.append(timeout_sec)
+        status = self.statuses[min(self.calls, len(self.statuses) - 1)]
+        self.calls += 1
+        return HealthResult(
+            module_id=self.probe_name.removesuffix("-ready"),
+            probe_name=self.probe_name,
+            status=status,
+            latency_ms=0.0,
+            message=f"{self.probe_name} attempt {self.calls} {status.value}",
+            details={"attempt": self.calls},
+        )
+
+
 def test_healthcheck_runner_executes_lite_builtin_probes_in_order() -> None:
     snapshot = _snapshot()
     order: list[str] = []
@@ -65,6 +94,32 @@ def test_healthcheck_runner_executes_lite_builtin_probes_in_order() -> None:
         "dagster-webserver-ready",
     ]
     assert [result.status for result in results] == [HealthStatus.healthy] * 4
+
+
+def test_required_builtin_probe_converges_after_transient_failure() -> None:
+    snapshot = _snapshot().model_copy(
+        update={"service_bundles": [_snapshot().service_bundles[0]]}
+    )
+    order: list[str] = []
+    timeouts: list[float] = []
+    probe = FlakyProbe(
+        "postgres-ready",
+        [HealthStatus.blocked, HealthStatus.healthy],
+        order,
+        timeouts,
+    )
+
+    results = HealthcheckRunner(
+        builtin_probes={"postgres-ready": probe},
+    ).run(snapshot, timeout_sec=0.5)
+
+    assert order == ["postgres-ready", "postgres-ready"]
+    assert results[0].status == HealthStatus.healthy
+    assert results[0].details["convergence_attempts"] == 2
+    assert results[0].details["convergence_deadline_exceeded"] is False
+    assert results[0].details["last_failure_status"] == HealthStatus.blocked.value
+    assert results[0].details["last_failure_message"].endswith("attempt 1 blocked")
+    assert all(0 < seen_timeout <= 0.5 for seen_timeout in timeouts)
 
 
 def test_timeout_maps_required_builtin_probe_to_blocked() -> None:
@@ -187,4 +242,3 @@ def _registry_entry(
         last_smoke_result=None,
         notes="test entry",
     )
-

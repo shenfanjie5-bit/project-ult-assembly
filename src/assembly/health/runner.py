@@ -7,7 +7,7 @@ import queue
 import threading
 from dataclasses import dataclass
 from pathlib import Path
-from time import perf_counter
+from time import perf_counter, sleep
 from typing import Any, Mapping
 
 from assembly.bootstrap.service_handle import CommandRunner
@@ -20,6 +20,9 @@ from assembly.health.probes_builtin import (
 from assembly.profiles.resolver import ResolvedConfigSnapshot
 from assembly.registry import IntegrationStatus, ModuleRegistryEntry, Registry
 from assembly.registry.schema import PublicEntrypoint
+
+
+_DEFAULT_CONVERGENCE_BACKOFF_SEC = 0.25
 
 
 @dataclass(frozen=True)
@@ -57,6 +60,8 @@ class HealthcheckRunner:
         """Run health probes in resolved Lite service order, then registry order."""
 
         results: list[HealthResult] = []
+        convergence_started_at = perf_counter()
+        convergence_deadline_at = convergence_started_at + max(timeout_sec, 0.0)
         probes = self._builtin_probes
         if probes is None:
             probes = build_builtin_probes(
@@ -70,12 +75,20 @@ class HealthcheckRunner:
             probe = probes.get(spec.probe_name)
             if probe is None:
                 result = _builtin_missing_result(spec)
-            else:
-                result = _run_health_probe(
+            elif spec.optional:
+                result = _run_optional_builtin_probe(
                     probe,
-                    module_id=spec.service_name,
-                    probe_name=spec.probe_name,
+                    spec=spec,
                     timeout_sec=timeout_sec,
+                    convergence_deadline_at=convergence_deadline_at,
+                )
+            else:
+                result = _run_required_builtin_probe_until_healthy(
+                    probe,
+                    spec=spec,
+                    timeout_sec=timeout_sec,
+                    convergence_deadline_at=convergence_deadline_at,
+                    backoff_sec=_DEFAULT_CONVERGENCE_BACKOFF_SEC,
                 )
             results.append(_classify_builtin_result(result, spec))
 
@@ -134,6 +147,173 @@ def _classify_builtin_result(
             "details": details,
         }
     )
+
+
+def _run_optional_builtin_probe(
+    entrypoint: Any,
+    *,
+    spec: _BuiltinProbeSpec,
+    timeout_sec: float,
+    convergence_deadline_at: float,
+) -> HealthResult:
+    started_at = perf_counter()
+    remaining_sec = _remaining_timeout_sec(convergence_deadline_at)
+    if remaining_sec <= 0:
+        return _convergence_deadline_result(
+            spec=spec,
+            started_at=started_at,
+            timeout_sec=timeout_sec,
+        )
+
+    result = _run_health_probe(
+        entrypoint,
+        module_id=spec.service_name,
+        probe_name=spec.probe_name,
+        timeout_sec=remaining_sec,
+    )
+    return _with_convergence_details(
+        result,
+        attempts=1,
+        started_at=started_at,
+        timeout_sec=timeout_sec,
+        deadline_exceeded=False,
+        last_failure=result if result.status != HealthStatus.healthy else None,
+    )
+
+
+def _run_required_builtin_probe_until_healthy(
+    entrypoint: Any,
+    *,
+    spec: _BuiltinProbeSpec,
+    timeout_sec: float,
+    convergence_deadline_at: float,
+    backoff_sec: float,
+) -> HealthResult:
+    started_at = perf_counter()
+    attempts = 0
+    last_failure: HealthResult | None = None
+
+    while True:
+        remaining_sec = _remaining_timeout_sec(convergence_deadline_at)
+        if remaining_sec <= 0:
+            if last_failure is None:
+                return _convergence_deadline_result(
+                    spec=spec,
+                    started_at=started_at,
+                    timeout_sec=timeout_sec,
+                )
+
+            return _with_convergence_details(
+                last_failure,
+                attempts=attempts,
+                started_at=started_at,
+                timeout_sec=timeout_sec,
+                deadline_exceeded=True,
+                last_failure=last_failure,
+            )
+
+        attempts += 1
+        result = _run_health_probe(
+            entrypoint,
+            module_id=spec.service_name,
+            probe_name=spec.probe_name,
+            timeout_sec=remaining_sec,
+        )
+        if result.status == HealthStatus.healthy:
+            return _with_convergence_details(
+                result,
+                attempts=attempts,
+                started_at=started_at,
+                timeout_sec=timeout_sec,
+                deadline_exceeded=False,
+                last_failure=last_failure,
+            )
+
+        last_failure = result
+        if _remaining_timeout_sec(convergence_deadline_at) <= 0:
+            return _with_convergence_details(
+                last_failure,
+                attempts=attempts,
+                started_at=started_at,
+                timeout_sec=timeout_sec,
+                deadline_exceeded=True,
+                last_failure=last_failure,
+            )
+
+        _sleep_before_next_attempt(
+            backoff_sec=backoff_sec,
+            convergence_deadline_at=convergence_deadline_at,
+        )
+
+
+def _sleep_before_next_attempt(
+    *,
+    backoff_sec: float,
+    convergence_deadline_at: float,
+) -> None:
+    delay_sec = min(
+        max(backoff_sec, 0.0),
+        _remaining_timeout_sec(convergence_deadline_at),
+    )
+    if delay_sec > 0:
+        sleep(delay_sec)
+
+
+def _with_convergence_details(
+    result: HealthResult,
+    *,
+    attempts: int,
+    started_at: float,
+    timeout_sec: float,
+    deadline_exceeded: bool,
+    last_failure: HealthResult | None,
+) -> HealthResult:
+    elapsed_ms = max((perf_counter() - started_at) * 1000, 0.0)
+    details = dict(result.details)
+    details.update(
+        {
+            "convergence_attempts": attempts,
+            "convergence_elapsed_ms": elapsed_ms,
+            "convergence_deadline_sec": timeout_sec,
+            "convergence_deadline_exceeded": deadline_exceeded,
+        }
+    )
+    if last_failure is not None:
+        details.update(
+            {
+                "last_failure_status": last_failure.status.value,
+                "last_failure_message": last_failure.message,
+                "last_failure_details": dict(last_failure.details),
+            }
+        )
+
+    return result.model_copy(update={"latency_ms": elapsed_ms, "details": details})
+
+
+def _convergence_deadline_result(
+    *,
+    spec: _BuiltinProbeSpec,
+    started_at: float,
+    timeout_sec: float,
+) -> HealthResult:
+    return _with_convergence_details(
+        _blocked_result(
+            module_id=spec.service_name,
+            probe_name=spec.probe_name,
+            started_at=started_at,
+            message=f"{spec.service_name} health_probe did not run before deadline",
+            details={"failure_reason": "convergence deadline expired"},
+        ),
+        attempts=0,
+        started_at=started_at,
+        timeout_sec=timeout_sec,
+        deadline_exceeded=True,
+        last_failure=None,
+    )
+
+
+def _remaining_timeout_sec(deadline_at: float) -> float:
+    return max(deadline_at - perf_counter(), 0.0)
 
 
 def _run_registry_health_probes(
@@ -328,7 +508,7 @@ def _blocked_result(
     probe_name: str,
     started_at: float,
     message: str,
-    details: dict[str, str],
+    details: dict[str, Any],
 ) -> HealthResult:
     return HealthResult(
         module_id=module_id,
