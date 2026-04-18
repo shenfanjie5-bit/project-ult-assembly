@@ -16,7 +16,11 @@ import yaml
 from pydantic import ValidationError
 
 from assembly.bootstrap import bootstrap
-from assembly.compat import run_contract_suite
+from assembly.compat import (
+    CompatibilityCheckStatus,
+    CompatibilityReport,
+    run_contract_suite,
+)
 from assembly.contracts.models import HealthResult, HealthStatus, IntegrationRunRecord
 from assembly.contracts.protocols import CliEntrypoint
 from assembly.health import healthcheck
@@ -39,6 +43,7 @@ from assembly.tests.e2e.schema import (
 )
 
 _ORCHESTRATOR_MODULE_ID = "orchestrator"
+_MINIMAL_CYCLE_MODULE_IDS = frozenset({_ORCHESTRATOR_MODULE_ID})
 _DEFAULT_FIXTURE_DIR = Path("src/assembly/tests/e2e/fixtures/minimal_cycle")
 
 
@@ -182,15 +187,14 @@ class E2ERunner:
                 contract_report_path=contract_report_path,
             )
 
-        if contract_report.run_record.status != "success":
+        contract_preflight_blocker = _contract_preflight_blocker(contract_report)
+        if contract_preflight_blocker is not None:
+            failing_modules, message, details = contract_preflight_blocker
             assertion_results.append(
                 _failed_assertion(
                     "contract_preflight",
-                    (
-                        "Contract suite did not succeed: "
-                        f"{contract_report.run_record.status}"
-                    ),
-                    {"contract_summary": contract_report.run_record.summary},
+                    message,
+                    details,
                 )
             )
             _write_orchestrator_failure_report(
@@ -205,7 +209,7 @@ class E2ERunner:
                 artifacts,
                 assertion_results,
                 status="failed",
-                failing_modules=contract_report.run_record.failing_modules or ["assembly"],
+                failing_modules=failing_modules,
                 summary=(
                     "E2E blocked: contract preflight was not successful; "
                     f"Blocker: {contract_report.run_record.summary}"
@@ -577,6 +581,46 @@ def _compatibility_context_artifacts(
         for artifact in contract_record.artifacts
         if artifact.get("kind") == "compatibility_context"
     ]
+
+
+def _contract_preflight_blocker(
+    contract_report: CompatibilityReport,
+) -> tuple[list[str], str, dict[str, Any]] | None:
+    record = contract_report.run_record
+    if record.status == "success":
+        return None
+
+    cycle_checks = [
+        check
+        for check in contract_report.checks
+        if check.module_id in _MINIMAL_CYCLE_MODULE_IDS
+        and check.status != CompatibilityCheckStatus.success
+    ]
+    if record.status == "partial" and not cycle_checks:
+        return None
+
+    cycle_modules = sorted({check.module_id for check in cycle_checks})
+    details: dict[str, Any] = {
+        "contract_status": record.status,
+        "contract_summary": record.summary,
+        "minimal_cycle_modules": sorted(_MINIMAL_CYCLE_MODULE_IDS),
+    }
+    if cycle_checks:
+        details["minimal_cycle_non_success_checks"] = [
+            {
+                "check_name": check.check_name,
+                "module_id": check.module_id,
+                "status": check.status.value,
+                "message": check.message,
+            }
+            for check in cycle_checks
+        ]
+
+    return (
+        cycle_modules or record.failing_modules or ["assembly"],
+        f"Contract suite did not satisfy minimal-cycle preflight: {record.status}",
+        details,
+    )
 
 
 def _invoke_cli_with_timeout(

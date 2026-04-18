@@ -82,6 +82,76 @@ def test_fake_orchestrator_success_writes_required_artifacts(
     assert _artifact_path(record, "assertion_results").exists()
 
 
+def test_contract_partial_outside_minimal_cycle_still_invokes_orchestrator(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    state = {
+        "phases": ["phase-a"],
+        "required_artifact": "cycle_summary",
+        "artifact_path": "cycle-summary.json",
+    }
+    _install_public_module(monkeypatch, module_name="e2e_orchestrator_public", state=state)
+    project = _write_project(
+        tmp_path,
+        modules=[
+            _module_data("orchestrator", "e2e_orchestrator_public"),
+            _not_started_module_data("main-core"),
+        ],
+        profile_modules=["orchestrator", "main-core"],
+        matrix_modules=[
+            {"module_id": "orchestrator", "module_version": "0.1.0"},
+            {"module_id": "main-core", "module_version": "0.1.0"},
+        ],
+    )
+    fixture_dir = _write_fixture(
+        tmp_path,
+        expected_phases=["phase-a"],
+        required_artifacts=["cycle_summary"],
+    )
+    load_calls: list[list[str]] = []
+
+    import assembly.tests.e2e.runner as e2e_runner
+
+    original_load_orchestrator_cli = e2e_runner.load_orchestrator_cli
+
+    def spy_load_orchestrator_cli(
+        resolved_entries: list[ModuleRegistryEntry],
+    ) -> object:
+        load_calls.append([entry.module_id for entry in resolved_entries])
+        return original_load_orchestrator_cli(resolved_entries)
+
+    monkeypatch.setattr(e2e_runner, "load_orchestrator_cli", spy_load_orchestrator_cli)
+
+    record = run_min_cycle_e2e(
+        "full-local",
+        profiles_root=project / "profiles",
+        bundles_root=project / "bundles",
+        registry_root=project,
+        fixture_dir=fixture_dir,
+        reports_dir=project / "reports/e2e",
+        env={},
+        timeout_sec=1.0,
+        bootstrap_if_needed=False,
+    )
+
+    assert load_calls == [["orchestrator", "main-core"]]
+    assert record.status == "partial"
+    e2e_payload = json.loads(_artifact_path(record, "e2e_report").read_text())
+    contract_payload = json.loads(Path(e2e_payload["contract_report_path"]).read_text())
+    assert contract_payload["run_record"]["status"] == "partial"
+    assert "main-core" in contract_payload["run_record"]["failing_modules"]
+    assert "orchestrator" not in contract_payload["run_record"]["failing_modules"]
+    orchestrator_report = json.loads(
+        _artifact_path(record, "orchestrator_report").read_text()
+    )
+    assert orchestrator_report["status"] == "success"
+    cycle_summary_path = (
+        _artifact_path(record, "orchestrator_report").parent / "cycle-summary.json"
+    )
+    assert cycle_summary_path.exists()
+
+
 def test_phase_order_failure_marks_e2e_failed(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -702,6 +772,13 @@ def _module_data(module_id: str, public_module: str) -> dict[str, object]:
         "last_smoke_result": None,
         "notes": "test module",
     }
+
+
+def _not_started_module_data(module_id: str) -> dict[str, object]:
+    public_module = f"missing_{module_id.replace('-', '_')}_public"
+    data = _module_data(module_id, public_module)
+    data["integration_status"] = "not_started"
+    return data
 
 
 def _entry(
