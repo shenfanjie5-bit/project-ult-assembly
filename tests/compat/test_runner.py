@@ -14,6 +14,7 @@ import assembly.compat.runner as compat_runner
 from assembly.compat.runner import promote_matrix_entry
 from assembly.contracts import VersionInfo
 from assembly.contracts.models import IntegrationRunRecord
+from assembly.contracts.reporting import compatibility_context_artifact
 from assembly.registry import CompatibilityMatrixEntry, RegistryResolutionError, load_all
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -516,7 +517,7 @@ def _run_record(
     now = datetime.now(timezone.utc)
     artifacts = [{"kind": f"{run_type}_report", "path": f"reports/{run_type}.json"}]
     if matrix_entry is not None:
-        artifacts.append(compat_runner._compatibility_context_artifact(matrix_entry))
+        artifacts.append(compatibility_context_artifact(matrix_entry))
 
     return IntegrationRunRecord(
         run_id=f"{run_type}-success",

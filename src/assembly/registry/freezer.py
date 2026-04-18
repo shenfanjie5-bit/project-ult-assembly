@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import fcntl
-import hashlib
 import json
 import os
 import tempfile
@@ -16,6 +15,7 @@ import yaml
 from pydantic import BaseModel, ConfigDict, ValidationError
 
 from assembly.contracts.models import IntegrationRunRecord
+from assembly.contracts.reporting import record_matches_matrix_context
 from assembly.registry.loader import Registry, load_all
 from assembly.registry.resolver import resolve_for_profile
 from assembly.registry.schema import (
@@ -312,8 +312,15 @@ def _find_successful_run_record(
             record.profile_id == profile_id
             and record.run_type == run_type
             and record.status == "success"
-            and _record_matches_matrix_context(record, matrix_entry)
+            and record_matches_matrix_context(record, matrix_entry)
         ):
+            if run_type == "e2e" and not _e2e_contract_context_matches(
+                path,
+                record,
+                reports_root=reports_root,
+            ):
+                continue
+
             return VersionLockRunRef(
                 run_type=record.run_type,
                 run_id=record.run_id,
@@ -324,18 +331,67 @@ def _find_successful_run_record(
     return None
 
 
-def _record_matches_matrix_context(
-    record: IntegrationRunRecord,
-    matrix_entry: CompatibilityMatrixEntry,
+def _e2e_contract_context_matches(
+    e2e_report_path: Path,
+    e2e_record: IntegrationRunRecord,
+    *,
+    reports_root: Path,
 ) -> bool:
-    expected = _compatibility_context_artifact(matrix_entry)
-    for artifact in record.artifacts:
-        if artifact.get("kind") != expected["kind"]:
-            continue
+    try:
+        payload = json.loads(e2e_report_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return False
+    if not isinstance(payload, dict):
+        return False
 
-        return all(artifact.get(key) == value for key, value in expected.items())
+    raw_contract_path = payload.get("contract_report_path")
+    if not isinstance(raw_contract_path, str) or not raw_contract_path:
+        return False
 
-    return False
+    contract_record = _load_run_record(
+        _resolve_report_path(raw_contract_path, reports_root=reports_root)
+    )
+    if contract_record is None:
+        return False
+    if (
+        contract_record.profile_id != e2e_record.profile_id
+        or contract_record.run_type != "contract"
+    ):
+        return False
+
+    e2e_context = _compatibility_context(e2e_record)
+    contract_context = _compatibility_context(contract_record)
+    return e2e_context is not None and e2e_context == contract_context
+
+
+def _resolve_report_path(raw_path: str, *, reports_root: Path) -> Path:
+    path = Path(raw_path)
+    if path.is_absolute():
+        return path
+
+    reports_root = Path(reports_root)
+    candidates = [
+        reports_root.parent / path,
+        reports_root / path,
+        path,
+    ]
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+
+    return candidates[0]
+
+
+def _compatibility_context(record: IntegrationRunRecord) -> dict[str, str] | None:
+    context_artifacts = [
+        dict(artifact)
+        for artifact in record.artifacts
+        if artifact.get("kind") == "compatibility_context"
+    ]
+    if len(context_artifacts) != 1:
+        return None
+
+    return context_artifacts[0]
 
 
 def _load_run_record(path: Path) -> IntegrationRunRecord | None:
@@ -434,45 +490,6 @@ def _fsync_directory(directory: Path) -> None:
         os.fsync(dir_fd)
     finally:
         os.close(dir_fd)
-
-
-def _compatibility_context_artifact(
-    matrix_entry: CompatibilityMatrixEntry,
-) -> dict[str, str]:
-    module_set = sorted(
-        (
-            {
-                "module_id": module.module_id,
-                "module_version": module.module_version,
-            }
-            for module in matrix_entry.module_set
-        ),
-        key=lambda item: (item["module_id"], item["module_version"]),
-    )
-    matrix_context = {
-        "profile_id": matrix_entry.profile_id,
-        "matrix_version": matrix_entry.matrix_version,
-        "contract_version": matrix_entry.contract_version,
-        "module_set": module_set,
-    }
-    return {
-        "kind": "compatibility_context",
-        "profile_id": matrix_entry.profile_id,
-        "matrix_version": matrix_entry.matrix_version,
-        "contract_version": matrix_entry.contract_version,
-        "module_set_digest": _stable_digest(module_set),
-        "matrix_digest": _stable_digest(matrix_context),
-    }
-
-
-def _stable_digest(payload: object) -> str:
-    canonical = json.dumps(
-        payload,
-        ensure_ascii=True,
-        separators=(",", ":"),
-        sort_keys=True,
-    )
-    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
 def _utc_datetime(value: datetime | None) -> datetime:

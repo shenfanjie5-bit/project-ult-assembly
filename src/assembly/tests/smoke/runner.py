@@ -16,9 +16,15 @@ from assembly.contracts.models import (
     IntegrationRunRecord,
     SmokeResult,
 )
+from assembly.contracts.reporting import compatibility_context_artifact
 from assembly.health.runner import HealthcheckRunner
 from assembly.profiles.resolver import ResolvedConfigSnapshot
-from assembly.registry import IntegrationStatus, ModuleRegistryEntry, Registry
+from assembly.registry import (
+    CompatibilityMatrixEntry,
+    IntegrationStatus,
+    ModuleRegistryEntry,
+    Registry,
+)
 from assembly.registry.schema import PublicEntrypoint
 
 
@@ -35,6 +41,7 @@ class SmokeSuite:
         *,
         timeout_sec: float = 30.0,
         reports_dir: Path = Path("reports/smoke"),
+        matrix_entry: CompatibilityMatrixEntry | None = None,
     ) -> IntegrationRunRecord:
         """Run the smoke suite and persist an integration run record."""
 
@@ -44,6 +51,8 @@ class SmokeSuite:
         artifacts: list[dict[str, str]] = [
             {"kind": "smoke_report", "path": str(report_path)}
         ]
+        if matrix_entry is not None:
+            artifacts.append(compatibility_context_artifact(matrix_entry))
 
         health_results = self._health_runner.run(
             snapshot,
