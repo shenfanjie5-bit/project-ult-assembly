@@ -29,7 +29,7 @@ def test_load_all_loads_real_project_registry() -> None:
 
     assert registry.root == PROJECT_ROOT
     assert len(registry.modules) == 14
-    assert len(registry.compatibility_matrix) == 1
+    assert len(registry.compatibility_matrix) == 2
 
 
 def test_load_all_runs_consistency_check_before_yaml_load(

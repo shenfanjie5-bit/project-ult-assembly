@@ -1,0 +1,31 @@
+bundle_name: temporal
+services:
+  - name: temporal
+    image_or_cmd: temporalio/auto-setup:1.25.2
+    image: temporalio/auto-setup:1.25.2
+    health_probe: tctl --address 127.0.0.1:${TEMPORAL_PORT:-7233} cluster health
+    env:
+      DB: postgresql
+      POSTGRES_SEEDS: postgres
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PWD: ${POSTGRES_PASSWORD}
+      TEMPORAL_PORT: ${TEMPORAL_PORT:-7233}
+  - name: temporal-ui
+    image_or_cmd: temporalio/ui:2.30.0
+    image: temporalio/ui:2.30.0
+    health_probe: wget -q -O- http://127.0.0.1:${TEMPORAL_UI_PORT:-8080}
+    env:
+      TEMPORAL_ADDRESS: temporal:${TEMPORAL_PORT:-7233}
+      TEMPORAL_UI_PORT: ${TEMPORAL_UI_PORT:-8080}
+startup_order:
+  - temporal
+  - temporal-ui
+shutdown_order:
+  - temporal-ui
+  - temporal
+health_checks:
+  - tctl --address 127.0.0.1:${TEMPORAL_PORT:-7233} cluster health
+  - wget -q -O- http://127.0.0.1:${TEMPORAL_UI_PORT:-8080}
+required_profiles:
+  - full-dev
+optional: true

@@ -1,0 +1,272 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  neo4j:
+    image: neo4j:5
+    environment:
+      NEO4J_AUTH: ${NEO4J_USER}/${NEO4J_PASSWORD}
+    ports:
+      - "127.0.0.1:7474:7474"
+      - "127.0.0.1:7687:7687"
+    volumes:
+      - neo4j_data:/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "cypher-shell -u ${NEO4J_USER} -p ${NEO4J_PASSWORD} 'RETURN 1'",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  dagster-daemon:
+    image: dagster/dagster:1.7.16
+    environment:
+      DAGSTER_HOME: ${DAGSTER_HOME}
+      DAGSTER_POSTGRES_HOST: ${POSTGRES_HOST}
+      DAGSTER_POSTGRES_PORT: ${POSTGRES_PORT}
+      DAGSTER_POSTGRES_DB: ${POSTGRES_DB}
+      DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
+      DAGSTER_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    command: ["dagster-daemon", "run"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "dagster-daemon liveness-check"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  dagster-webserver:
+    image: dagster/dagster:1.7.16
+    environment:
+      DAGSTER_HOME: ${DAGSTER_HOME}
+      DAGSTER_HOST: ${DAGSTER_HOST:-127.0.0.1}
+      DAGSTER_PORT: ${DAGSTER_PORT}
+    command:
+      [
+        "dagster-webserver",
+        "-h",
+        "${DAGSTER_HOST:-127.0.0.1}",
+        "-p",
+        "${DAGSTER_PORT:-3000}",
+      ]
+    ports:
+      - "127.0.0.1:${DAGSTER_PORT:-3000}:${DAGSTER_PORT:-3000}"
+    depends_on:
+      dagster-daemon:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:%s' % os.environ.get('DAGSTER_PORT', '3000'), timeout=2)\"",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  minio:
+    image: minio/minio:RELEASE.2024-07-16T23-46-41Z
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    command: ["server", "/data", "--console-address", ":${MINIO_CONSOLE_PORT:-9001}"]
+    ports:
+      - "127.0.0.1:${MINIO_PORT:-9000}:9000"
+      - "127.0.0.1:${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -f http://127.0.0.1:${MINIO_PORT:-9000}/minio/health/ready",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+    ports:
+      - "127.0.0.1:${GRAFANA_PORT:-3001}:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O- http://127.0.0.1:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  superset:
+    image: apache/superset:4.0.2
+    environment:
+      SUPERSET_SECRET_KEY: ${SUPERSET_SECRET_KEY:-assembly-dev-secret}
+      SUPERSET_PORT: ${SUPERSET_PORT:-8088}
+    command: ["superset", "run", "-h", "0.0.0.0", "-p", "${SUPERSET_PORT:-8088}"]
+    ports:
+      - "127.0.0.1:${SUPERSET_PORT:-8088}:${SUPERSET_PORT:-8088}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:%s/health' % os.environ.get('SUPERSET_PORT', '8088'), timeout=2)\"",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  temporal:
+    image: temporalio/auto-setup:1.25.2
+    environment:
+      DB: postgresql
+      POSTGRES_SEEDS: postgres
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PWD: ${POSTGRES_PASSWORD}
+      TEMPORAL_PORT: ${TEMPORAL_PORT:-7233}
+    ports:
+      - "127.0.0.1:${TEMPORAL_PORT:-7233}:7233"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "tctl --address 127.0.0.1:${TEMPORAL_PORT:-7233} cluster health",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  temporal-ui:
+    image: temporalio/ui:2.30.0
+    environment:
+      TEMPORAL_ADDRESS: temporal:${TEMPORAL_PORT:-7233}
+      TEMPORAL_UI_PORT: ${TEMPORAL_UI_PORT:-8080}
+    ports:
+      - "127.0.0.1:${TEMPORAL_UI_PORT:-8080}:${TEMPORAL_UI_PORT:-8080}"
+    depends_on:
+      temporal:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q -O- http://127.0.0.1:${TEMPORAL_UI_PORT:-8080}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  feast:
+    image: python:3.11-slim
+    environment:
+      FEAST_PORT: ${FEAST_PORT:-6566}
+    command: ["python", "-m", "http.server", "${FEAST_PORT:-6566}"]
+    ports:
+      - "127.0.0.1:${FEAST_PORT:-6566}:${FEAST_PORT:-6566}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:%s' % os.environ.get('FEAST_PORT', '6566'), timeout=2)\"",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  kafka:
+    image: bitnami/kafka:3.7.1
+    environment:
+      KAFKA_CFG_NODE_ID: "1"
+      KAFKA_CFG_PROCESS_ROLES: broker,controller
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://localhost:${KAFKA_PORT:-9092}
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+    ports:
+      - "127.0.0.1:${KAFKA_PORT:-9092}:9092"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "kafka-topics.sh --bootstrap-server 127.0.0.1:${KAFKA_PORT:-9092} --list",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  flink-jobmanager:
+    image: flink:1.19
+    environment:
+      JOB_MANAGER_RPC_ADDRESS: flink-jobmanager
+      FLINK_JOBMANAGER_PORT: ${FLINK_JOBMANAGER_PORT:-8081}
+    command: ["jobmanager"]
+    ports:
+      - "127.0.0.1:${FLINK_JOBMANAGER_PORT:-8081}:8081"
+    depends_on:
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -f http://127.0.0.1:${FLINK_JOBMANAGER_PORT:-8081}/overview",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  flink-taskmanager:
+    image: flink:1.19
+    environment:
+      JOB_MANAGER_RPC_ADDRESS: flink-jobmanager
+      FLINK_JOBMANAGER_PORT: ${FLINK_JOBMANAGER_PORT:-8081}
+    command: ["taskmanager"]
+    depends_on:
+      flink-jobmanager:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -f http://flink-jobmanager:${FLINK_JOBMANAGER_PORT:-8081}/taskmanagers",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  postgres_data:
+  neo4j_data:
+  minio_data:
+  grafana_data:

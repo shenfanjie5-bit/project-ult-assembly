@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Mapping
+from typing import Mapping, Sequence
 
 from assembly.contracts.models import HealthResult
 from assembly.health.errors import HealthcheckError
@@ -19,6 +19,7 @@ def healthcheck(
     bundles_root: Path = Path("bundles"),
     registry_root: Path = Path("."),
     env: Mapping[str, str] | None = None,
+    extra_bundles: Sequence[str] | None = None,
     timeout_sec: float = 30.0,
 ) -> list[HealthResult]:
     """Resolve a profile and run its healthcheck convergence probes."""
@@ -34,6 +35,7 @@ def healthcheck(
         profiles_root=profiles_root,
         bundles_root=bundles_root,
         env=env,
+        extra_bundles=extra_bundles,
     ).model_copy(
         update={
             "enabled_modules": [entry.module_id for entry in resolved_entries],

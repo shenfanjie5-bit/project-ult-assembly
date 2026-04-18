@@ -20,7 +20,7 @@ from assembly.contracts.models import HealthResult, HealthStatus, IntegrationRun
 from assembly.health import healthcheck as execute_healthcheck
 from assembly.profiles.errors import ProfileError, ProfileNotFoundError
 from assembly.profiles.loader import list_profiles
-from assembly.profiles.resolver import render_profile
+from assembly.profiles.resolver import render_profile, with_extra_bundles
 from assembly.profiles.schema import EnvironmentProfile
 from assembly.registry import RegistryError, export_module_registry, load_all
 from assembly.tests.e2e import run_min_cycle_e2e as execute_e2e
@@ -94,6 +94,11 @@ DRY_RUN_OPTION = click.option(
     is_flag=True,
     help="Print the planned docker compose command without executing it.",
 )
+EXTRA_BUNDLES_OPTION = click.option(
+    "--extra-bundles",
+    default="",
+    help="Comma-separated optional service bundles to append to the profile.",
+)
 
 
 @click.group(context_settings={"help_option_names": ["-h", "--help"]})
@@ -120,28 +125,32 @@ def list_profiles_command(profiles_dir: Path) -> None:
 @PROFILES_DIR_OPTION
 @BUNDLES_DIR_OPTION
 @ENV_FILE_OPTION
+@EXTRA_BUNDLES_OPTION
 @OUT_OPTION
 def render_profile_command(
     profile_id: str,
     profiles_dir: Path,
     bundles_dir: Path,
     env_file: Path,
+    extra_bundles: str,
     out: Path | None,
 ) -> None:
     """Render a resolved, redacted profile snapshot."""
 
     try:
+        parsed_extra_bundles = _parse_extra_bundles(extra_bundles)
         snapshot = render_profile(
             profile_id,
             profiles_root=profiles_dir,
             bundles_root=bundles_dir,
             env=_combined_env(env_file),
+            extra_bundles=parsed_extra_bundles,
         )
         output_path = out or Path("reports/bootstrap") / (
             f"{profile_id}-resolved-config.json"
         )
         _dump_snapshot(snapshot, output_path)
-    except ProfileError as exc:
+    except (ProfileError, ValueError) as exc:
         raise click.ClickException(str(exc)) from exc
     except OSError as exc:
         raise click.ClickException(str(exc)) from exc
@@ -154,6 +163,7 @@ def render_profile_command(
 @PROFILES_DIR_OPTION
 @BUNDLES_DIR_OPTION
 @ENV_FILE_OPTION
+@EXTRA_BUNDLES_OPTION
 @OUT_OPTION
 @DRY_RUN_OPTION
 def bootstrap_command(
@@ -161,12 +171,14 @@ def bootstrap_command(
     profiles_dir: Path,
     bundles_dir: Path,
     env_file: Path,
+    extra_bundles: str,
     out: Path | None,
     dry_run: bool,
 ) -> None:
     """Resolve a profile and start its compose-managed services."""
 
     try:
+        parsed_extra_bundles = _parse_extra_bundles(extra_bundles)
         compose_env_file = _compose_env_file(env_file)
         result = execute_bootstrap(
             profile_id,
@@ -174,6 +186,7 @@ def bootstrap_command(
             bundle_root=bundles_dir,
             env=_combined_env(env_file),
             env_file=compose_env_file,
+            extra_bundles=parsed_extra_bundles,
             runner=Runner(env_file=compose_env_file),
             dry_run=dry_run,
             report_path=out,
@@ -181,7 +194,7 @@ def bootstrap_command(
         if dry_run:
             _print_start_result(result)
             return
-    except (BootstrapPlanError, ProfileError) as exc:
+    except (BootstrapPlanError, ProfileError, ValueError) as exc:
         raise click.ClickException(str(exc)) from exc
     except BootstrapStageError as exc:
         raise click.ClickException(_format_stage_error(exc)) from exc
@@ -198,26 +211,37 @@ def bootstrap_command(
 @PROFILES_DIR_OPTION
 @BUNDLES_DIR_OPTION
 @ENV_FILE_OPTION
+@EXTRA_BUNDLES_OPTION
 @DRY_RUN_OPTION
 def shutdown_command(
     profile_id: str,
     profiles_dir: Path,
     bundles_dir: Path,
     env_file: Path,
+    extra_bundles: str,
     dry_run: bool,
 ) -> None:
     """Stop compose-managed services in the bootstrap shutdown order."""
 
     try:
-        profile = _load_profile_by_id(profile_id, profiles_dir)
-        plan = build_plan(profile, bundle_root=bundles_dir)
+        parsed_extra_bundles = _parse_extra_bundles(extra_bundles)
+        profile = with_extra_bundles(
+            _load_profile_by_id(profile_id, profiles_dir),
+            parsed_extra_bundles,
+            bundle_root=bundles_dir,
+        )
+        plan = build_plan(
+            profile,
+            bundle_root=bundles_dir,
+            compose_file=_default_compose_file(profile.profile_id),
+        )
         compose_env_file = _compose_env_file(env_file)
         if dry_run:
             _print_stop_plan(plan, compose_env_file)
             return
 
         result = Runner(env_file=compose_env_file).stop(plan)
-    except (BootstrapPlanError, ProfileError) as exc:
+    except (BootstrapPlanError, ProfileError, ValueError) as exc:
         raise click.ClickException(str(exc)) from exc
     except ComposeCommandError as exc:
         raise click.ClickException(_format_compose_error(exc)) from exc
@@ -230,6 +254,7 @@ def shutdown_command(
 @PROFILES_DIR_OPTION
 @BUNDLES_DIR_OPTION
 @ENV_FILE_OPTION
+@EXTRA_BUNDLES_OPTION
 @OUT_OPTION
 @TIMEOUT_SEC_OPTION
 def healthcheck_command(
@@ -237,23 +262,26 @@ def healthcheck_command(
     profiles_dir: Path,
     bundles_dir: Path,
     env_file: Path,
+    extra_bundles: str,
     out: Path | None,
     timeout_sec: float,
 ) -> None:
     """Run healthcheck convergence for a resolved profile."""
 
     try:
+        parsed_extra_bundles = _parse_extra_bundles(extra_bundles)
         results = execute_healthcheck(
             profile_id,
             profiles_root=profiles_dir,
             bundles_root=bundles_dir,
             registry_root=Path("."),
             env=_combined_env(env_file),
+            extra_bundles=parsed_extra_bundles,
             timeout_sec=timeout_sec,
         )
         if out is not None:
             _dump_health_results(results, out)
-    except (ProfileError, RegistryError, OSError) as exc:
+    except (ProfileError, RegistryError, OSError, ValueError) as exc:
         raise click.ClickException(str(exc)) from exc
 
     for result in results:
@@ -270,6 +298,7 @@ def healthcheck_command(
 @PROFILES_DIR_OPTION
 @BUNDLES_DIR_OPTION
 @ENV_FILE_OPTION
+@EXTRA_BUNDLES_OPTION
 @REPORTS_DIR_OPTION
 @TIMEOUT_SEC_OPTION
 def smoke_command(
@@ -277,12 +306,14 @@ def smoke_command(
     profiles_dir: Path,
     bundles_dir: Path,
     env_file: Path,
+    extra_bundles: str,
     reports_dir: Path,
     timeout_sec: float,
 ) -> None:
     """Run the system-level smoke suite for a resolved profile."""
 
     try:
+        parsed_extra_bundles = _parse_extra_bundles(extra_bundles)
         record = execute_smoke(
             profile_id,
             profiles_root=profiles_dir,
@@ -290,9 +321,10 @@ def smoke_command(
             registry_root=Path("."),
             reports_dir=reports_dir,
             env=_combined_env(env_file),
+            extra_bundles=parsed_extra_bundles,
             timeout_sec=timeout_sec,
         )
-    except (ProfileError, RegistryError, OSError) as exc:
+    except (ProfileError, RegistryError, OSError, ValueError) as exc:
         raise click.ClickException(str(exc)) from exc
 
     click.echo(
@@ -456,6 +488,30 @@ def _compose_env_file(env_file: Path) -> Path | None:
     return None
 
 
+def _parse_extra_bundles(value: str | None) -> list[str]:
+    if value is None or not value.strip():
+        return []
+
+    names = [item.strip() for item in value.split(",")]
+    if any(not name for name in names):
+        raise ValueError("--extra-bundles cannot contain empty bundle names")
+
+    seen: set[str] = set()
+    duplicates: list[str] = []
+    for name in names:
+        if name in seen and name not in duplicates:
+            duplicates.append(name)
+        seen.add(name)
+
+    if duplicates:
+        raise ValueError(
+            "--extra-bundles contains duplicate bundle names: "
+            + ", ".join(duplicates)
+        )
+
+    return names
+
+
 def _read_env_file(env_file: Path) -> dict[str, str]:
     path = Path(env_file)
     if not path.exists():
@@ -581,6 +637,13 @@ def _compose_prefix(plan: BootstrapPlan, env_file: Path | None) -> list[str]:
         command.extend(["--env-file", str(env_file)])
     command.extend(["-f", str(plan.compose_file)])
     return command
+
+
+def _default_compose_file(profile_id: str) -> Path:
+    if profile_id == "full-dev":
+        return Path("compose/full-dev.yaml")
+
+    return Path("compose/lite-local.yaml")
 
 
 def _format_compose_error(exc: ComposeCommandError) -> str:

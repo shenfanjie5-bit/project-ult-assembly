@@ -26,6 +26,14 @@ FORBIDDEN_LITE_BUNDLES = {
     "flink",
     "kafka-flink",
 }
+OPTIONAL_FULL_BUNDLES = {
+    "minio",
+    "grafana",
+    "superset",
+    "temporal",
+    "feast",
+    "kafka-flink",
+}
 
 
 def test_lite_local_profile_artifact_is_complete() -> None:
@@ -66,6 +74,15 @@ def test_lite_local_profile_bundle_references_are_closed() -> None:
         bundle = load_bundle(BUNDLES_ROOT / f"{bundle_name}.yaml")
         assert bundle.bundle_name == bundle_name
         assert profile.profile_id in bundle.required_profiles
+
+
+def test_optional_bundles_are_not_declared_for_lite_local() -> None:
+    for bundle_name in OPTIONAL_FULL_BUNDLES:
+        bundle = load_bundle(BUNDLES_ROOT / f"{bundle_name}.yaml")
+
+        assert bundle.optional is True
+        assert bundle.required_profiles == ["full-dev"]
+        assert "lite-local" not in bundle.required_profiles
 
 
 def test_lite_local_modules_cover_registry_supported_modules() -> None:

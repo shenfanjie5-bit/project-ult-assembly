@@ -6,9 +6,11 @@ from pathlib import Path
 import pytest
 
 from assembly.profiles import (
+    ProfileConstraintError,
     ProfileEnvMissingError,
     render_profile,
     resolve,
+    with_extra_bundles,
 )
 from assembly.profiles.loader import load_profile
 
@@ -51,6 +53,70 @@ def test_render_profile_loads_profile_by_public_id() -> None:
 
     assert snapshot.profile_id == profile.profile_id
     assert snapshot.enabled_service_bundles == ["postgres", "neo4j", "dagster"]
+
+
+def test_render_profile_merges_full_extra_bundles_in_order() -> None:
+    profile = load_profile(PROFILES_ROOT / "full-dev.yaml")
+    env = _required_env(profile.required_env_keys)
+
+    snapshot = render_profile(
+        "full-dev",
+        profiles_root=PROFILES_ROOT,
+        bundles_root=BUNDLES_ROOT,
+        env=env,
+        extra_bundles=["grafana", "superset"],
+    )
+
+    assert snapshot.enabled_service_bundles == [
+        "postgres",
+        "neo4j",
+        "dagster",
+        "grafana",
+        "superset",
+    ]
+    assert [bundle.bundle_name for bundle in snapshot.service_bundles] == [
+        "postgres",
+        "neo4j",
+        "dagster",
+        "grafana",
+        "superset",
+    ]
+
+
+def test_with_extra_bundles_returns_copy_without_mutating_profile() -> None:
+    profile = load_profile(PROFILES_ROOT / "full-dev.yaml")
+
+    updated = with_extra_bundles(
+        profile,
+        ["grafana"],
+        bundle_root=BUNDLES_ROOT,
+    )
+
+    assert updated is not profile
+    assert profile.enabled_service_bundles == ["postgres", "neo4j", "dagster"]
+    assert updated.enabled_service_bundles == [
+        "postgres",
+        "neo4j",
+        "dagster",
+        "grafana",
+    ]
+
+
+def test_with_extra_bundles_rejects_duplicate_and_unknown_bundles() -> None:
+    profile = load_profile(PROFILES_ROOT / "full-dev.yaml")
+
+    with pytest.raises(ProfileConstraintError, match="Duplicate"):
+        with_extra_bundles(profile, ["grafana", "grafana"], bundle_root=BUNDLES_ROOT)
+
+    with pytest.raises(ProfileConstraintError, match="Unknown extra bundle"):
+        with_extra_bundles(profile, ["missing"], bundle_root=BUNDLES_ROOT)
+
+
+def test_lite_profile_rejects_optional_extra_bundle() -> None:
+    profile = load_profile(PROFILE_PATH)
+
+    with pytest.raises(ProfileConstraintError, match="Lite profile.*optional"):
+        with_extra_bundles(profile, ["grafana"], bundle_root=BUNDLES_ROOT)
 
 
 def test_resolve_missing_required_env_fails_fast_with_all_missing_keys() -> None:

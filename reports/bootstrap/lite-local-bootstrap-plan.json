@@ -1,0 +1,19 @@
+{
+  "action": "plan",
+  "command": [],
+  "dry_run": true,
+  "profile_id": "lite-local",
+  "report_path": "reports/bootstrap/lite-local-bootstrap-plan.json",
+  "returncode": 1,
+  "service_order": [],
+  "stages": [
+    {
+      "details": {},
+      "message": "Lite profile lite-local cannot enable optional bundle grafana",
+      "name": "env_filesystem_readiness",
+      "status": "failed"
+    }
+  ],
+  "stderr": "",
+  "stdout": ""
+}

@@ -1,0 +1,21 @@
+bundle_name: superset
+services:
+  - name: superset
+    image_or_cmd: apache/superset:4.0.2
+    image: apache/superset:4.0.2
+    command: superset run -h 0.0.0.0 -p ${SUPERSET_PORT:-8088}
+    health_probe: >-
+      python -c "import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:%s/health' % os.environ.get('SUPERSET_PORT', '8088'), timeout=2)"
+    env:
+      SUPERSET_SECRET_KEY: ${SUPERSET_SECRET_KEY:-assembly-dev-secret}
+      SUPERSET_PORT: ${SUPERSET_PORT:-8088}
+startup_order:
+  - superset
+shutdown_order:
+  - superset
+health_checks:
+  - >-
+    python -c "import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:%s/health' % os.environ.get('SUPERSET_PORT', '8088'), timeout=2)"
+required_profiles:
+  - full-dev
+optional: true

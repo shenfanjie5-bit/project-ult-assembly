@@ -13,6 +13,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 PROFILES_ROOT = PROJECT_ROOT / "profiles"
 BUNDLES_ROOT = PROJECT_ROOT / "bundles"
 COMPOSE_FILE = PROJECT_ROOT / "compose" / "lite-local.yaml"
+FULL_COMPOSE_FILE = PROJECT_ROOT / "compose" / "full-dev.yaml"
 
 FORBIDDEN_COMPOSE_SERVICES = {
     "minio",
@@ -155,6 +156,51 @@ def test_optional_bundle_is_rejected_from_lite_bootstrap_plan(tmp_path: Path) ->
         build_plan(profile, bundle_root=bundle_root, compose_file=COMPOSE_FILE)
 
 
+def test_lite_extra_optional_bundle_is_rejected_by_plan() -> None:
+    profile = load_profile(PROFILES_ROOT / "lite-local.yaml")
+
+    with pytest.raises(BootstrapPlanError, match="Lite profile.*optional"):
+        build_plan(
+            profile,
+            bundle_root=BUNDLES_ROOT,
+            compose_file=FULL_COMPOSE_FILE,
+            extra_bundles=["grafana"],
+        )
+
+
+def test_full_dev_plan_allows_optional_extra_bundles() -> None:
+    profile = load_profile(PROFILES_ROOT / "full-dev.yaml")
+
+    plan = build_plan(
+        profile,
+        bundle_root=BUNDLES_ROOT,
+        compose_file=FULL_COMPOSE_FILE,
+        extra_bundles=["grafana", "superset"],
+    )
+
+    assert plan.compose_file == FULL_COMPOSE_FILE
+    assert plan.startup_order == [
+        "postgres",
+        "neo4j",
+        "dagster-daemon",
+        "dagster-webserver",
+        "grafana",
+        "superset",
+    ]
+    assert plan.shutdown_order == [
+        "superset",
+        "grafana",
+        "dagster-webserver",
+        "dagster-daemon",
+        "neo4j",
+        "postgres",
+    ]
+    assert [service.bundle_name for service in plan.services][-2:] == [
+        "grafana",
+        "superset",
+    ]
+
+
 def test_missing_compose_file_raises_plan_error(tmp_path: Path) -> None:
     profile = load_profile(PROFILES_ROOT / "lite-local.yaml")
 
@@ -235,6 +281,21 @@ def test_plan_rejects_compose_health_probe_drift_from_bundle_manifest(
     compose_file = _write_compose(tmp_path, mutate)
 
     with pytest.raises(BootstrapPlanError, match="postgres.*healthcheck"):
+        build_plan(profile, bundle_root=BUNDLES_ROOT, compose_file=compose_file)
+
+
+def test_plan_rejects_healthcheck_cmd_executor_drift(tmp_path: Path) -> None:
+    profile = load_profile(PROFILES_ROOT / "lite-local.yaml")
+
+    def mutate(raw: dict[str, object]) -> None:
+        raw["services"]["postgres"]["healthcheck"]["test"] = [
+            "CMD",
+            "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}",
+        ]
+
+    compose_file = _write_compose(tmp_path, mutate)
+
+    with pytest.raises(BootstrapPlanError, match="CMD-SHELL"):
         build_plan(profile, bundle_root=BUNDLES_ROOT, compose_file=compose_file)
 
 

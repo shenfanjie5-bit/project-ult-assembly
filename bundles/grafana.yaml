@@ -1,0 +1,18 @@
+bundle_name: grafana
+services:
+  - name: grafana
+    image_or_cmd: grafana/grafana:11.1.0
+    image: grafana/grafana:11.1.0
+    health_probe: wget -q -O- http://127.0.0.1:3000/api/health
+    env:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+startup_order:
+  - grafana
+shutdown_order:
+  - grafana
+health_checks:
+  - wget -q -O- http://127.0.0.1:3000/api/health
+required_profiles:
+  - full-dev
+optional: true

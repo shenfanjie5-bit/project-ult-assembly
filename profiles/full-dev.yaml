@@ -1,0 +1,81 @@
+profile_id: full-dev
+mode: full
+enabled_modules:
+  - contracts
+  - data-platform
+  - entity-registry
+  - reasoner-runtime
+  - graph-engine
+  - main-core
+  - audit-eval
+  - subsystem-sdk
+  - orchestrator
+  - assembly
+  - feature-store
+  - stream-layer
+  - subsystem-announcement
+  - subsystem-news
+enabled_service_bundles:
+  - postgres
+  - neo4j
+  - dagster
+required_env_keys:
+  - POSTGRES_HOST
+  - POSTGRES_PORT
+  - POSTGRES_DB
+  - POSTGRES_USER
+  - POSTGRES_PASSWORD
+  - NEO4J_URI
+  - NEO4J_USER
+  - NEO4J_PASSWORD
+  - DAGSTER_HOME
+  - DAGSTER_HOST
+  - DAGSTER_PORT
+optional_env_keys:
+  - ASSEMBLY_LOG_LEVEL
+  - ASSEMBLY_SERVICE_TOKEN
+  - MINIO_ROOT_USER
+  - MINIO_ROOT_PASSWORD
+  - MINIO_PORT
+  - MINIO_CONSOLE_PORT
+  - GRAFANA_ADMIN_USER
+  - GRAFANA_ADMIN_PASSWORD
+  - GRAFANA_PORT
+  - SUPERSET_SECRET_KEY
+  - SUPERSET_PORT
+  - TEMPORAL_PORT
+  - TEMPORAL_UI_PORT
+  - FEAST_PORT
+  - KAFKA_PORT
+  - FLINK_JOBMANAGER_PORT
+storage_backends:
+  postgres:
+    kind: postgres
+    connection:
+      host_env: POSTGRES_HOST
+      port_env: POSTGRES_PORT
+      database_env: POSTGRES_DB
+      user_env: POSTGRES_USER
+      password_env: POSTGRES_PASSWORD
+  neo4j:
+    kind: neo4j
+    connection:
+      uri_env: NEO4J_URI
+      user_env: NEO4J_USER
+      password_env: NEO4J_PASSWORD
+  dagster_home:
+    kind: local_fs
+    connection:
+      path_env: DAGSTER_HOME
+  minio:
+    kind: minio
+    connection:
+      endpoint_env: MINIO_PORT
+      root_user_env: MINIO_ROOT_USER
+      root_password_env: MINIO_ROOT_PASSWORD
+resource_expectation:
+  cpu_cores: 6
+  memory_gb: 16
+  disk_gb: 80
+max_long_running_daemons: 13
+notes: Full local development profile that reuses Lite core services and accepts optional service bundle slots through extra-bundles.

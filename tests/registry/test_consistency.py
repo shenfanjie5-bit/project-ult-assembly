@@ -91,7 +91,7 @@ def test_registry_artifacts_cover_expected_fourteen_modules() -> None:
     assert all(
         entry.module_version == "0.0.0"
         and entry.contract_version == "v0.0.0"
-        and entry.supported_profiles == ["lite-local"]
+        and entry.supported_profiles == ["lite-local", "full-dev"]
         for entry in unstarted_entries
     )
     for entry in entries:
@@ -165,14 +165,32 @@ def test_deprecated_matrix_status_is_valid_but_not_current() -> None:
 def test_compatibility_matrix_is_draft_and_covers_registry_modules() -> None:
     raw = yaml.safe_load(MATRIX_YAML.read_text(encoding="utf-8"))
     entries = [CompatibilityMatrixEntry.model_validate(item) for item in raw]
+    entries_by_profile = {entry.profile_id: entry for entry in entries}
 
-    assert len(entries) == 1
-    assert entries[0].profile_id == "lite-local"
-    assert entries[0].status == "draft"
-    assert entries[0].verified_at is None
+    assert set(entries_by_profile) == {"lite-local", "full-dev"}
+    assert all(entry.status == "draft" for entry in entries)
+    assert all(entry.verified_at is None for entry in entries)
     assert {
-        module.module_id for module in entries[0].module_set
+        module.module_id for module in entries_by_profile["lite-local"].module_set
     } == EXPECTED_MODULE_IDS
+    assert {
+        module.module_id for module in entries_by_profile["full-dev"].module_set
+    } == EXPECTED_MODULE_IDS
+
+
+def test_full_dev_supported_profiles_are_explicit_for_feature_and_stream() -> None:
+    entries_by_id = {
+        entry.module_id: entry for entry in load_registry_yaml(REGISTRY_YAML)
+    }
+
+    assert entries_by_id["feature-store"].supported_profiles == [
+        "lite-local",
+        "full-dev",
+    ]
+    assert entries_by_id["stream-layer"].supported_profiles == [
+        "lite-local",
+        "full-dev",
+    ]
 
 
 def test_registry_and_matrix_profile_references_are_loadable() -> None:

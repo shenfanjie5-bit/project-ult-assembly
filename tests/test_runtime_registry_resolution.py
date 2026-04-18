@@ -10,11 +10,23 @@ import yaml
 
 from assembly.contracts.models import HealthResult, HealthStatus, SmokeResult
 from assembly.health import healthcheck
-from assembly.registry import RegistryResolutionError
+from assembly.registry import RegistryResolutionError, load_all, resolve_for_profile
 from assembly.tests.smoke import run_smoke
 
 
 PROFILE_ID = "test-profile"
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_full_dev_runtime_registry_resolution_uses_declared_modules() -> None:
+    registry = load_all(PROJECT_ROOT)
+
+    resolved_entries = resolve_for_profile(registry, "full-dev")
+    profile_modules = yaml.safe_load(
+        (PROJECT_ROOT / "profiles/full-dev.yaml").read_text(encoding="utf-8")
+    )["enabled_modules"]
+
+    assert [entry.module_id for entry in resolved_entries] == profile_modules
 
 
 def test_healthcheck_uses_registry_resolution_dependency_order(
