@@ -36,7 +36,7 @@ class FakeHealthRunner:
         return self.results
 
 
-def test_smoke_suite_runs_health_before_hooks_and_writes_success_report(
+def test_smoke_suite_runs_health_before_hooks_and_writes_partial_report_for_skip(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
@@ -52,7 +52,7 @@ def test_smoke_suite_runs_health_before_hooks_and_writes_success_report(
         ),
         order,
     )
-    snapshot = _snapshot(["assembly", "contracts", "missing-module"])
+    snapshot = _snapshot(["assembly", "contracts"])
     registry = _registry(
         [
             _entry("assembly", IntegrationStatus.partial, "fake_success_public:smoke_hook"),
@@ -65,25 +65,19 @@ def test_smoke_suite_runs_health_before_hooks_and_writes_success_report(
     ).run(snapshot, registry, reports_dir=tmp_path)
 
     assert order == ["health", "smoke:lite-local"]
-    assert record.status == "success"
+    assert record.status == "partial"
     assert record.failing_modules == []
     payload = json.loads((tmp_path / f"{record.run_id}.json").read_text())
     assert payload["run_id"] == record.run_id
     assert payload["profile_id"] == "lite-local"
     assert payload["run_type"] == "smoke"
-    assert payload["status"] == "success"
+    assert payload["status"] == "partial"
     assert payload["failing_modules"] == []
     assert {
         "kind": "smoke_skip",
         "module_id": "contracts",
         "skipped": "true",
         "integration_status": "not_started",
-    } in payload["artifacts"]
-    assert {
-        "kind": "smoke_skip",
-        "module_id": "missing-module",
-        "skipped": "true",
-        "integration_status": "unregistered",
     } in payload["artifacts"]
 
 
@@ -151,6 +145,29 @@ def test_failing_smoke_hook_enters_failing_modules_and_report(
     payload = json.loads((tmp_path / f"{record.run_id}.json").read_text())
     assert payload["status"] == "failed"
     assert payload["failing_modules"] == ["assembly"]
+
+
+def test_missing_smoke_hook_enters_failing_modules_and_report(
+    tmp_path: Path,
+) -> None:
+    order: list[str] = []
+    snapshot = _snapshot(["assembly"])
+    registry = _registry([_entry("assembly", IntegrationStatus.partial, None)])
+
+    record = SmokeSuite(
+        health_runner=FakeHealthRunner([_health("assembly")], order)
+    ).run(snapshot, registry, reports_dir=tmp_path)
+
+    assert record.status == "failed"
+    assert record.failing_modules == ["assembly"]
+    payload = json.loads((tmp_path / f"{record.run_id}.json").read_text())
+    assert {
+        "kind": "smoke_result",
+        "module_id": "assembly",
+        "hook_name": "smoke",
+        "passed": "false",
+        "failure_reason": "assembly has no smoke_hook public entrypoint",
+    } in payload["artifacts"]
 
 
 def test_invalid_failed_smoke_result_reason_is_not_swallowed(
@@ -245,8 +262,18 @@ def _registry(entries: list[ModuleRegistryEntry]) -> Registry:
 def _entry(
     module_id: str,
     integration_status: IntegrationStatus,
-    reference: str,
+    reference: str | None,
 ) -> ModuleRegistryEntry:
+    public_entrypoints = []
+    if reference is not None:
+        public_entrypoints.append(
+            {
+                "name": "smoke",
+                "kind": "smoke_hook",
+                "reference": reference,
+            }
+        )
+
     return ModuleRegistryEntry(
         module_id=module_id,
         module_version="0.0.0" if module_id != "assembly" else "0.1.0",
@@ -254,17 +281,10 @@ def _entry(
         owner="test",
         upstream_modules=[],
         downstream_modules=[],
-        public_entrypoints=[
-            {
-                "name": "smoke",
-                "kind": "smoke_hook",
-                "reference": reference,
-            }
-        ],
+        public_entrypoints=public_entrypoints,
         depends_on=[],
         supported_profiles=["lite-local"],
         integration_status=integration_status,
         last_smoke_result=None,
         notes="test entry",
     )
-

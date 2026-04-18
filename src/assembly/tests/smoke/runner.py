@@ -91,7 +91,7 @@ class SmokeSuite:
         )
         if failing_modules:
             status = "failed"
-        elif degraded_modules:
+        elif degraded_modules or skip_artifacts:
             status = "partial"
         else:
             status = "success"
@@ -129,7 +129,16 @@ def _run_smoke_hooks(
     for module_id in snapshot.enabled_modules:
         entry = entries_by_id.get(module_id)
         if entry is None:
-            artifacts.append(_skip_artifact(module_id, "unregistered"))
+            results.append(
+                _failed_smoke_result(
+                    module_id=module_id,
+                    hook_name="smoke",
+                    started_at=perf_counter(),
+                    failure_reason=(
+                        f"{module_id} is not registered in the module registry"
+                    ),
+                )
+            )
             continue
 
         smoke_entrypoints = [
@@ -144,7 +153,16 @@ def _run_smoke_hooks(
             continue
 
         if not smoke_entrypoints:
-            artifacts.append(_skip_artifact(module_id, "missing_smoke_hook"))
+            results.append(
+                _failed_smoke_result(
+                    module_id=module_id,
+                    hook_name="smoke",
+                    started_at=perf_counter(),
+                    failure_reason=(
+                        f"{module_id} has no smoke_hook public entrypoint"
+                    ),
+                )
+            )
             continue
 
         for entrypoint in smoke_entrypoints:

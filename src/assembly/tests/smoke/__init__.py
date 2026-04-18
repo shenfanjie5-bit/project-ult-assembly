@@ -7,7 +7,7 @@ from typing import Mapping
 
 from assembly.contracts.models import IntegrationRunRecord
 from assembly.profiles.resolver import render_profile
-from assembly.registry import load_all
+from assembly.registry import load_all, resolve_for_profile
 from assembly.tests.smoke.runner import SmokeSuite
 
 
@@ -23,13 +23,22 @@ def run_smoke(
 ) -> IntegrationRunRecord:
     """Resolve a profile and run the system-level smoke suite."""
 
+    registry = load_all(registry_root)
+    resolved_entries = resolve_for_profile(
+        registry,
+        profile_id,
+        profiles_root=profiles_root,
+    )
     snapshot = render_profile(
         profile_id,
         profiles_root=profiles_root,
         bundles_root=bundles_root,
         env=env,
+    ).model_copy(
+        update={
+            "enabled_modules": [entry.module_id for entry in resolved_entries],
+        }
     )
-    registry = load_all(registry_root)
     return SmokeSuite().run(
         snapshot,
         registry,
@@ -42,4 +51,3 @@ __all__ = [
     "SmokeSuite",
     "run_smoke",
 ]
-
