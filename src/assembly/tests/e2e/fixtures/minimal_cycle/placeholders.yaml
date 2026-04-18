@@ -1,0 +1,4 @@
+scenario_id: minimal-daily-cycle-placeholder
+inputs:
+  - name: placeholder-cycle-input
+    value: synthetic

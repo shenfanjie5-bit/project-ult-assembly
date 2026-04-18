@@ -1,0 +1,6 @@
+{
+  "scenario_id": "minimal-daily-cycle-placeholder",
+  "artifacts": {
+    "cycle_summary": "cycle-summary.json"
+  }
+}

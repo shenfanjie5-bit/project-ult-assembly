@@ -1,0 +1,18 @@
+scenario_id: minimal-daily-cycle-placeholder
+expected_phases:
+  - resolve-profile
+  - load-fixture
+  - execute-minimal-cycle
+  - write-report
+required_artifacts:
+  - cycle_summary
+orchestrator_args:
+  - min-cycle
+  - --profile
+  - "{profile_id}"
+  - --fixture
+  - "{fixture_manifest}"
+  - --run-artifacts-dir
+  - "{run_dir}"
+  - --report
+  - "{orchestrator_report_path}"
