@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import hashlib
 import json
+import sys
+import types
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -9,7 +10,10 @@ import pytest
 import yaml
 
 import assembly.registry.freezer as freezer
+from assembly.compat import run_contract_suite
+from assembly.contracts import HealthResult, HealthStatus, SmokeResult, VersionInfo
 from assembly.contracts.models import IntegrationRunRecord
+from assembly.contracts.reporting import compatibility_context_artifact
 from assembly.registry import (
     CompatibilityMatrixEntry,
     ReleaseFreezeError,
@@ -17,6 +21,8 @@ from assembly.registry import (
     freeze_profile,
     load_all,
 )
+from assembly.tests.e2e import run_min_cycle_e2e
+from assembly.tests.smoke import run_smoke
 
 
 _NOW = datetime(2026, 4, 18, 12, 30, tzinfo=timezone.utc)
@@ -87,6 +93,71 @@ def test_freeze_profile_writes_stable_version_lock(tmp_path: Path) -> None:
     )
     assert second.lock_file == lock.lock_file
     assert second.lock_file.read_text(encoding="utf-8") == first_text
+
+
+def test_freeze_profile_accepts_real_runner_records(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    _install_release_public_module(monkeypatch, "release_orchestrator_public")
+    project = _write_real_runner_project(tmp_path, "release_orchestrator_public")
+    fixture_dir = _write_release_fixture(project)
+
+    smoke_record = run_smoke(
+        "full-local",
+        profiles_root=project / "profiles",
+        bundles_root=project / "bundles",
+        registry_root=project,
+        reports_dir=project / "reports/smoke",
+        env={},
+        timeout_sec=1.0,
+    )
+    e2e_record = run_min_cycle_e2e(
+        "full-local",
+        profiles_root=project / "profiles",
+        bundles_root=project / "bundles",
+        registry_root=project,
+        fixture_dir=fixture_dir,
+        reports_dir=project / "reports/e2e",
+        env={},
+        timeout_sec=1.0,
+        bootstrap_if_needed=False,
+    )
+    contract_report = run_contract_suite(
+        "full-local",
+        profiles_root=project / "profiles",
+        bundles_root=project / "bundles",
+        registry_root=project,
+        reports_dir=project / "reports/contract",
+        env={},
+        timeout_sec=1.0,
+        promote=True,
+    )
+
+    assert smoke_record.status == "success"
+    assert e2e_record.status == "success"
+    assert contract_report.run_record.status == "success"
+    assert contract_report.promoted is True
+    for record in (smoke_record, e2e_record, contract_report.run_record):
+        assert any(
+            artifact["kind"] == "compatibility_context"
+            for artifact in record.artifacts
+        )
+
+    lock = freeze_profile(
+        "full-local",
+        registry_root=project,
+        reports_root=project / "reports",
+        out_dir=project / "version-lock",
+        now=_NOW,
+    )
+
+    assert lock.lock_file.exists()
+    assert {run.run_type for run in lock.supporting_runs} == {
+        "contract",
+        "smoke",
+        "e2e",
+    }
 
 
 def test_freeze_rejects_draft_matrix(tmp_path: Path) -> None:
@@ -284,6 +355,204 @@ def test_freeze_rejects_direct_draft_entry(tmp_path: Path) -> None:
     assert not (project / "version-lock").exists()
 
 
+class ReleaseHealthProbe:
+    def check(self, *, timeout_sec: float) -> HealthResult:
+        return HealthResult(
+            module_id="orchestrator",
+            probe_name="health",
+            status=HealthStatus.healthy,
+            latency_ms=0.0,
+            message="orchestrator healthy",
+            details={"timeout_sec": str(timeout_sec)},
+        )
+
+
+class ReleaseSmokeHook:
+    def run(self, *, profile_id: str) -> SmokeResult:
+        return SmokeResult(
+            module_id="orchestrator",
+            hook_name="smoke",
+            passed=True,
+            duration_ms=0.0,
+            failure_reason=None,
+        )
+
+
+class ReleaseVersionDeclaration:
+    def declare(self) -> VersionInfo:
+        return VersionInfo(
+            module_id="orchestrator",
+            module_version="0.1.0",
+            contract_version="v0.0.0",
+            compatible_contract_range=">=0.0.0 <1.0.0",
+        )
+
+
+class ReleaseCliEntrypoint:
+    def invoke(self, argv: list[str]) -> int:
+        report_path = Path(argv[argv.index("--report") + 1])
+        run_dir = Path(argv[argv.index("--run-artifacts-dir") + 1])
+        artifact_path = run_dir / "cycle-summary.json"
+        artifact_path.write_text(json.dumps({"ok": True}) + "\n", encoding="utf-8")
+        report_path.parent.mkdir(parents=True, exist_ok=True)
+        report_path.write_text(
+            json.dumps(
+                {
+                    "profile_id": argv[argv.index("--profile") + 1],
+                    "phases": ["extract", "publish"],
+                    "artifacts": {"cycle_summary": "cycle-summary.json"},
+                    "status": "success",
+                },
+                indent=2,
+                sort_keys=True,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        return 0
+
+
+def _install_release_public_module(
+    monkeypatch: pytest.MonkeyPatch,
+    module_name: str,
+) -> None:
+    module = types.ModuleType(module_name)
+    module.health_probe = ReleaseHealthProbe()
+    module.smoke_hook = ReleaseSmokeHook()
+    module.version_declaration = ReleaseVersionDeclaration()
+    module.cli = ReleaseCliEntrypoint()
+    monkeypatch.setitem(sys.modules, module_name, module)
+
+
+def _write_real_runner_project(root: Path, public_module: str) -> Path:
+    modules = [_real_module_data(public_module)]
+    (root / "profiles").mkdir(parents=True)
+    (root / "bundles").mkdir()
+    (root / "profiles/full-local.yaml").write_text(
+        yaml.safe_dump(
+            {
+                "profile_id": "full-local",
+                "mode": "full",
+                "enabled_modules": ["orchestrator"],
+                "enabled_service_bundles": [],
+                "required_env_keys": [],
+                "optional_env_keys": [],
+                "storage_backends": {},
+                "resource_expectation": {
+                    "cpu_cores": 1,
+                    "memory_gb": 1,
+                    "disk_gb": 1,
+                },
+                "max_long_running_daemons": 1,
+                "notes": "real runner freeze test profile",
+            },
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+    (root / "module-registry.yaml").write_text(
+        yaml.safe_dump(modules, sort_keys=False),
+        encoding="utf-8",
+    )
+    (root / "MODULE_REGISTRY.md").write_text(
+        _registry_markdown(modules),
+        encoding="utf-8",
+    )
+    (root / "compatibility-matrix.yaml").write_text(
+        yaml.safe_dump(
+            [
+                {
+                    "matrix_version": "0.1.0",
+                    "profile_id": "full-local",
+                    "module_set": [
+                        {
+                            "module_id": "orchestrator",
+                            "module_version": "0.1.0",
+                        }
+                    ],
+                    "contract_version": "v0.0.0",
+                    "required_tests": [
+                        "contract-suite",
+                        "smoke",
+                        "min-cycle-e2e",
+                    ],
+                    "status": "draft",
+                    "verified_at": None,
+                }
+            ],
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+    return root
+
+
+def _write_release_fixture(root: Path) -> Path:
+    fixture_dir = root / "fixture"
+    fixture_dir.mkdir()
+    (fixture_dir / "manifest.yaml").write_text(
+        yaml.safe_dump(
+            {
+                "scenario_id": "release-freeze-real-reports",
+                "expected_phases": ["extract", "publish"],
+                "required_artifacts": ["cycle_summary"],
+                "orchestrator_args": [
+                    "min-cycle",
+                    "--profile",
+                    "{profile_id}",
+                    "--fixture",
+                    "{fixture_manifest}",
+                    "--run-artifacts-dir",
+                    "{run_dir}",
+                    "--report",
+                    "{orchestrator_report_path}",
+                ],
+            },
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+    return fixture_dir
+
+
+def _real_module_data(public_module: str) -> dict[str, object]:
+    return {
+        "module_id": "orchestrator",
+        "module_version": "0.1.0",
+        "contract_version": "v0.0.0",
+        "owner": "test",
+        "upstream_modules": [],
+        "downstream_modules": [],
+        "public_entrypoints": [
+            {
+                "name": "health",
+                "kind": "health_probe",
+                "reference": f"{public_module}:health_probe",
+            },
+            {
+                "name": "smoke",
+                "kind": "smoke_hook",
+                "reference": f"{public_module}:smoke_hook",
+            },
+            {
+                "name": "version",
+                "kind": "version_declaration",
+                "reference": f"{public_module}:version_declaration",
+            },
+            {
+                "name": "cli",
+                "kind": "cli",
+                "reference": f"{public_module}:cli",
+            },
+        ],
+        "depends_on": [],
+        "supported_profiles": ["full-local"],
+        "integration_status": "verified",
+        "last_smoke_result": None,
+        "notes": "test module",
+    }
+
+
 def _write_project(
     root: Path,
     *,
@@ -440,7 +709,10 @@ def _markdown_value(column: str, value: object) -> str:
     }:
         return ", ".join(value)  # type: ignore[arg-type]
     if column == "public_entrypoints":
-        return ""
+        return "; ".join(
+            f"{entry['name']}:{entry['kind']}={entry['reference']}"
+            for entry in value  # type: ignore[union-attr]
+        )
     if column == "last_smoke_result" and value is None:
         return "null"
     return str(value)
@@ -509,47 +781,8 @@ def _run_record(
         status="success",
         artifacts=[
             {"kind": f"{run_type}_report", "path": str(path)},
-            _compatibility_context_artifact(matrix_entry),
+            compatibility_context_artifact(matrix_entry),
         ],
         failing_modules=[],
         summary=f"{run_type} succeeded",
     )
-
-
-def _compatibility_context_artifact(
-    matrix_entry: CompatibilityMatrixEntry,
-) -> dict[str, str]:
-    module_set = sorted(
-        (
-            {
-                "module_id": module.module_id,
-                "module_version": module.module_version,
-            }
-            for module in matrix_entry.module_set
-        ),
-        key=lambda item: (item["module_id"], item["module_version"]),
-    )
-    matrix_context = {
-        "profile_id": matrix_entry.profile_id,
-        "matrix_version": matrix_entry.matrix_version,
-        "contract_version": matrix_entry.contract_version,
-        "module_set": module_set,
-    }
-    return {
-        "kind": "compatibility_context",
-        "profile_id": matrix_entry.profile_id,
-        "matrix_version": matrix_entry.matrix_version,
-        "contract_version": matrix_entry.contract_version,
-        "module_set_digest": _stable_digest(module_set),
-        "matrix_digest": _stable_digest(matrix_context),
-    }
-
-
-def _stable_digest(payload: object) -> str:
-    canonical = json.dumps(
-        payload,
-        ensure_ascii=True,
-        separators=(",", ":"),
-        sort_keys=True,
-    )
-    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()

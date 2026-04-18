@@ -23,11 +23,14 @@ from assembly.compat import (
 )
 from assembly.contracts.models import HealthResult, HealthStatus, IntegrationRunRecord
 from assembly.contracts.protocols import CliEntrypoint
+from assembly.contracts.reporting import compatibility_context_artifact
 from assembly.health import healthcheck
 from assembly.profiles.resolver import render_profile
 from assembly.registry import (
+    CompatibilityMatrixEntry,
     IntegrationStatus,
     ModuleRegistryEntry,
+    Registry,
     load_all,
     resolve_for_profile,
 )
@@ -133,6 +136,8 @@ class E2ERunner:
                 profile_id,
                 profiles_root=profiles_root,
             )
+            matrix_entry = _select_matrix_entry(registry, profile_id, resolved_entries)
+            artifacts.append(compatibility_context_artifact(matrix_entry))
             snapshot = snapshot.model_copy(
                 update={"enabled_modules": [entry.module_id for entry in resolved_entries]}
             )
@@ -168,7 +173,6 @@ class E2ERunner:
             )
             contract_report_path = contract_report.report_path
             artifacts.append({"kind": "contract_report", "path": str(contract_report_path)})
-            artifacts.extend(_compatibility_context_artifacts(contract_report.run_record))
         except Exception as exc:
             assertion_results.append(_failed_assertion("contract_preflight", str(exc)))
             _write_orchestrator_failure_report(paths.orchestrator_report, profile_id, str(exc))
@@ -573,14 +577,28 @@ def _contract_reports_dir(e2e_reports_dir: Path) -> Path:
     return Path(e2e_reports_dir).parent / "contract"
 
 
-def _compatibility_context_artifacts(
-    contract_record: IntegrationRunRecord,
-) -> list[dict[str, str]]:
-    return [
-        artifact
-        for artifact in contract_record.artifacts
-        if artifact.get("kind") == "compatibility_context"
-    ]
+def _select_matrix_entry(
+    registry: Registry,
+    profile_id: str,
+    resolved_entries: Sequence[ModuleRegistryEntry],
+) -> CompatibilityMatrixEntry:
+    expected_versions = {
+        entry.module_id: entry.module_version for entry in resolved_entries
+    }
+    for matrix_entry in registry.compatibility_matrix:
+        if matrix_entry.profile_id != profile_id or matrix_entry.status == "deprecated":
+            continue
+
+        matrix_versions = {
+            module.module_id: module.module_version
+            for module in matrix_entry.module_set
+        }
+        if matrix_versions == expected_versions:
+            return matrix_entry
+
+    raise E2EBlocker(
+        f"Blocker: no active compatibility matrix entry matches profile {profile_id}"
+    )
 
 
 def _contract_preflight_blocker(

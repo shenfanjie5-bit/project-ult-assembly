@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import fcntl
-import hashlib
 import os
 import tempfile
 from contextlib import contextmanager
@@ -31,6 +30,10 @@ from assembly.compat.schema import (
     CompatibilityReport,
 )
 from assembly.contracts.models import IntegrationRunRecord
+from assembly.contracts.reporting import (
+    compatibility_context_artifact,
+    record_matches_matrix_context,
+)
 from assembly.profiles.resolver import render_profile
 from assembly.registry import (
     CompatibilityMatrixEntry,
@@ -110,7 +113,7 @@ class CompatRunner:
             artifacts=[
                 {"kind": "contract_report", "path": str(report_path)},
                 {"kind": "compatibility_matrix", "version": matrix_entry.matrix_version},
-                _compatibility_context_artifact(matrix_entry),
+                compatibility_context_artifact(matrix_entry),
             ],
             failing_modules=_non_success_modules(checks),
             summary=_summary(checks),
@@ -286,7 +289,7 @@ def _validate_current_contract_run(
             "Cannot promote compatibility matrix entry without a successful "
             "contract run"
         )
-    if not _record_matches_matrix_context(contract_run_record, matrix_entry):
+    if not record_matches_matrix_context(contract_run_record, matrix_entry):
         raise CompatibilityPromotionError(
             "Contract run record does not match compatibility matrix context"
         )
@@ -570,7 +573,7 @@ def _find_successful_run_record(
         if (
             current_contract_ref.record.profile_id == profile_id
             and current_contract_ref.record.status == "success"
-            and _record_matches_matrix_context(current_contract_ref.record, matrix_entry)
+            and record_matches_matrix_context(current_contract_ref.record, matrix_entry)
         ):
             return current_contract_ref
 
@@ -589,7 +592,7 @@ def _find_successful_run_record(
             record.profile_id == profile_id
             and record.run_type == run_type
             and record.status == "success"
-            and _record_matches_matrix_context(record, matrix_entry)
+            and record_matches_matrix_context(record, matrix_entry)
         ):
             return _RunRecordRef(record=record, path=path)
 
@@ -616,59 +619,6 @@ def _current_run_record_path(record: IntegrationRunRecord) -> Path | None:
             return Path(artifact_path)
 
     return None
-
-
-def _record_matches_matrix_context(
-    record: IntegrationRunRecord,
-    matrix_entry: CompatibilityMatrixEntry,
-) -> bool:
-    expected = _compatibility_context_artifact(matrix_entry)
-    for artifact in record.artifacts:
-        if artifact.get("kind") != expected["kind"]:
-            continue
-
-        return all(artifact.get(key) == value for key, value in expected.items())
-
-    return False
-
-
-def _compatibility_context_artifact(
-    matrix_entry: CompatibilityMatrixEntry,
-) -> dict[str, str]:
-    module_set = sorted(
-        (
-            {
-                "module_id": module.module_id,
-                "module_version": module.module_version,
-            }
-            for module in matrix_entry.module_set
-        ),
-        key=lambda item: (item["module_id"], item["module_version"]),
-    )
-    matrix_context = {
-        "profile_id": matrix_entry.profile_id,
-        "matrix_version": matrix_entry.matrix_version,
-        "contract_version": matrix_entry.contract_version,
-        "module_set": module_set,
-    }
-    return {
-        "kind": "compatibility_context",
-        "profile_id": matrix_entry.profile_id,
-        "matrix_version": matrix_entry.matrix_version,
-        "contract_version": matrix_entry.contract_version,
-        "module_set_digest": _stable_digest(module_set),
-        "matrix_digest": _stable_digest(matrix_context),
-    }
-
-
-def _stable_digest(payload: object) -> str:
-    canonical = json.dumps(
-        payload,
-        ensure_ascii=True,
-        separators=(",", ":"),
-        sort_keys=True,
-    )
-    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
 def _promotion_support_artifacts(

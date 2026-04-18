@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import fcntl
-import hashlib
 import json
 import os
 import tempfile
@@ -16,6 +15,7 @@ import yaml
 from pydantic import BaseModel, ConfigDict, ValidationError
 
 from assembly.contracts.models import IntegrationRunRecord
+from assembly.contracts.reporting import record_matches_matrix_context
 from assembly.registry.loader import Registry, load_all
 from assembly.registry.resolver import resolve_for_profile
 from assembly.registry.schema import (
@@ -312,7 +312,7 @@ def _find_successful_run_record(
             record.profile_id == profile_id
             and record.run_type == run_type
             and record.status == "success"
-            and _record_matches_matrix_context(record, matrix_entry)
+            and record_matches_matrix_context(record, matrix_entry)
         ):
             return VersionLockRunRef(
                 run_type=record.run_type,
@@ -322,20 +322,6 @@ def _find_successful_run_record(
             )
 
     return None
-
-
-def _record_matches_matrix_context(
-    record: IntegrationRunRecord,
-    matrix_entry: CompatibilityMatrixEntry,
-) -> bool:
-    expected = _compatibility_context_artifact(matrix_entry)
-    for artifact in record.artifacts:
-        if artifact.get("kind") != expected["kind"]:
-            continue
-
-        return all(artifact.get(key) == value for key, value in expected.items())
-
-    return False
 
 
 def _load_run_record(path: Path) -> IntegrationRunRecord | None:
@@ -434,45 +420,6 @@ def _fsync_directory(directory: Path) -> None:
         os.fsync(dir_fd)
     finally:
         os.close(dir_fd)
-
-
-def _compatibility_context_artifact(
-    matrix_entry: CompatibilityMatrixEntry,
-) -> dict[str, str]:
-    module_set = sorted(
-        (
-            {
-                "module_id": module.module_id,
-                "module_version": module.module_version,
-            }
-            for module in matrix_entry.module_set
-        ),
-        key=lambda item: (item["module_id"], item["module_version"]),
-    )
-    matrix_context = {
-        "profile_id": matrix_entry.profile_id,
-        "matrix_version": matrix_entry.matrix_version,
-        "contract_version": matrix_entry.contract_version,
-        "module_set": module_set,
-    }
-    return {
-        "kind": "compatibility_context",
-        "profile_id": matrix_entry.profile_id,
-        "matrix_version": matrix_entry.matrix_version,
-        "contract_version": matrix_entry.contract_version,
-        "module_set_digest": _stable_digest(module_set),
-        "matrix_digest": _stable_digest(matrix_context),
-    }
-
-
-def _stable_digest(payload: object) -> str:
-    canonical = json.dumps(
-        payload,
-        ensure_ascii=True,
-        separators=(",", ":"),
-        sort_keys=True,
-    )
-    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
 def _utc_datetime(value: datetime | None) -> datetime:
