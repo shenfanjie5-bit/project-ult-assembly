@@ -1,0 +1,19 @@
+{
+  "action": "plan",
+  "command": [],
+  "dry_run": true,
+  "profile_id": "full-dev",
+  "report_path": "reports/bootstrap/full-dev-bootstrap-plan.json",
+  "returncode": 1,
+  "service_order": [],
+  "stages": [
+    {
+      "details": {},
+      "message": "Missing non-empty environment keys for selected optional bundles in full-dev: GRAFANA_ADMIN_USER, GRAFANA_ADMIN_PASSWORD, SUPERSET_SECRET_KEY",
+      "name": "env_filesystem_readiness",
+      "status": "failed"
+    }
+  ],
+  "stderr": "",
+  "stdout": ""
+}

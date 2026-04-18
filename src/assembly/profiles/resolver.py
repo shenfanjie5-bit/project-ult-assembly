@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from collections import Counter
 from collections.abc import Sequence
 from datetime import datetime, timezone
@@ -27,6 +28,7 @@ from assembly.profiles.schema import (
 
 _REDACTED_VALUE = "<redacted>"
 _SENSITIVE_KEY_PARTS = ("PASSWORD", "SECRET", "TOKEN")
+_ENV_REF_PATTERN = re.compile(r"\$\{([A-Za-z_][A-Za-z0-9_]*)([^}]*)\}")
 
 
 class ResolvedConfigSnapshot(BaseModel):
@@ -82,6 +84,7 @@ def resolve(
         _load_profile_bundle(resolved_profile, bundle_name, bundle_root)
         for bundle_name in resolved_profile.enabled_service_bundles
     ]
+    _enforce_selected_optional_env(resolved_profile, service_bundles, env)
     _enforce_unique_service_names(resolved_profile, service_bundles)
     _enforce_lite_service_count(resolved_profile, service_bundles)
 
@@ -256,6 +259,61 @@ def _service_names(service_bundles: list[ServiceBundleManifest]) -> list[str]:
     return [
         service.name for bundle in service_bundles for service in bundle.services
     ]
+
+
+def _enforce_selected_optional_env(
+    profile: EnvironmentProfile,
+    service_bundles: list[ServiceBundleManifest],
+    env: Mapping[str, str],
+) -> None:
+    required_keys = _selected_optional_env_keys_requiring_values(
+        profile,
+        service_bundles,
+    )
+    missing_or_empty = [
+        key for key in required_keys if key not in env or not str(env[key]).strip()
+    ]
+    if missing_or_empty:
+        raise ProfileEnvMissingError(
+            "Missing non-empty environment keys for selected optional bundles "
+            f"in {profile.profile_id}: {', '.join(missing_or_empty)}"
+        )
+
+
+def _selected_optional_env_keys_requiring_values(
+    profile: EnvironmentProfile,
+    service_bundles: list[ServiceBundleManifest],
+) -> list[str]:
+    optional_profile_keys = set(profile.optional_env_keys)
+    keys: list[str] = []
+    seen: set[str] = set()
+    for bundle in service_bundles:
+        if not bundle.optional:
+            continue
+
+        for service in bundle.services:
+            for value in service.env.values():
+                for key in _required_env_refs(value):
+                    if key not in optional_profile_keys or key in seen:
+                        continue
+                    keys.append(key)
+                    seen.add(key)
+
+    return keys
+
+
+def _required_env_refs(value: str) -> list[str]:
+    refs: list[str] = []
+    for match in _ENV_REF_PATTERN.finditer(value):
+        suffix = match.group(2)
+        if (
+            suffix in {"", "?"}
+            or suffix.startswith("?")
+            or suffix.startswith(":?")
+        ):
+            refs.append(match.group(1))
+
+    return refs
 
 
 def _redact_sensitive_values(value: Any) -> Any:

@@ -100,13 +100,26 @@ def test_lite_local_modules_cover_registry_supported_modules() -> None:
     assert len(profile.enabled_modules) == 14
 
 
-def test_env_example_matches_lite_local_env_keys_exactly() -> None:
+def test_env_example_contains_lite_keys_and_empty_full_secret_placeholders() -> None:
     profile = load_profile(PROFILE_PATH)
-
-    assert _env_example_keys(ENV_EXAMPLE) == [
+    entries = _env_example_entries(ENV_EXAMPLE)
+    lite_keys = [
         *profile.required_env_keys,
         *profile.optional_env_keys,
     ]
+    full_secret_placeholders = [
+        "MINIO_ROOT_USER",
+        "MINIO_ROOT_PASSWORD",
+        "GRAFANA_ADMIN_USER",
+        "GRAFANA_ADMIN_PASSWORD",
+        "SUPERSET_SECRET_KEY",
+    ]
+
+    assert [key for key, _ in entries[: len(lite_keys)]] == lite_keys
+    assert [key for key, _ in entries[len(lite_keys) :]] == (
+        full_secret_placeholders
+    )
+    assert all(value == "" for _, value in entries[len(lite_keys) :])
 
 
 def test_registry_and_matrix_profile_references_are_publicly_loadable() -> None:
@@ -130,15 +143,15 @@ def test_registry_and_matrix_profile_references_are_publicly_loadable() -> None:
     assert referenced_profile_ids <= set(profiles_by_id)
 
 
-def _env_example_keys(path: Path) -> list[str]:
-    keys: list[str] = []
+def _env_example_entries(path: Path) -> list[tuple[str, str]]:
+    entries: list[tuple[str, str]] = []
     for line in path.read_text(encoding="utf-8").splitlines():
         stripped = line.strip()
         if not stripped or stripped.startswith("#"):
             continue
 
-        key, separator, _ = stripped.partition("=")
+        key, separator, value = stripped.partition("=")
         assert separator == "="
-        keys.append(key)
+        entries.append((key, value))
 
-    return keys
+    return entries

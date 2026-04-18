@@ -7,7 +7,7 @@ services:
     health_probe: >-
       python -c "import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:%s/health' % os.environ.get('SUPERSET_PORT', '8088'), timeout=2)"
     env:
-      SUPERSET_SECRET_KEY: ${SUPERSET_SECRET_KEY:-assembly-dev-secret}
+      SUPERSET_SECRET_KEY: ${SUPERSET_SECRET_KEY}
       SUPERSET_PORT: ${SUPERSET_PORT:-8088}
 startup_order:
   - superset

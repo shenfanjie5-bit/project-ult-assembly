@@ -302,6 +302,8 @@ def _full_env() -> dict[str, str]:
             "NEO4J_URI": "bolt://127.0.0.1:7687",
             "DAGSTER_HOST": "127.0.0.1",
             "DAGSTER_PORT": "3000",
+            "GRAFANA_ADMIN_USER": "assembly-grafana-user",
+            "GRAFANA_ADMIN_PASSWORD": "assembly-grafana-password",
         }
     )
     return values

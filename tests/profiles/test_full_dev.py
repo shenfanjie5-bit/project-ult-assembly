@@ -78,6 +78,41 @@ def test_full_dev_optional_bundle_manifests_are_closed() -> None:
         assert bundle.health_checks == service_probes
 
 
+def test_full_dev_optional_secret_env_has_no_literal_fallbacks() -> None:
+    forbidden_fallbacks = {
+        ("MINIO_ROOT_USER", ":-"),
+        ("MINIO_ROOT_PASSWORD", ":-"),
+        ("GRAFANA_ADMIN_USER", ":-admin"),
+        ("GRAFANA_ADMIN_PASSWORD", ":-admin"),
+        ("SUPERSET_SECRET_KEY", ":-"),
+    }
+    checked_paths = [
+        COMPOSE_FILE,
+        BUNDLES_ROOT / "minio.yaml",
+        BUNDLES_ROOT / "grafana.yaml",
+        BUNDLES_ROOT / "superset.yaml",
+    ]
+
+    for path in checked_paths:
+        text = path.read_text(encoding="utf-8")
+        assert all(
+            f"{key}{suffix}" not in text for key, suffix in forbidden_fallbacks
+        )
+
+    compose = yaml.safe_load(COMPOSE_FILE.read_text(encoding="utf-8"))
+    assert compose["services"]["minio"]["environment"] == {
+        "MINIO_ROOT_USER": "${MINIO_ROOT_USER}",
+        "MINIO_ROOT_PASSWORD": "${MINIO_ROOT_PASSWORD}",
+    }
+    assert compose["services"]["grafana"]["environment"] == {
+        "GF_SECURITY_ADMIN_USER": "${GRAFANA_ADMIN_USER}",
+        "GF_SECURITY_ADMIN_PASSWORD": "${GRAFANA_ADMIN_PASSWORD}",
+    }
+    assert compose["services"]["superset"]["environment"]["SUPERSET_SECRET_KEY"] == (
+        "${SUPERSET_SECRET_KEY}"
+    )
+
+
 def test_full_dev_compose_contains_core_and_optional_services() -> None:
     raw = yaml.safe_load(COMPOSE_FILE.read_text(encoding="utf-8"))
     services = set(raw["services"])

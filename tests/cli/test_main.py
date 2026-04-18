@@ -135,7 +135,10 @@ def test_render_profile_writes_redacted_snapshot(tmp_path: Path) -> None:
 
 
 def test_render_profile_accepts_extra_bundles(tmp_path: Path) -> None:
-    env_file = _write_env_file(tmp_path / ".env")
+    env_file = _write_env_file(
+        tmp_path / ".env",
+        include_optional_bundle_credentials=True,
+    )
     out = tmp_path / "snapshot.json"
 
     result = CliRunner().invoke(
@@ -209,7 +212,10 @@ def test_bootstrap_dry_run_prints_plan_without_docker(tmp_path: Path) -> None:
 def test_bootstrap_full_dev_extra_bundles_dry_run_uses_full_compose(
     tmp_path: Path,
 ) -> None:
-    env_file = _write_env_file(tmp_path / ".env")
+    env_file = _write_env_file(
+        tmp_path / ".env",
+        include_optional_bundle_credentials=True,
+    )
     report_path = tmp_path / "reports/bootstrap/full-dev-dry-run.json"
 
     result = CliRunner().invoke(
@@ -251,6 +257,39 @@ def test_bootstrap_full_dev_extra_bundles_dry_run_uses_full_compose(
         "grafana",
         "superset",
     ]
+
+
+def test_bootstrap_full_dev_extra_bundles_requires_explicit_credentials(
+    tmp_path: Path,
+) -> None:
+    env_file = _write_env_file(tmp_path / ".env")
+
+    result = CliRunner().invoke(
+        entrypoint,
+        [
+            "bootstrap",
+            "--profile",
+            "full-dev",
+            "--profiles-dir",
+            str(PROFILES_ROOT),
+            "--bundles-dir",
+            str(BUNDLES_ROOT),
+            "--env-file",
+            str(env_file),
+            "--extra-bundles",
+            "grafana,superset",
+            "--dry-run",
+        ],
+    )
+
+    assert result.exit_code != 0
+    assert "Missing non-empty environment keys for selected optional bundles" in (
+        result.output
+    )
+    assert "GRAFANA_ADMIN_USER" in result.output
+    assert "GRAFANA_ADMIN_PASSWORD" in result.output
+    assert "SUPERSET_SECRET_KEY" in result.output
+    assert "docker compose" not in result.output
 
 
 def test_bootstrap_lite_rejects_extra_optional_bundle(tmp_path: Path) -> None:
@@ -310,7 +349,10 @@ def test_shutdown_dry_run_prints_stop_plan(tmp_path: Path) -> None:
 def test_shutdown_full_dev_extra_bundles_dry_run_uses_reverse_plan(
     tmp_path: Path,
 ) -> None:
-    env_file = _write_env_file(tmp_path / ".env")
+    env_file = _write_env_file(
+        tmp_path / ".env",
+        include_optional_bundle_credentials=True,
+    )
 
     result = CliRunner().invoke(
         entrypoint,
@@ -682,7 +724,11 @@ def test_export_registry_cli_uses_runtime_exporter(
     assert "matrix=3" in result.output
 
 
-def _write_env_file(path: Path) -> Path:
+def _write_env_file(
+    path: Path,
+    *,
+    include_optional_bundle_credentials: bool = False,
+) -> Path:
     profile = load_profile(PROFILES_ROOT / "lite-local.yaml")
     values = []
     for key in profile.required_env_keys:
@@ -695,5 +741,15 @@ def _write_env_file(path: Path) -> Path:
         values.append(f"{key}={value}")
 
     values.extend(f"{key}=" for key in profile.optional_env_keys)
+    if include_optional_bundle_credentials:
+        values.extend(
+            [
+                "MINIO_ROOT_USER=assembly-minio-user",
+                "MINIO_ROOT_PASSWORD=assembly-minio-password",
+                "GRAFANA_ADMIN_USER=assembly-grafana-user",
+                "GRAFANA_ADMIN_PASSWORD=assembly-grafana-password",
+                "SUPERSET_SECRET_KEY=assembly-superset-secret",
+            ]
+        )
     path.write_text("\n".join(values) + "\n", encoding="utf-8")
     return path
