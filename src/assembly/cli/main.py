@@ -23,6 +23,7 @@ from assembly.profiles.loader import list_profiles
 from assembly.profiles.resolver import render_profile
 from assembly.profiles.schema import EnvironmentProfile
 from assembly.registry import RegistryError, export_module_registry, load_all
+from assembly.tests.e2e import run_min_cycle_e2e as execute_e2e
 from assembly.tests.smoke import run_smoke as execute_smoke
 
 
@@ -80,6 +81,13 @@ CONTRACT_REPORTS_DIR_OPTION = click.option(
     default=Path("reports/contract"),
     show_default=True,
     help="Directory where contract reports are written.",
+)
+E2E_REPORTS_DIR_OPTION = click.option(
+    "--reports-dir",
+    type=click.Path(path_type=Path, file_okay=False),
+    default=Path("reports/e2e"),
+    show_default=True,
+    help="Directory where e2e reports are written.",
 )
 DRY_RUN_OPTION = click.option(
     "--dry-run",
@@ -346,6 +354,68 @@ def contract_suite_command(
     raise click.exceptions.Exit(_contract_exit_code(report))
 
 
+@entrypoint.command("e2e")
+@PROFILE_OPTION
+@PROFILES_DIR_OPTION
+@BUNDLES_DIR_OPTION
+@ENV_FILE_OPTION
+@click.option(
+    "--fixture",
+    "fixture_dir",
+    type=click.Path(path_type=Path),
+    default=Path("src/assembly/tests/e2e/fixtures/minimal_cycle"),
+    show_default=True,
+    help="Minimal-cycle fixture directory or manifest path.",
+)
+@E2E_REPORTS_DIR_OPTION
+@TIMEOUT_SEC_OPTION
+@click.option(
+    "--skip-bootstrap",
+    is_flag=True,
+    help="Fail on blocked health preflight instead of attempting bootstrap.",
+)
+def e2e_command(
+    profile_id: str,
+    profiles_dir: Path,
+    bundles_dir: Path,
+    env_file: Path,
+    fixture_dir: Path,
+    reports_dir: Path,
+    timeout_sec: float,
+    skip_bootstrap: bool,
+) -> None:
+    """Run the minimal-cycle e2e through orchestrator's public CLI."""
+
+    try:
+        record = execute_e2e(
+            profile_id,
+            profiles_root=profiles_dir,
+            bundles_root=bundles_dir,
+            registry_root=Path("."),
+            fixture_dir=fixture_dir,
+            reports_dir=reports_dir,
+            env=_combined_env(env_file),
+            timeout_sec=timeout_sec,
+            bootstrap_if_needed=not skip_bootstrap,
+        )
+    except (ProfileError, RegistryError, OSError) as exc:
+        raise click.ClickException(str(exc)) from exc
+
+    report_path = next(
+        (
+            artifact["path"]
+            for artifact in record.artifacts
+            if artifact.get("kind") == "e2e_report"
+        ),
+        "",
+    )
+    click.echo(
+        f"{record.status}\t{record.run_id}\tfailing="
+        f"{','.join(record.failing_modules)}\treport={report_path}"
+    )
+    raise click.exceptions.Exit(_record_exit_code(record))
+
+
 @entrypoint.command("export-registry")
 @OUT_OPTION
 def export_registry_command(out: Path | None) -> None:
@@ -457,6 +527,14 @@ def _contract_exit_code(report: CompatibilityReport) -> int:
     if report.run_record.status == "failed":
         return 2
     if report.run_record.status == "partial":
+        return 1
+    return 0
+
+
+def _record_exit_code(record: IntegrationRunRecord) -> int:
+    if record.status == "failed":
+        return 2
+    if record.status == "partial":
         return 1
     return 0
 

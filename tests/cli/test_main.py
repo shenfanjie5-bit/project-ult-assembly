@@ -54,6 +54,7 @@ def test_entrypoint_help_lists_subcommands() -> None:
         "healthcheck",
         "smoke",
         "contract-suite",
+        "e2e",
         "export-registry",
     ):
         assert command in result.output
@@ -77,6 +78,7 @@ def test_module_invocation_help_lists_subcommands() -> None:
     assert "healthcheck" in result.stdout
     assert "smoke" in result.stdout
     assert "contract-suite" in result.stdout
+    assert "e2e" in result.stdout
     assert "export-registry" in result.stdout
 
 
@@ -367,6 +369,48 @@ def test_contract_suite_cli_maps_partial_report_to_exit_code(
     assert (tmp_path / "fake-contract.json").exists()
     assert "partial\tfake-contract\tfailing=subsystem-sdk" in result.output
     assert f"report={tmp_path / 'fake-contract.json'}" in result.output
+
+
+def test_e2e_cli_maps_failed_record_to_exit_code_and_report(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    def fake_e2e(profile_id: str, **kwargs: object) -> IntegrationRunRecord:
+        reports_dir = kwargs["reports_dir"]
+        report_path = reports_dir / "fake-e2e.json"
+        report_path.parent.mkdir(parents=True, exist_ok=True)
+        report_path.write_text('{"status":"failed"}\n', encoding="utf-8")
+        now = datetime.now(timezone.utc)
+        return IntegrationRunRecord(
+            run_id="fake-e2e",
+            profile_id=profile_id,
+            run_type="e2e",
+            started_at=now,
+            finished_at=now,
+            status="failed",
+            artifacts=[{"kind": "e2e_report", "path": str(report_path)}],
+            failing_modules=["orchestrator"],
+            summary="E2E failed",
+        )
+
+    monkeypatch.setattr(main, "execute_e2e", fake_e2e)
+
+    result = CliRunner().invoke(
+        entrypoint,
+        [
+            "e2e",
+            "--profile",
+            "lite-local",
+            "--reports-dir",
+            str(tmp_path),
+            "--skip-bootstrap",
+        ],
+    )
+
+    assert result.exit_code == 2
+    assert (tmp_path / "fake-e2e.json").exists()
+    assert "failed\tfake-e2e\tfailing=orchestrator" in result.output
+    assert f"report={tmp_path / 'fake-e2e.json'}" in result.output
 
 
 def test_bootstrap_maps_runner_error_to_nonzero_exit(
