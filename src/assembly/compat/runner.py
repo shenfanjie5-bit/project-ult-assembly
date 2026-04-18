@@ -3,9 +3,15 @@
 from __future__ import annotations
 
 import json
+import fcntl
+import hashlib
+import os
+import tempfile
+from contextlib import contextmanager
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Mapping, Sequence
+from typing import Iterator, Mapping, Sequence
 
 import yaml
 from pydantic import ValidationError
@@ -33,6 +39,12 @@ from assembly.registry import (
     load_all,
     resolve_for_profile,
 )
+
+
+@dataclass(frozen=True)
+class _RunRecordRef:
+    record: IntegrationRunRecord
+    path: Path | None
 
 
 class CompatRunner:
@@ -93,6 +105,7 @@ class CompatRunner:
             artifacts=[
                 {"kind": "contract_report", "path": str(report_path)},
                 {"kind": "compatibility_matrix", "version": matrix_entry.matrix_version},
+                _compatibility_context_artifact(matrix_entry),
             ],
             failing_modules=_non_success_modules(checks),
             summary=_summary(checks),
@@ -107,15 +120,24 @@ class CompatRunner:
         _persist_report(report)
 
         if promote:
-            promoted_entry = promote_matrix_entry(
+            promoted_entry, supporting_records = _promote_matrix_entry(
                 profile_id,
                 registry_root=registry_root,
                 reports_root=_reports_root(Path(reports_dir)),
                 matrix_entry=matrix_entry,
                 contract_run_record=record,
             )
+            promoted_record = record.model_copy(
+                update={
+                    "artifacts": [
+                        *record.artifacts,
+                        *_promotion_support_artifacts(supporting_records),
+                    ]
+                }
+            )
             report = report.model_copy(
                 update={
+                    "run_record": promoted_record,
                     "promoted": True,
                     "matrix_version": promoted_entry.matrix_version,
                 }
@@ -157,6 +179,65 @@ def promote_matrix_entry(
 ) -> CompatibilityMatrixEntry:
     """Promote a draft matrix entry after all required run records are successful."""
 
+    promoted_entry, _supporting_records = _promote_matrix_entry(
+        profile_id,
+        registry_root=registry_root,
+        reports_root=reports_root,
+        matrix_entry=matrix_entry,
+        contract_run_record=contract_run_record,
+        now=now,
+    )
+    return promoted_entry
+
+
+def _promote_matrix_entry(
+    profile_id: str,
+    *,
+    registry_root: Path = Path("."),
+    reports_root: Path = Path("reports"),
+    matrix_entry: CompatibilityMatrixEntry,
+    contract_run_record: IntegrationRunRecord,
+    now: datetime | None = None,
+) -> tuple[CompatibilityMatrixEntry, list[_RunRecordRef]]:
+    """Promote a matrix entry while holding the matrix file lock."""
+
+    matrix_path = Path(registry_root) / "compatibility-matrix.yaml"
+    with _matrix_promotion_lock(matrix_path):
+        raw = _load_raw_matrix(matrix_path)
+        target_index = _find_raw_matrix_entry(raw, matrix_entry)
+        if target_index is None:
+            raise CompatibilityPromotionError(
+                "Compatibility matrix entry could not be found for promotion"
+            )
+
+        locked_entry = CompatibilityMatrixEntry.model_validate(raw[target_index])
+        _validate_promotable_matrix_entry(locked_entry)
+        contract_ref = _validate_current_contract_run(
+            contract_run_record,
+            profile_id=profile_id,
+            matrix_entry=locked_entry,
+        )
+
+        supporting_records = _validated_supporting_run_records(
+            reports_root,
+            profile_id=profile_id,
+            matrix_entry=locked_entry,
+            contract_ref=contract_ref,
+        )
+
+        verified_at = now or datetime.now(timezone.utc)
+        updated_item = dict(raw[target_index])
+        updated_item["status"] = "verified"
+        updated_item["verified_at"] = _isoformat_utc(verified_at)
+        promoted_entry = CompatibilityMatrixEntry.model_validate(updated_item)
+        raw[target_index] = promoted_entry.model_dump(mode="json")
+        _atomic_write_yaml(matrix_path, raw)
+        return promoted_entry, supporting_records
+
+
+def _validate_promotable_matrix_entry(
+    matrix_entry: CompatibilityMatrixEntry,
+) -> None:
     if matrix_entry.status == "deprecated":
         raise CompatibilityPromotionError(
             "Deprecated compatibility matrix entries cannot be promoted"
@@ -166,57 +247,135 @@ def promote_matrix_entry(
             f"Only draft compatibility matrix entries can be promoted; "
             f"got {matrix_entry.status}"
         )
+
+
+def _validate_current_contract_run(
+    contract_run_record: IntegrationRunRecord,
+    *,
+    profile_id: str,
+    matrix_entry: CompatibilityMatrixEntry,
+) -> _RunRecordRef:
     if contract_run_record.profile_id != profile_id:
         raise CompatibilityPromotionError(
             "Contract run profile does not match matrix entry profile"
+        )
+    if contract_run_record.run_type != "contract":
+        raise CompatibilityPromotionError(
+            "Promotion requires a contract IntegrationRunRecord"
         )
     if contract_run_record.status != "success":
         raise CompatibilityPromotionError(
             "Cannot promote compatibility matrix entry without a successful "
             "contract run"
         )
+    if not _record_matches_matrix_context(contract_run_record, matrix_entry):
+        raise CompatibilityPromotionError(
+            "Contract run record does not match compatibility matrix context"
+        )
 
+    path = _current_run_record_path(contract_run_record)
+    if path is None:
+        raise CompatibilityPromotionError(
+            "Contract run record artifact must be persisted before promotion"
+        )
+
+    return _RunRecordRef(record=contract_run_record, path=path)
+
+
+def _validated_supporting_run_records(
+    reports_root: Path,
+    *,
+    profile_id: str,
+    matrix_entry: CompatibilityMatrixEntry,
+    contract_ref: _RunRecordRef,
+) -> list[_RunRecordRef]:
     required_run_types = _required_run_types(matrix_entry.required_tests)
-    missing = [
-        run_type
-        for run_type in required_run_types
-        if not _has_successful_run_record(
+    refs: list[_RunRecordRef] = []
+    missing: list[str] = []
+    for run_type in required_run_types:
+        ref = _find_successful_run_record(
             reports_root,
             profile_id=profile_id,
             run_type=run_type,
-            current_contract_run=contract_run_record,
+            matrix_entry=matrix_entry,
+            current_contract_ref=contract_ref,
         )
-    ]
+        if ref is None:
+            missing.append(run_type)
+        else:
+            refs.append(ref)
+
     if missing:
         raise CompatibilityPromotionError(
             "Cannot promote compatibility matrix entry; missing successful "
             f"run records for: {', '.join(missing)}"
         )
 
-    matrix_path = Path(registry_root) / "compatibility-matrix.yaml"
+    if not any(ref.record.run_type == "contract" for ref in refs):
+        refs.insert(0, contract_ref)
+
+    return _dedupe_run_refs(refs)
+
+
+@contextmanager
+def _matrix_promotion_lock(matrix_path: Path) -> Iterator[None]:
+    lock_path = matrix_path.with_name(f"{matrix_path.name}.lock")
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    with lock_path.open("a", encoding="utf-8") as lock_file:
+        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+
+
+def _load_raw_matrix(matrix_path: Path) -> list[object]:
     raw = yaml.safe_load(matrix_path.read_text(encoding="utf-8"))
     if not isinstance(raw, list):
         raise CompatibilityPromotionError(
             f"Invalid compatibility matrix in {matrix_path}: YAML root must be a list"
         )
 
-    target_index = _find_raw_matrix_entry(raw, matrix_entry)
-    if target_index is None:
-        raise CompatibilityPromotionError(
-            "Compatibility matrix entry could not be found for promotion"
-        )
+    return raw
 
-    verified_at = now or datetime.now(timezone.utc)
-    updated_item = dict(raw[target_index])
-    updated_item["status"] = "verified"
-    updated_item["verified_at"] = _isoformat_utc(verified_at)
-    promoted_entry = CompatibilityMatrixEntry.model_validate(updated_item)
-    raw[target_index] = promoted_entry.model_dump(mode="json")
-    matrix_path.write_text(
-        yaml.safe_dump(raw, sort_keys=False),
-        encoding="utf-8",
+
+def _atomic_write_yaml(matrix_path: Path, raw: Sequence[object]) -> None:
+    serialized = yaml.safe_dump(list(raw), sort_keys=False)
+    matrix_path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp_name = tempfile.mkstemp(
+        prefix=f".{matrix_path.name}.",
+        suffix=".tmp",
+        dir=matrix_path.parent,
     )
-    return promoted_entry
+    tmp_path = Path(tmp_name)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as tmp_file:
+            fd = -1
+            tmp_file.write(serialized)
+            tmp_file.flush()
+            os.fsync(tmp_file.fileno())
+
+        os.replace(tmp_path, matrix_path)
+        _fsync_directory(matrix_path.parent)
+    except OSError as exc:
+        if fd != -1:
+            os.close(fd)
+        tmp_path.unlink(missing_ok=True)
+        raise CompatibilityPromotionError(
+            f"Could not atomically write compatibility matrix {matrix_path}: {exc}"
+        ) from exc
+
+
+def _fsync_directory(directory: Path) -> None:
+    flags = os.O_RDONLY
+    if hasattr(os, "O_DIRECTORY"):
+        flags |= os.O_DIRECTORY
+
+    dir_fd = os.open(directory, flags)
+    try:
+        os.fsync(dir_fd)
+    finally:
+        os.close(dir_fd)
 
 
 def _default_checks() -> list[CompatibilityCheck]:
@@ -336,55 +495,149 @@ def _required_run_types(required_tests: Sequence[str]) -> list[str]:
     return run_types
 
 
-def _has_successful_run_record(
+def _find_successful_run_record(
     reports_root: Path,
     *,
     profile_id: str,
     run_type: str,
-    current_contract_run: IntegrationRunRecord,
-) -> bool:
-    if (
-        run_type == "contract"
-        and current_contract_run.profile_id == profile_id
-        and current_contract_run.run_type == "contract"
-        and current_contract_run.status == "success"
-        and _current_run_record_is_persisted(current_contract_run)
-    ):
-        return True
+    matrix_entry: CompatibilityMatrixEntry,
+    current_contract_ref: _RunRecordRef,
+) -> _RunRecordRef | None:
+    if run_type == "contract":
+        if (
+            current_contract_ref.record.profile_id == profile_id
+            and current_contract_ref.record.status == "success"
+            and _record_matches_matrix_context(current_contract_ref.record, matrix_entry)
+        ):
+            return current_contract_ref
+
+        return None
 
     run_dir = Path(reports_root) / run_type
     if not run_dir.exists():
-        return False
+        return None
 
     for path in sorted(run_dir.glob("*.json")):
-        try:
-            payload = json.loads(path.read_text(encoding="utf-8"))
-            if "run_record" in payload:
-                payload = payload["run_record"]
-            record = IntegrationRunRecord.model_validate(payload)
-        except (OSError, json.JSONDecodeError, ValidationError):
+        record = _load_run_record(path)
+        if record is None:
             continue
 
         if (
             record.profile_id == profile_id
             and record.run_type == run_type
             and record.status == "success"
+            and _record_matches_matrix_context(record, matrix_entry)
         ):
-            return True
+            return _RunRecordRef(record=record, path=path)
 
-    return False
+    return None
 
 
-def _current_run_record_is_persisted(record: IntegrationRunRecord) -> bool:
+def _load_run_record(path: Path) -> IntegrationRunRecord | None:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        if "run_record" in payload:
+            payload = payload["run_record"]
+        return IntegrationRunRecord.model_validate(payload)
+    except (OSError, json.JSONDecodeError, ValidationError):
+        return None
+
+
+def _current_run_record_path(record: IntegrationRunRecord) -> Path | None:
     for artifact in record.artifacts:
         if artifact.get("kind") != "contract_report":
             continue
 
         artifact_path = artifact.get("path")
         if artifact_path and Path(artifact_path).exists():
-            return True
+            return Path(artifact_path)
+
+    return None
+
+
+def _record_matches_matrix_context(
+    record: IntegrationRunRecord,
+    matrix_entry: CompatibilityMatrixEntry,
+) -> bool:
+    expected = _compatibility_context_artifact(matrix_entry)
+    for artifact in record.artifacts:
+        if artifact.get("kind") != expected["kind"]:
+            continue
+
+        return all(artifact.get(key) == value for key, value in expected.items())
 
     return False
+
+
+def _compatibility_context_artifact(
+    matrix_entry: CompatibilityMatrixEntry,
+) -> dict[str, str]:
+    module_set = sorted(
+        (
+            {
+                "module_id": module.module_id,
+                "module_version": module.module_version,
+            }
+            for module in matrix_entry.module_set
+        ),
+        key=lambda item: (item["module_id"], item["module_version"]),
+    )
+    matrix_context = {
+        "profile_id": matrix_entry.profile_id,
+        "matrix_version": matrix_entry.matrix_version,
+        "contract_version": matrix_entry.contract_version,
+        "module_set": module_set,
+    }
+    return {
+        "kind": "compatibility_context",
+        "profile_id": matrix_entry.profile_id,
+        "matrix_version": matrix_entry.matrix_version,
+        "contract_version": matrix_entry.contract_version,
+        "module_set_digest": _stable_digest(module_set),
+        "matrix_digest": _stable_digest(matrix_context),
+    }
+
+
+def _stable_digest(payload: object) -> str:
+    canonical = json.dumps(
+        payload,
+        ensure_ascii=True,
+        separators=(",", ":"),
+        sort_keys=True,
+    )
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def _promotion_support_artifacts(
+    supporting_records: Sequence[_RunRecordRef],
+) -> list[dict[str, str]]:
+    artifacts: list[dict[str, str]] = []
+    for ref in supporting_records:
+        artifact = {
+            "kind": "promotion_supporting_run",
+            "run_id": ref.record.run_id,
+            "run_type": ref.record.run_type,
+        }
+        if ref.path is not None:
+            artifact["path"] = str(ref.path)
+
+        artifacts.append(artifact)
+
+    return artifacts
+
+
+def _dedupe_run_refs(refs: Sequence[_RunRecordRef]) -> list[_RunRecordRef]:
+    seen: set[tuple[str, str]] = set()
+    deduped: list[_RunRecordRef] = []
+    for ref in refs:
+        key = (ref.record.run_type, ref.record.run_id)
+        if key in seen:
+            continue
+
+        seen.add(key)
+        deduped.append(ref)
+
+    return deduped
 
 
 def _find_raw_matrix_entry(

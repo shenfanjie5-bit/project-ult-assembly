@@ -160,6 +160,38 @@ def test_public_api_boundary_uses_registered_protocol_mapping(
     }
 
 
+@pytest.mark.parametrize(
+    ("kind", "name", "entrypoint"),
+    [
+        ("health_probe", "health", lambda: WrongHealthProbe()),
+        ("smoke_hook", "smoke", lambda: WrongSmokeHook()),
+        ("init_hook", "init", lambda: WrongInitHook()),
+        ("version_declaration", "version", lambda: WrongVersionDeclaration()),
+        ("cli", "cli", lambda: WrongCliEntrypoint()),
+    ],
+)
+def test_public_api_boundary_rejects_wrong_entrypoint_signatures(
+    monkeypatch: pytest.MonkeyPatch,
+    kind: str,
+    name: str,
+    entrypoint: object,
+) -> None:
+    module_name = f"compat_fake_wrong_signature_{kind}"
+    module = types.ModuleType(module_name)
+    setattr(module, name, entrypoint())
+    monkeypatch.setitem(sys.modules, module_name, module)
+    entry = _module(
+        "app",
+        public_entrypoints=[_entrypoint(name, kind, f"{module_name}:{name}")],
+    )
+
+    results = PublicApiBoundaryCheck().run(_context([entry]))
+
+    assert results[0].status == CompatibilityCheckStatus.failed
+    assert "incompatible signature" in results[0].message
+    assert results[0].details["failure_reason"]
+
+
 def test_base_loader_rejects_init_hook_by_default() -> None:
     with pytest.raises(ValueError, match="Unsupported"):
         load_public_entrypoint(
@@ -231,6 +263,47 @@ class FakeSmokeHook:
 class FakeInitHook:
     def initialize(self, *, resolved_env: dict[str, str]) -> None:
         return None
+
+
+class WrongHealthProbe:
+    def check(self) -> HealthResult:
+        return HealthResult(
+            module_id="app",
+            probe_name="health",
+            status=HealthStatus.healthy,
+            latency_ms=0.0,
+            message="ok",
+        )
+
+
+class WrongSmokeHook:
+    def run(self, profile_id: str) -> SmokeResult:
+        return SmokeResult(
+            module_id="app",
+            hook_name="smoke",
+            passed=True,
+            duration_ms=0.0,
+        )
+
+
+class WrongInitHook:
+    def initialize(self, resolved_env: dict[str, str]) -> None:
+        return None
+
+
+class WrongVersionDeclaration:
+    def declare(self, profile_id: str) -> VersionInfo:
+        return VersionInfo(
+            module_id="app",
+            module_version="0.1.0",
+            contract_version="v0.0.0",
+            compatible_contract_range=">=0.0.0 <1.0.0",
+        )
+
+
+class WrongCliEntrypoint:
+    def invoke(self) -> int:
+        return 0
 
 
 def _install_fake_public_module(

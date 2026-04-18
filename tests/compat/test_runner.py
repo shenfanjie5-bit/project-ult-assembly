@@ -10,6 +10,7 @@ import pytest
 import yaml
 
 from assembly.compat import CompatibilityPromotionError, run_contract_suite
+import assembly.compat.runner as compat_runner
 from assembly.compat.runner import promote_matrix_entry
 from assembly.contracts import VersionInfo
 from assembly.contracts.models import IntegrationRunRecord
@@ -42,6 +43,13 @@ def test_run_contract_suite_writes_default_lite_partial_report(
     assert payload["run_record"]["failing_modules"]
     assert payload["checks"]
     assert payload["matrix_version"] == "0.1.0"
+    context_artifact = next(
+        artifact
+        for artifact in payload["run_record"]["artifacts"]
+        if artifact["kind"] == "compatibility_context"
+    )
+    assert context_artifact["matrix_version"] == "0.1.0"
+    assert context_artifact["matrix_digest"]
 
 
 def test_runner_fails_fast_on_matrix_extra_modules(
@@ -111,8 +119,17 @@ def test_promote_updates_matrix_when_required_runs_succeeded(
         matrix_modules=[{"module_id": "app", "module_version": "0.1.0"}],
         required_tests=["contract-suite", "smoke", "min-cycle-e2e"],
     )
-    _write_run_record(project / "reports/smoke/smoke-success.json", "smoke")
-    _write_run_record(project / "reports/e2e/e2e-success.json", "e2e")
+    matrix_entry = _matrix_entry(project)
+    _write_run_record(
+        project / "reports/smoke/smoke-success.json",
+        "smoke",
+        matrix_entry,
+    )
+    _write_run_record(
+        project / "reports/e2e/e2e-success.json",
+        "e2e",
+        matrix_entry,
+    )
 
     report = run_contract_suite(
         "full-local",
@@ -126,9 +143,109 @@ def test_promote_updates_matrix_when_required_runs_succeeded(
 
     assert report.run_record.status == "success"
     assert report.promoted is True
+    support_artifacts = [
+        artifact
+        for artifact in report.run_record.artifacts
+        if artifact["kind"] == "promotion_supporting_run"
+    ]
+    assert {artifact["run_type"] for artifact in support_artifacts} == {
+        "contract",
+        "smoke",
+        "e2e",
+    }
+    assert all(artifact["run_id"] for artifact in support_artifacts)
     reloaded = load_all(project)
     assert reloaded.compatibility_matrix[0].status == "verified"
     assert reloaded.compatibility_matrix[0].verified_at is not None
+
+
+def test_promote_rejects_stale_records_from_different_matrix_context(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    _install_app_module(monkeypatch)
+    project = _write_project(
+        tmp_path,
+        modules=[_module_data("app")],
+        profile_modules=["app"],
+        matrix_modules=[{"module_id": "app", "module_version": "0.1.0"}],
+        required_tests=["contract-suite", "smoke", "min-cycle-e2e"],
+    )
+    matrix_entry = _matrix_entry(project)
+    stale_data = matrix_entry.model_dump(mode="json")
+    stale_data["matrix_version"] = "9.9.9"
+    stale_entry = CompatibilityMatrixEntry.model_validate(stale_data)
+    _write_run_record(
+        project / "reports/smoke/smoke-success.json",
+        "smoke",
+        stale_entry,
+    )
+    _write_run_record(
+        project / "reports/e2e/e2e-success.json",
+        "e2e",
+        matrix_entry,
+    )
+
+    with pytest.raises(CompatibilityPromotionError, match="smoke"):
+        run_contract_suite(
+            "full-local",
+            profiles_root=project / "profiles",
+            bundles_root=project / "bundles",
+            registry_root=project,
+            reports_dir=project / "reports/contract",
+            env={},
+            promote=True,
+        )
+
+    matrix = yaml.safe_load((project / "compatibility-matrix.yaml").read_text())
+    assert matrix[0]["status"] == "draft"
+    assert matrix[0]["verified_at"] is None
+
+
+def test_promote_atomic_write_failure_preserves_matrix(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    _install_app_module(monkeypatch)
+    project = _write_project(
+        tmp_path,
+        modules=[_module_data("app")],
+        profile_modules=["app"],
+        matrix_modules=[{"module_id": "app", "module_version": "0.1.0"}],
+        required_tests=["contract-suite", "smoke", "min-cycle-e2e"],
+    )
+    matrix_entry = _matrix_entry(project)
+    _write_run_record(
+        project / "reports/smoke/smoke-success.json",
+        "smoke",
+        matrix_entry,
+    )
+    _write_run_record(
+        project / "reports/e2e/e2e-success.json",
+        "e2e",
+        matrix_entry,
+    )
+
+    def fail_replace(src: object, dst: object) -> None:
+        raise OSError("simulated replace failure")
+
+    monkeypatch.setattr(compat_runner.os, "replace", fail_replace)
+
+    with pytest.raises(CompatibilityPromotionError, match="atomically write"):
+        run_contract_suite(
+            "full-local",
+            profiles_root=project / "profiles",
+            bundles_root=project / "bundles",
+            registry_root=project,
+            reports_dir=project / "reports/contract",
+            env={},
+            promote=True,
+        )
+
+    matrix = yaml.safe_load((project / "compatibility-matrix.yaml").read_text())
+    assert matrix[0]["status"] == "draft"
+    assert matrix[0]["verified_at"] is None
+    assert load_all(project).compatibility_matrix[0].status == "draft"
 
 
 def test_promote_rejects_deprecated_matrix_entry(tmp_path: Path) -> None:
@@ -318,8 +435,18 @@ def _markdown_value(column: str, value: object) -> str:
     return str(value)
 
 
-def _write_run_record(path: Path, run_type: str) -> None:
-    record = _run_record(run_type)
+def _matrix_entry(project: Path) -> CompatibilityMatrixEntry:
+    return CompatibilityMatrixEntry.model_validate(
+        yaml.safe_load((project / "compatibility-matrix.yaml").read_text())[0]
+    )
+
+
+def _write_run_record(
+    path: Path,
+    run_type: str,
+    matrix_entry: CompatibilityMatrixEntry,
+) -> None:
+    record = _run_record(run_type, matrix_entry)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
         json.dumps(record.model_dump(mode="json"), indent=2) + "\n",
@@ -327,8 +454,15 @@ def _write_run_record(path: Path, run_type: str) -> None:
     )
 
 
-def _run_record(run_type: str) -> IntegrationRunRecord:
+def _run_record(
+    run_type: str,
+    matrix_entry: CompatibilityMatrixEntry | None = None,
+) -> IntegrationRunRecord:
     now = datetime.now(timezone.utc)
+    artifacts = [{"kind": f"{run_type}_report", "path": f"reports/{run_type}.json"}]
+    if matrix_entry is not None:
+        artifacts.append(compat_runner._compatibility_context_artifact(matrix_entry))
+
     return IntegrationRunRecord(
         run_id=f"{run_type}-success",
         profile_id="full-local",
@@ -336,7 +470,7 @@ def _run_record(run_type: str) -> IntegrationRunRecord:
         started_at=now,
         finished_at=now,
         status="success",
-        artifacts=[{"kind": f"{run_type}_report", "path": f"reports/{run_type}.json"}],
+        artifacts=artifacts,
         failing_modules=[],
         summary=f"{run_type} succeeded",
     )
