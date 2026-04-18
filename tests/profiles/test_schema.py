@@ -149,6 +149,29 @@ def test_service_bundle_startup_order_must_match_service_names() -> None:
         )
 
 
+def test_service_bundle_rejects_duplicate_service_names_even_when_orders_match() -> None:
+    data = valid_bundle_data(
+        services=[
+            {
+                "name": "postgres",
+                "image_or_cmd": "postgres:16",
+                "health_probe": "pg_isready",
+            },
+            {
+                "name": "postgres",
+                "image_or_cmd": "postgres:16-replica",
+                "health_probe": "pg_isready replica",
+            },
+        ],
+        startup_order=["postgres", "postgres"],
+        shutdown_order=["postgres", "postgres"],
+        health_checks=["pg_isready", "pg_isready replica"],
+    )
+
+    with pytest.raises(ValidationError, match="unique service names"):
+        ServiceBundleManifest.model_validate(data)
+
+
 def test_service_bundle_shutdown_order_must_match_service_names() -> None:
     with pytest.raises(ValidationError):
         ServiceBundleManifest.model_validate(
@@ -162,4 +185,3 @@ def test_missing_required_bundle_field_fails_validation() -> None:
 
     with pytest.raises(ValidationError):
         ServiceBundleManifest.model_validate(data)
-

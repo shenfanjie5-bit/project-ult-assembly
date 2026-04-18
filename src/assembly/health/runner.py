@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import importlib
 import queue
 import threading
 from dataclasses import dataclass
@@ -11,6 +10,7 @@ from time import perf_counter, sleep
 from typing import Any, Mapping
 
 from assembly.bootstrap.service_handle import CommandRunner
+from assembly.contracts.entrypoints import load_reference
 from assembly.contracts.models import HealthResult, HealthStatus
 from assembly.contracts.protocols import HealthProbe
 from assembly.health.probes_builtin import (
@@ -354,7 +354,7 @@ def _run_registry_health_probe(
 ) -> HealthResult:
     started_at = perf_counter()
     try:
-        entrypoint = _load_reference(public_entrypoint.reference)
+        entrypoint = load_reference(public_entrypoint.reference)
     except Exception as exc:
         return _blocked_result(
             module_id=entry.module_id,
@@ -444,15 +444,6 @@ def _invoke_health_probe(entrypoint: Any, *, timeout_sec: float) -> HealthResult
         return HealthResult.model_validate(raw_result)
 
     raise TypeError("health_probe entrypoint is not callable")
-
-
-def _load_reference(reference: str) -> Any:
-    module_name, _, symbol_name = reference.partition(":")
-    if not module_name or not symbol_name:
-        raise ValueError(f"Invalid public entrypoint reference: {reference}")
-
-    module = importlib.import_module(module_name)
-    return getattr(module, symbol_name)
 
 
 def _builtin_missing_result(spec: _BuiltinProbeSpec) -> HealthResult:

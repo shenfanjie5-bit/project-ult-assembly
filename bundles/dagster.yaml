@@ -15,7 +15,7 @@ services:
   - name: dagster-webserver
     image_or_cmd: dagster-webserver
     image: dagster/dagster:1.7.16
-    command: dagster-webserver -h ${DAGSTER_HOST:-127.0.0.1} -p ${DAGSTER_PORT:-3000}
+    command: dagster-webserver -h 0.0.0.0 -p ${DAGSTER_PORT:-3000}
     health_probe: >-
       python -c "import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:%s' % os.environ.get('DAGSTER_PORT', '3000'), timeout=2)"
     env:

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import importlib
 import json
 from datetime import datetime, timezone
 from pathlib import Path
@@ -11,6 +10,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
+from assembly.contracts.entrypoints import load_reference
 from assembly.contracts.models import (
     HealthStatus,
     IntegrationRunRecord,
@@ -194,7 +194,7 @@ def _run_smoke_hook(
 ) -> SmokeResult:
     started_at = perf_counter()
     try:
-        entrypoint = _load_reference(public_entrypoint.reference)
+        entrypoint = load_reference(public_entrypoint.reference)
     except Exception as exc:
         return _failed_smoke_result(
             module_id=entry.module_id,
@@ -234,15 +234,6 @@ def _invoke_smoke_hook(entrypoint: Any, *, profile_id: str) -> SmokeResult:
         return SmokeResult.model_validate(raw_result)
 
     raise TypeError("smoke_hook entrypoint is not callable")
-
-
-def _load_reference(reference: str) -> Any:
-    module_name, _, symbol_name = reference.partition(":")
-    if not module_name or not symbol_name:
-        raise ValueError(f"Invalid public entrypoint reference: {reference}")
-
-    module = importlib.import_module(module_name)
-    return getattr(module, symbol_name)
 
 
 def _failed_smoke_result(

@@ -8,6 +8,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from assembly.contracts.primitives import ProfileId
 from assembly.profiles.errors import ProfileConstraintError
 
 
@@ -66,6 +67,15 @@ class ServiceBundleManifest(BaseModel):
     @model_validator(mode="after")
     def enforce_service_order_matches_services(self) -> ServiceBundleManifest:
         service_names = [service.name for service in self.services]
+        duplicate_names = sorted(
+            name for name, count in Counter(service_names).items() if count > 1
+        )
+        if duplicate_names:
+            raise ValueError(
+                "services must contain unique service names: "
+                f"{', '.join(duplicate_names)}"
+            )
+
         expected_names = Counter(service_names)
         startup_names = Counter(self.startup_order)
         shutdown_names = Counter(self.shutdown_order)
@@ -84,7 +94,7 @@ class EnvironmentProfile(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    profile_id: str = Field(pattern=r"^[a-z0-9]+(-[a-z0-9]+)*$")
+    profile_id: ProfileId
     mode: ProfileMode
     enabled_modules: list[str]
     enabled_service_bundles: list[str]

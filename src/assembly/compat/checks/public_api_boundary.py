@@ -11,6 +11,7 @@ from assembly.compat.schema import (
     CompatibilityCheckStatus,
 )
 from assembly.contracts import ENTRYPOINT_KIND_TO_PROTOCOL
+from assembly.contracts.entrypoints import duplicate_entrypoint_kinds
 from assembly.registry import IntegrationStatus, ModuleRegistryEntry
 
 _FOCUS_MODULE_IDS = {"main-core", "graph-engine", "audit-eval"}
@@ -62,6 +63,15 @@ class PublicApiBoundaryCheck:
                 self.check_name,
                 entry.module_id,
                 f"{entry.module_id} has no registered public entrypoints",
+            )
+
+        duplicate_kinds = duplicate_entrypoint_kinds(entry.public_entrypoints)
+        if duplicate_kinds:
+            return _failed(
+                self.check_name,
+                entry.module_id,
+                f"{entry.module_id} has duplicate public entrypoint kinds",
+                {"duplicate_kinds": duplicate_kinds},
             )
 
         references: dict[str, str] = {}

@@ -9,6 +9,7 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 from assembly.contracts.models import IntegrationRunRecord
+from assembly.contracts.primitives import ProfileId
 from assembly.profiles.resolver import ResolvedConfigSnapshot
 from assembly.registry.loader import Registry
 from assembly.registry.schema import CompatibilityMatrixEntry, ModuleRegistryEntry
@@ -40,7 +41,7 @@ class CompatibilityCheckContext(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    profile_id: str
+    profile_id: ProfileId
     snapshot: ResolvedConfigSnapshot
     registry: Registry
     resolved_entries: list[ModuleRegistryEntry]

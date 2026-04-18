@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
+from assembly.bootstrap.compose import default_compose_file, resolve_compose_file
 from assembly.bootstrap.plan import (
     BootstrapPlan,
     BootstrapPlanError,
@@ -28,7 +29,7 @@ from assembly.bootstrap.service_handle import ServiceHandle
 from assembly.contracts.models import HealthResult, HealthStatus, SmokeResult
 from assembly.profiles.errors import ProfileError, ProfileNotFoundError
 from assembly.profiles.loader import list_profiles
-from assembly.profiles.resolver import resolve, with_extra_bundles
+from assembly.profiles.resolver import resolve
 from assembly.profiles.schema import EnvironmentProfile
 from assembly.registry import (
     ModuleRegistryEntry,
@@ -89,19 +90,18 @@ def bootstrap(
     stage_results: list[BootstrapStageResult] = []
 
     try:
-        profile = with_extra_bundles(
+        resolved_compose_file = resolve_compose_file(profile.profile_id, compose_file)
+        snapshot = resolve(
             profile,
-            extra_bundles,
+            os.environ if env is None else env,
             bundle_root=bundle_root,
+            extra_bundles=extra_bundles,
         )
-        resolved_compose_file = compose_file or _default_compose_file(
-            profile.profile_id
-        )
-        resolve(profile, os.environ if env is None else env, bundle_root=bundle_root)
         plan = build_plan(
             profile,
             bundle_root=bundle_root,
             compose_file=resolved_compose_file,
+            extra_bundles=extra_bundles,
         )
     except (BootstrapPlanError, ProfileError, OSError) as exc:
         result = BootstrapResult(
@@ -130,7 +130,7 @@ def bootstrap(
             "Profile env, bundle, compose, and report paths resolved.",
             {
                 "compose_file": str(plan.compose_file),
-                "enabled_service_bundles": list(profile.enabled_service_bundles),
+                "enabled_service_bundles": list(snapshot.enabled_service_bundles),
             },
         )
     )
@@ -259,13 +259,6 @@ def _load_profile_by_id(profile_id: str, profiles_root: Path) -> EnvironmentProf
             return profile
 
     raise ProfileNotFoundError(f"Profile id not found in {profiles_root}: {profile_id}")
-
-
-def _default_compose_file(profile_id: str) -> Path:
-    if profile_id == "full-dev":
-        return Path("compose/full-dev.yaml")
-
-    return Path("compose/lite-local.yaml")
 
 
 def _exercise_orchestrator_entrypoint(
@@ -546,4 +539,6 @@ __all__ = [
     "ServiceHandle",
     "bootstrap",
     "build_plan",
+    "default_compose_file",
+    "resolve_compose_file",
 ]

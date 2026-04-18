@@ -4,19 +4,17 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum
-from typing import Annotated, Literal
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-PROFILE_ID_PATTERN = r"^[a-z0-9]+(-[a-z0-9]+)*$"
-MODULE_ID_PATTERN = PROFILE_ID_PATTERN
-SEMVER_PATTERN = r"^\d+\.\d+\.\d+$"
-CONTRACT_VERSION_PATTERN = r"^v\d+\.\d+\.\d+$"
-
-ProfileId = Annotated[str, Field(pattern=PROFILE_ID_PATTERN)]
-ModuleId = Annotated[str, Field(pattern=MODULE_ID_PATTERN)]
-Semver = Annotated[str, Field(pattern=SEMVER_PATTERN)]
-ContractVersion = Annotated[str, Field(pattern=CONTRACT_VERSION_PATTERN)]
+from assembly.contracts.primitives import (
+    ContractVersion,
+    EntrypointKind,
+    ModuleId,
+    ProfileId,
+    Semver,
+)
 
 
 class IntegrationStatus(str, Enum):
@@ -35,13 +33,7 @@ class PublicEntrypoint(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     name: str
-    kind: Literal[
-        "health_probe",
-        "smoke_hook",
-        "init_hook",
-        "version_declaration",
-        "cli",
-    ]
+    kind: EntrypointKind
     reference: str = Field(pattern=r"^[A-Za-z_][\w.]*:[A-Za-z_]\w*$")
 
 

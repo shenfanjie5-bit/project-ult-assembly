@@ -13,6 +13,7 @@ from assembly.contracts import (
     SmokeResult,
     VersionInfo,
 )
+from assembly.registry import ModuleRegistryEntry
 
 
 def test_health_status_values_are_frozen() -> None:
@@ -179,3 +180,34 @@ def test_version_info_rejects_non_semver_range() -> None:
                 "compatible_contract_range": "latest",
             }
         )
+
+
+@pytest.mark.parametrize("contract_version", ["1.0.0", "v1", "v1.0", "latest"])
+def test_version_info_contract_version_uses_registry_validation_semantics(
+    contract_version: str,
+) -> None:
+    version_payload = {
+        "module_id": "assembly",
+        "module_version": "1.2.3",
+        "contract_version": contract_version,
+        "compatible_contract_range": ">=1.0.0 <2.0.0",
+    }
+    registry_payload = {
+        "module_id": "assembly",
+        "module_version": "1.2.3",
+        "contract_version": contract_version,
+        "owner": "test",
+        "upstream_modules": [],
+        "downstream_modules": [],
+        "public_entrypoints": [],
+        "depends_on": [],
+        "supported_profiles": ["lite-local"],
+        "integration_status": "partial",
+        "last_smoke_result": None,
+        "notes": "test",
+    }
+
+    with pytest.raises(ValidationError):
+        VersionInfo.model_validate(version_payload)
+    with pytest.raises(ValidationError):
+        ModuleRegistryEntry.model_validate(registry_payload)

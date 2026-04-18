@@ -192,6 +192,46 @@ def test_public_api_boundary_rejects_wrong_entrypoint_signatures(
     assert results[0].details["failure_reason"]
 
 
+def test_public_api_boundary_rejects_duplicate_entrypoint_kinds(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    module_name = "compat_fake_duplicate_entrypoints"
+    _install_fake_public_module(
+        monkeypatch,
+        module_name,
+        version=FakeVersionDeclaration(module_id="app"),
+        health=FakeHealthProbe(),
+    )
+    entry = _module(
+        "app",
+        public_entrypoints=[
+            _entrypoint("health", "health_probe", f"{module_name}:health"),
+            _entrypoint("health2", "health_probe", f"{module_name}:health"),
+        ],
+    )
+
+    results = PublicApiBoundaryCheck().run(_context([entry]))
+
+    assert results[0].status == CompatibilityCheckStatus.failed
+    assert "duplicate public entrypoint kinds" in results[0].message
+    assert results[0].details["duplicate_kinds"] == ["health_probe"]
+
+
+def test_public_api_boundary_reports_import_failures_once() -> None:
+    entry = _module(
+        "app",
+        public_entrypoints=[
+            _entrypoint("health", "health_probe", "missing_public_module:health")
+        ],
+    )
+
+    results = PublicApiBoundaryCheck().run(_context([entry]))
+
+    assert results[0].status == CompatibilityCheckStatus.failed
+    assert "could not be imported" in results[0].message
+    assert "missing_public_module" in results[0].details["failure_reason"]
+
+
 def test_base_loader_rejects_init_hook_by_default() -> None:
     with pytest.raises(ValueError, match="Unsupported"):
         load_public_entrypoint(

@@ -3,7 +3,7 @@ services:
   - name: kafka
     image_or_cmd: bitnami/kafka:3.7.1
     image: bitnami/kafka:3.7.1
-    health_probe: kafka-topics.sh --bootstrap-server 127.0.0.1:${KAFKA_PORT:-9092} --list
+    health_probe: kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --list
     env:
       KAFKA_CFG_NODE_ID: "1"
       KAFKA_CFG_PROCESS_ROLES: broker,controller
@@ -17,7 +17,7 @@ services:
     image_or_cmd: flink:1.19
     image: flink:1.19
     command: jobmanager
-    health_probe: curl -f http://127.0.0.1:${FLINK_JOBMANAGER_PORT:-8081}/overview
+    health_probe: curl -f http://127.0.0.1:8081/overview
     env:
       JOB_MANAGER_RPC_ADDRESS: flink-jobmanager
       FLINK_JOBMANAGER_PORT: ${FLINK_JOBMANAGER_PORT:-8081}
@@ -25,7 +25,7 @@ services:
     image_or_cmd: flink:1.19
     image: flink:1.19
     command: taskmanager
-    health_probe: curl -f http://flink-jobmanager:${FLINK_JOBMANAGER_PORT:-8081}/taskmanagers
+    health_probe: curl -f http://flink-jobmanager:8081/taskmanagers
     env:
       JOB_MANAGER_RPC_ADDRESS: flink-jobmanager
       FLINK_JOBMANAGER_PORT: ${FLINK_JOBMANAGER_PORT:-8081}
@@ -38,9 +38,9 @@ shutdown_order:
   - flink-jobmanager
   - kafka
 health_checks:
-  - kafka-topics.sh --bootstrap-server 127.0.0.1:${KAFKA_PORT:-9092} --list
-  - curl -f http://127.0.0.1:${FLINK_JOBMANAGER_PORT:-8081}/overview
-  - curl -f http://flink-jobmanager:${FLINK_JOBMANAGER_PORT:-8081}/taskmanagers
+  - kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --list
+  - curl -f http://127.0.0.1:8081/overview
+  - curl -f http://flink-jobmanager:8081/taskmanagers
 required_profiles:
   - full-dev
 optional: true

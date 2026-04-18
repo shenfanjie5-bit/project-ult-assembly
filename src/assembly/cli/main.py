@@ -21,7 +21,7 @@ from assembly.contracts.models import HealthResult, HealthStatus, IntegrationRun
 from assembly.health import healthcheck as execute_healthcheck
 from assembly.profiles.errors import ProfileError, ProfileNotFoundError
 from assembly.profiles.loader import list_profiles
-from assembly.profiles.resolver import render_profile, with_extra_bundles
+from assembly.profiles.resolver import render_profile
 from assembly.profiles.schema import EnvironmentProfile
 from assembly.registry import (
     RegistryError,
@@ -232,15 +232,11 @@ def shutdown_command(
 
     try:
         parsed_extra_bundles = _parse_extra_bundles(extra_bundles)
-        profile = with_extra_bundles(
-            _load_profile_by_id(profile_id, profiles_dir),
-            parsed_extra_bundles,
-            bundle_root=bundles_dir,
-        )
         plan = build_plan(
-            profile,
+            _load_profile_by_id(profile_id, profiles_dir),
             bundle_root=bundles_dir,
-            compose_file=_default_compose_file(profile.profile_id),
+            compose_file=None,
+            extra_bundles=parsed_extra_bundles,
         )
         compose_env_file = _compose_env_file(env_file)
         if dry_run:
@@ -678,13 +674,6 @@ def _compose_prefix(plan: BootstrapPlan, env_file: Path | None) -> list[str]:
         command.extend(["--env-file", str(env_file)])
     command.extend(["-f", str(plan.compose_file)])
     return command
-
-
-def _default_compose_file(profile_id: str) -> Path:
-    if profile_id == "full-dev":
-        return Path("compose/full-dev.yaml")
-
-    return Path("compose/lite-local.yaml")
 
 
 def _format_compose_error(exc: ComposeCommandError) -> str:
