@@ -38,6 +38,7 @@ class OrchestratorCycleReport(BaseModel):
     phases: list[str]
     artifacts: dict[str, str] = Field(default_factory=dict)
     status: Literal["success", "failed", "partial"]
+    failure_reason: str | None = None
 
 
 class E2EAssertionResult(BaseModel):

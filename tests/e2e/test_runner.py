@@ -13,6 +13,7 @@ import yaml
 from assembly.contracts import HealthResult, HealthStatus, VersionInfo
 from assembly.registry import IntegrationStatus, ModuleRegistryEntry
 from assembly.tests.e2e import E2ERunner, run_min_cycle_e2e
+from assembly.tests.e2e.assertions import assert_required_artifacts
 from assembly.tests.e2e.runner import E2EBlocker, load_orchestrator_cli
 
 
@@ -56,7 +57,6 @@ def test_fake_orchestrator_success_writes_required_artifacts(
         bootstrap_if_needed=False,
     )
 
-    assert state["invoked"] is True
     assert record.run_type == "e2e"
     assert record.status == "success"
     assert record.failing_modules == []
@@ -308,6 +308,41 @@ def test_orchestrator_cli_timeout_writes_failed_report(
         if assertion["assertion_name"] == "orchestrator_cli_timeout"
     )
     assert timeout_assertion["details"]["timeout_sec"] == "0.01"
+    time.sleep(0.3)
+    orchestrator_report = json.loads(
+        _artifact_path(record, "orchestrator_report").read_text()
+    )
+    assert orchestrator_report["status"] == "failed"
+    assert orchestrator_report["phases"] == []
+    assert "timeout_sec=0.01" in orchestrator_report["failure_reason"]
+    cycle_summary_path = (
+        _artifact_path(record, "orchestrator_report").parent / "cycle-summary.json"
+    )
+    assert not cycle_summary_path.exists()
+
+
+def test_required_artifact_rejects_absolute_and_escaping_paths(tmp_path: Path) -> None:
+    base_dir = tmp_path / "run"
+    base_dir.mkdir()
+    outside_artifact = tmp_path / "outside.json"
+    outside_artifact.write_text("{}\n", encoding="utf-8")
+
+    results = assert_required_artifacts(
+        {
+            "absolute": str(outside_artifact),
+            "escape": "../outside.json",
+        },
+        ["absolute", "escape"],
+        base_dir=base_dir,
+    )
+
+    assert all(result.status == "failed" for result in results)
+    absolute_details = results[0].details
+    escape_details = results[1].details
+    assert absolute_details["raw_reported_path"] == str(outside_artifact)
+    assert absolute_details["normalized_path"] == str(outside_artifact.resolve())
+    assert escape_details["raw_reported_path"] == "../outside.json"
+    assert escape_details["normalized_path"] == str(outside_artifact.resolve())
 
 
 def test_registry_matrix_drift_fails_before_orchestrator_call(
@@ -454,7 +489,6 @@ def test_blocked_health_bootstraps_and_requires_second_convergence(
 
     assert health_calls == ["full-local", "full-local"]
     assert bootstrap_calls == ["full-local"]
-    assert state["invoked"] is True
     assert record.status == "success"
 
 

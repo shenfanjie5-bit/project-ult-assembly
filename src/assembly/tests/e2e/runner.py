@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import importlib
 import json
+import multiprocessing
 import queue
-import threading
+import traceback
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -60,6 +61,7 @@ class _CliInvocationResult:
     exit_code: int | None = None
     timed_out: bool = False
     exception: BaseException | None = None
+    process_exitcode: int | None = None
 
 
 class E2ERunner:
@@ -348,11 +350,12 @@ class E2ERunner:
                 timeout_sec=timeout_sec,
             )
         )
-        if invocation.timed_out and not paths.orchestrator_report.exists():
+        if invocation.timed_out:
             _write_orchestrator_failure_report(
                 paths.orchestrator_report,
                 profile_id,
                 f"orchestrator CLI timed out after timeout_sec={timeout_sec}",
+                overwrite=True,
             )
         if invocation.exception is not None and not paths.orchestrator_report.exists():
             _write_orchestrator_failure_report(
@@ -582,31 +585,129 @@ def _invoke_cli_with_timeout(
     *,
     timeout_sec: float,
 ) -> _CliInvocationResult:
-    result_queue: queue.Queue[tuple[str, object]] = queue.Queue(maxsize=1)
-
-    def target() -> None:
-        try:
-            result_queue.put(("ok", entrypoint.invoke(argv)))
-        except BaseException as exc:
-            result_queue.put(("error", exc))
-
-    thread = threading.Thread(target=target, daemon=True)
-    thread.start()
+    ctx = _process_context()
+    result_queue = ctx.Queue(maxsize=1)
+    process = ctx.Process(
+        target=_invoke_cli_process,
+        args=(entrypoint, list(argv), result_queue),
+    )
     try:
-        kind, payload = result_queue.get(timeout=max(timeout_sec, 0.0))
+        process.start()
+    except BaseException as exc:
+        _close_process_queue(result_queue)
+        _close_process(process)
+        return _CliInvocationResult(exception=exc)
+
+    process.join(timeout=max(timeout_sec, 0.0))
+
+    if process.is_alive():
+        process.terminate()
+        process.join(timeout=1.0)
+        if process.is_alive():
+            process.kill()
+            process.join()
+
+        process_exitcode = process.exitcode
+        _close_process_queue(result_queue)
+        _close_process(process)
+        return _CliInvocationResult(
+            timed_out=True,
+            process_exitcode=process_exitcode,
+        )
+
+    process_exitcode = process.exitcode
+    try:
+        kind, payload = result_queue.get(timeout=1.0)
     except queue.Empty:
-        return _CliInvocationResult(timed_out=True)
+        return _CliInvocationResult(
+            exception=RuntimeError(
+                "Orchestrator CLI subprocess exited without an invocation result; "
+                f"exitcode={process_exitcode}"
+            ),
+            process_exitcode=process_exitcode,
+        )
+    finally:
+        if not process.is_alive():
+            _close_process_queue(result_queue)
+            _close_process(process)
 
     if kind == "ok":
         try:
-            return _CliInvocationResult(exit_code=int(payload))
+            return _CliInvocationResult(
+                exit_code=int(payload),
+                process_exitcode=process_exitcode,
+            )
         except (TypeError, ValueError) as exc:
-            return _CliInvocationResult(exception=exc)
+            return _CliInvocationResult(
+                exception=exc,
+                process_exitcode=process_exitcode,
+            )
 
-    if isinstance(payload, BaseException):
-        return _CliInvocationResult(exception=payload)
+    if kind == "error" and isinstance(payload, dict):
+        return _CliInvocationResult(
+            exception=RuntimeError(_format_child_exception(payload)),
+            process_exitcode=process_exitcode,
+        )
 
-    return _CliInvocationResult(exception=RuntimeError(str(payload)))
+    return _CliInvocationResult(
+        exception=RuntimeError(str(payload)),
+        process_exitcode=process_exitcode,
+    )
+
+
+def _process_context() -> multiprocessing.context.BaseContext:
+    try:
+        return multiprocessing.get_context("fork")
+    except ValueError:
+        return multiprocessing.get_context()
+
+
+def _invoke_cli_process(
+    entrypoint: CliEntrypoint,
+    argv: list[str],
+    result_queue: multiprocessing.Queue,
+) -> None:
+    try:
+        result_queue.put(("ok", entrypoint.invoke(argv)))
+    except BaseException as exc:
+        result_queue.put(
+            (
+                "error",
+                {
+                    "type": exc.__class__.__name__,
+                    "message": str(exc),
+                    "traceback": "".join(
+                        traceback.format_exception(
+                            exc.__class__,
+                            exc,
+                            exc.__traceback__,
+                        )
+                    ),
+                },
+            )
+        )
+
+
+def _format_child_exception(payload: dict[str, object]) -> str:
+    error_type = str(payload.get("type", "Exception"))
+    message = str(payload.get("message", ""))
+    child_traceback = str(payload.get("traceback", ""))
+    if child_traceback:
+        return f"{error_type}: {message}\n{child_traceback}"
+
+    return f"{error_type}: {message}"
+
+
+def _close_process_queue(result_queue: multiprocessing.Queue) -> None:
+    result_queue.close()
+    result_queue.join_thread()
+
+
+def _close_process(process: multiprocessing.Process) -> None:
+    try:
+        process.close()
+    except ValueError:
+        pass
 
 
 def _assert_cli_invocation(
@@ -625,6 +726,7 @@ def _assert_cli_invocation(
                     "profile_id": profile_id,
                     "report_path": str(report_path),
                     "timeout_sec": str(timeout_sec),
+                    "process_exitcode": invocation.process_exitcode,
                 },
             )
         ]
@@ -678,9 +780,10 @@ def _write_orchestrator_failure_report(
     path: Path,
     profile_id: str,
     failure_reason: str,
+    *,
+    overwrite: bool = False,
 ) -> None:
-    _ = failure_reason
-    if path.exists():
+    if path.exists() and not overwrite:
         return
 
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -689,6 +792,7 @@ def _write_orchestrator_failure_report(
         phases=[],
         artifacts={},
         status="failed",
+        failure_reason=failure_reason,
     )
     path.write_text(
         json.dumps(

@@ -94,7 +94,7 @@ def assert_required_artifacts(
     """Assert that every manifest-required artifact exists on disk."""
 
     results: list[E2EAssertionResult] = []
-    base_dir = Path(base_dir)
+    base_dir = Path(base_dir).resolve(strict=False)
     for artifact_key in required:
         raw_path = artifacts.get(artifact_key)
         if raw_path is None:
@@ -111,8 +111,37 @@ def assert_required_artifacts(
             continue
 
         artifact_path = Path(raw_path)
-        if not artifact_path.is_absolute():
-            artifact_path = base_dir / artifact_path
+        if artifact_path.is_absolute():
+            normalized_path = artifact_path.resolve(strict=False)
+            results.append(
+                _failed(
+                    "required_artifact",
+                    "Required artifact path must be relative to the run artifact directory",
+                    {
+                        "artifact_key": artifact_key,
+                        "expected_path": str(base_dir / artifact_key),
+                        "raw_reported_path": raw_path,
+                        "normalized_path": str(normalized_path),
+                    },
+                )
+            )
+            continue
+
+        artifact_path = (base_dir / artifact_path).resolve(strict=False)
+        if not artifact_path.is_relative_to(base_dir):
+            results.append(
+                _failed(
+                    "required_artifact",
+                    "Required artifact path escapes the run artifact directory",
+                    {
+                        "artifact_key": artifact_key,
+                        "expected_path": str(base_dir / artifact_key),
+                        "raw_reported_path": raw_path,
+                        "normalized_path": str(artifact_path),
+                    },
+                )
+            )
+            continue
 
         if not artifact_path.exists():
             results.append(
@@ -122,6 +151,8 @@ def assert_required_artifacts(
                     {
                         "artifact_key": artifact_key,
                         "expected_path": str(artifact_path),
+                        "raw_reported_path": raw_path,
+                        "normalized_path": str(artifact_path),
                     },
                 )
             )
