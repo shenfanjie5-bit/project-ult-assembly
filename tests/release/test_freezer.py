@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from datetime import datetime, timezone
 from pathlib import Path
@@ -7,6 +8,7 @@ from pathlib import Path
 import pytest
 import yaml
 
+import assembly.registry.freezer as freezer
 from assembly.contracts.models import IntegrationRunRecord
 from assembly.registry import (
     CompatibilityMatrixEntry,
@@ -198,6 +200,73 @@ def test_freeze_rejects_missing_supporting_run_record(tmp_path: Path) -> None:
     assert not (project / "version-lock").exists()
 
 
+def test_freeze_rejects_stale_supporting_run_record_matrix_context(tmp_path: Path) -> None:
+    project = _write_project(tmp_path)
+    matrix_entry = _matrix_entry(project)
+    stale_data = matrix_entry.model_dump(mode="json")
+    stale_data["matrix_version"] = "9.9.9"
+    stale_entry = CompatibilityMatrixEntry.model_validate(stale_data)
+    _write_run_record(
+        project / "reports/contract/contract-success.json",
+        "contract",
+        matrix_entry,
+    )
+    _write_run_record(
+        project / "reports/smoke/smoke-success.json",
+        "smoke",
+        stale_entry,
+    )
+    _write_run_record(
+        project / "reports/e2e/e2e-success.json",
+        "e2e",
+        matrix_entry,
+        nested=True,
+    )
+
+    with pytest.raises(ReleaseFreezeError, match="smoke"):
+        freeze_profile(
+            "lite-local",
+            registry_root=project,
+            reports_root=project / "reports",
+            out_dir=project / "version-lock",
+            now=_NOW,
+        )
+
+    assert not (project / "version-lock").exists()
+
+
+def test_freeze_atomic_write_failure_preserves_existing_lock(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    project = _write_project(tmp_path)
+    _write_required_run_records(project)
+    lock = freeze_profile(
+        "lite-local",
+        registry_root=project,
+        reports_root=project / "reports",
+        out_dir=project / "version-lock",
+        now=_NOW,
+    )
+    original_text = lock.lock_file.read_text(encoding="utf-8")
+
+    def fail_replace(src: object, dst: object) -> None:
+        raise OSError("simulated replace failure")
+
+    monkeypatch.setattr(freezer.os, "replace", fail_replace)
+
+    with pytest.raises(ReleaseFreezeError, match="atomically write"):
+        freeze_profile(
+            "lite-local",
+            registry_root=project,
+            reports_root=project / "reports",
+            out_dir=project / "version-lock",
+            now=_NOW,
+        )
+
+    assert lock.lock_file.read_text(encoding="utf-8") == original_text
+
+
 def test_freeze_rejects_direct_draft_entry(tmp_path: Path) -> None:
     project = _write_project(tmp_path, matrix_status="draft", verified_at=None)
     registry = load_all(project)
@@ -382,30 +451,55 @@ def _write_required_run_records(
     *,
     include_e2e: bool = True,
 ) -> None:
-    matrix_entry = CompatibilityMatrixEntry.model_validate(
-        yaml.safe_load((project / "compatibility-matrix.yaml").read_text())[0]
+    matrix_entry = _matrix_entry(project)
+    _write_run_record(
+        project / "reports/contract/contract-success.json",
+        "contract",
+        matrix_entry,
     )
-    _write_run_record(project / "reports/contract/contract-success.json", "contract")
-    _write_run_record(project / "reports/smoke/smoke-success.json", "smoke")
+    _write_run_record(
+        project / "reports/smoke/smoke-success.json",
+        "smoke",
+        matrix_entry,
+    )
     if include_e2e:
         _write_run_record(
             project / "reports/e2e/e2e-success.json",
             "e2e",
+            matrix_entry,
             nested=True,
         )
     assert matrix_entry.status == "verified"
 
 
-def _write_run_record(path: Path, run_type: str, *, nested: bool = False) -> None:
-    record = _run_record(run_type, path)
+def _matrix_entry(project: Path) -> CompatibilityMatrixEntry:
+    return CompatibilityMatrixEntry.model_validate(
+        yaml.safe_load((project / "compatibility-matrix.yaml").read_text())[0]
+    )
+
+
+def _write_run_record(
+    path: Path,
+    run_type: str,
+    matrix_entry: CompatibilityMatrixEntry,
+    *,
+    nested: bool = False,
+) -> None:
+    record = _run_record(run_type, path, matrix_entry)
     path.parent.mkdir(parents=True, exist_ok=True)
     payload: object = (
-        {"run_record": record.model_dump(mode="json")} if nested else record.model_dump(mode="json")
+        {"run_record": record.model_dump(mode="json")}
+        if nested
+        else record.model_dump(mode="json")
     )
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 
-def _run_record(run_type: str, path: Path) -> IntegrationRunRecord:
+def _run_record(
+    run_type: str,
+    path: Path,
+    matrix_entry: CompatibilityMatrixEntry,
+) -> IntegrationRunRecord:
     return IntegrationRunRecord(
         run_id=f"{run_type}-success",
         profile_id="lite-local",
@@ -413,7 +507,49 @@ def _run_record(run_type: str, path: Path) -> IntegrationRunRecord:
         started_at=_NOW,
         finished_at=_NOW,
         status="success",
-        artifacts=[{"kind": f"{run_type}_report", "path": str(path)}],
+        artifacts=[
+            {"kind": f"{run_type}_report", "path": str(path)},
+            _compatibility_context_artifact(matrix_entry),
+        ],
         failing_modules=[],
         summary=f"{run_type} succeeded",
     )
+
+
+def _compatibility_context_artifact(
+    matrix_entry: CompatibilityMatrixEntry,
+) -> dict[str, str]:
+    module_set = sorted(
+        (
+            {
+                "module_id": module.module_id,
+                "module_version": module.module_version,
+            }
+            for module in matrix_entry.module_set
+        ),
+        key=lambda item: (item["module_id"], item["module_version"]),
+    )
+    matrix_context = {
+        "profile_id": matrix_entry.profile_id,
+        "matrix_version": matrix_entry.matrix_version,
+        "contract_version": matrix_entry.contract_version,
+        "module_set": module_set,
+    }
+    return {
+        "kind": "compatibility_context",
+        "profile_id": matrix_entry.profile_id,
+        "matrix_version": matrix_entry.matrix_version,
+        "contract_version": matrix_entry.contract_version,
+        "module_set_digest": _stable_digest(module_set),
+        "matrix_digest": _stable_digest(matrix_context),
+    }
+
+
+def _stable_digest(payload: object) -> str:
+    canonical = json.dumps(
+        payload,
+        ensure_ascii=True,
+        separators=(",", ":"),
+        sort_keys=True,
+    )
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()

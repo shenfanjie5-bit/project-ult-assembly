@@ -2,10 +2,15 @@
 
 from __future__ import annotations
 
+import fcntl
+import hashlib
 import json
+import os
+import tempfile
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Literal, Sequence
+from typing import Iterator, Literal, Sequence
 
 import yaml
 from pydantic import BaseModel, ConfigDict, ValidationError
@@ -134,6 +139,7 @@ def collect_supporting_run_records(
             reports_root,
             profile_id=profile_id,
             run_type=run_type,
+            matrix_entry=matrix_entry,
         )
         if ref is None:
             missing.append(run_type)
@@ -292,6 +298,7 @@ def _find_successful_run_record(
     *,
     profile_id: str,
     run_type: str,
+    matrix_entry: CompatibilityMatrixEntry,
 ) -> VersionLockRunRef | None:
     run_dir = Path(reports_root) / run_type
     if not run_dir.exists():
@@ -305,6 +312,7 @@ def _find_successful_run_record(
             record.profile_id == profile_id
             and record.run_type == run_type
             and record.status == "success"
+            and _record_matches_matrix_context(record, matrix_entry)
         ):
             return VersionLockRunRef(
                 run_type=record.run_type,
@@ -314,6 +322,20 @@ def _find_successful_run_record(
             )
 
     return None
+
+
+def _record_matches_matrix_context(
+    record: IntegrationRunRecord,
+    matrix_entry: CompatibilityMatrixEntry,
+) -> bool:
+    expected = _compatibility_context_artifact(matrix_entry)
+    for artifact in record.artifacts:
+        if artifact.get("kind") != expected["kind"]:
+            continue
+
+        return all(artifact.get(key) == value for key, value in expected.items())
+
+    return False
 
 
 def _load_run_record(path: Path) -> IntegrationRunRecord | None:
@@ -336,12 +358,121 @@ def _source_artifacts(registry: Registry) -> dict[str, str]:
 
 
 def _write_lock(lock: VersionLock, lock_file: Path) -> None:
-    lock_file.parent.mkdir(parents=True, exist_ok=True)
     payload = lock.model_dump(mode="json")
-    lock_file.write_text(
-        yaml.safe_dump(payload, sort_keys=False),
-        encoding="utf-8",
+    serialized = yaml.safe_dump(payload, sort_keys=False)
+    with _lockfile_write_lock(lock_file):
+        _atomic_write_text(lock_file, serialized)
+
+
+@contextmanager
+def _lockfile_write_lock(lock_file: Path) -> Iterator[None]:
+    lock_path = lock_file.with_name(f"{lock_file.name}.lock")
+    try:
+        lock_file.parent.mkdir(parents=True, exist_ok=True)
+        lock_handle = lock_path.open("a", encoding="utf-8")
+    except OSError as exc:
+        raise ReleaseFreezeError(
+            f"Could not prepare version lockfile lock {lock_path}: {exc}"
+        ) from exc
+
+    with lock_handle:
+        try:
+            fcntl.flock(lock_handle.fileno(), fcntl.LOCK_EX)
+        except OSError as exc:
+            raise ReleaseFreezeError(
+                f"Could not lock version lockfile {lock_file}: {exc}"
+            ) from exc
+
+        try:
+            yield
+        finally:
+            try:
+                fcntl.flock(lock_handle.fileno(), fcntl.LOCK_UN)
+            except OSError:
+                pass
+
+
+def _atomic_write_text(path: Path, content: str) -> None:
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        fd, tmp_name = tempfile.mkstemp(
+            prefix=f".{path.name}.",
+            suffix=".tmp",
+            dir=path.parent,
+        )
+    except OSError as exc:
+        raise ReleaseFreezeError(
+            f"Could not prepare atomic write for version lockfile {path}: {exc}"
+        ) from exc
+
+    tmp_path = Path(tmp_name)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as tmp_file:
+            fd = -1
+            tmp_file.write(content)
+            tmp_file.flush()
+            os.fsync(tmp_file.fileno())
+
+        os.replace(tmp_path, path)
+        _fsync_directory(path.parent)
+    except OSError as exc:
+        if fd != -1:
+            os.close(fd)
+        tmp_path.unlink(missing_ok=True)
+        raise ReleaseFreezeError(
+            f"Could not atomically write version lockfile {path}: {exc}"
+        ) from exc
+
+
+def _fsync_directory(directory: Path) -> None:
+    flags = os.O_RDONLY
+    if hasattr(os, "O_DIRECTORY"):
+        flags |= os.O_DIRECTORY
+
+    dir_fd = os.open(directory, flags)
+    try:
+        os.fsync(dir_fd)
+    finally:
+        os.close(dir_fd)
+
+
+def _compatibility_context_artifact(
+    matrix_entry: CompatibilityMatrixEntry,
+) -> dict[str, str]:
+    module_set = sorted(
+        (
+            {
+                "module_id": module.module_id,
+                "module_version": module.module_version,
+            }
+            for module in matrix_entry.module_set
+        ),
+        key=lambda item: (item["module_id"], item["module_version"]),
     )
+    matrix_context = {
+        "profile_id": matrix_entry.profile_id,
+        "matrix_version": matrix_entry.matrix_version,
+        "contract_version": matrix_entry.contract_version,
+        "module_set": module_set,
+    }
+    return {
+        "kind": "compatibility_context",
+        "profile_id": matrix_entry.profile_id,
+        "matrix_version": matrix_entry.matrix_version,
+        "contract_version": matrix_entry.contract_version,
+        "module_set_digest": _stable_digest(module_set),
+        "matrix_digest": _stable_digest(matrix_context),
+    }
+
+
+def _stable_digest(payload: object) -> str:
+    canonical = json.dumps(
+        payload,
+        ensure_ascii=True,
+        separators=(",", ":"),
+        sort_keys=True,
+    )
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
 def _utc_datetime(value: datetime | None) -> datetime:
