@@ -74,37 +74,146 @@ def test_registry_md_and_yaml_are_consistent() -> None:
     assert_md_yaml_consistent(REGISTRY_MD, REGISTRY_YAML)
 
 
+#: Stage 4 §4.1 baseline (Stage 3 cross-project compat audit code-confirmed).
+#: 11 active subsystem modules promoted from ``not_started`` → ``verified``;
+#: ``assembly`` stays ``partial`` (pending §4.2 e2e runner extension + §4.3
+#: self-verify upgrade); ``feature-store`` + ``stream-layer`` stay
+#: ``not_started`` (frozen slots per master plan §1.1).
+STAGE_4_VERIFIED_MODULE_IDS = {
+    "contracts",
+    "data-platform",
+    "entity-registry",
+    "reasoner-runtime",
+    "graph-engine",
+    "main-core",
+    "audit-eval",
+    "subsystem-sdk",
+    "orchestrator",
+    "subsystem-announcement",
+    "subsystem-news",
+}
+STAGE_4_PARTIAL_MODULE_IDS = {"assembly"}
+STAGE_4_NOT_STARTED_MODULE_IDS = {"feature-store", "stream-layer"}
+
+#: Per-module ``module_version`` baseline at Stage 4 §4.1 — sourced from each
+#: module's ``version_declaration.declare()`` after the §4.0 source drift
+#: fixes (audit-eval 0.2.1→0.2.2; graph-engine ``_safe_contract_version``
+#: now adds ``v`` prefix). Frozen slots stay at ``0.0.0``.
+STAGE_4_MODULE_VERSIONS = {
+    "contracts": "0.1.3",
+    "data-platform": "0.1.1",
+    "entity-registry": "0.1.1",
+    "reasoner-runtime": "0.1.1",
+    "graph-engine": "0.1.1",
+    "main-core": "0.1.1",
+    "audit-eval": "0.2.2",
+    "subsystem-sdk": "0.1.2",
+    "orchestrator": "0.1.1",
+    "assembly": "0.1.0",
+    "feature-store": "0.0.0",
+    "stream-layer": "0.0.0",
+    "subsystem-announcement": "0.1.1",
+    "subsystem-news": "0.1.1",
+}
+
+#: Per-module ``contract_version`` baseline. Per master plan §4.1 rule:
+#: ``contract_version`` is bumped only when the module's
+#: ``version_declaration.declare()`` returns a well-formed ``v\d+\.\d+\.\d+``
+#: value. Modules that return ``"unknown"`` (the SDK/announcement/news
+#: subsystem trio — they consume the contracts schema, they don't own one)
+#: stay at ``v0.0.0``. ``graph-engine`` re-exports ``contracts.__version__``
+#: with the canonical ``v`` prefix added by ``_safe_contract_version`` per
+#: §4.0 Op-2.
+STAGE_4_CONTRACT_VERSIONS = {
+    "contracts": "v0.1.3",
+    "data-platform": "v0.1.1",
+    "entity-registry": "v0.1.1",
+    "reasoner-runtime": "v0.1.1",
+    "graph-engine": "v0.1.3",
+    "main-core": "v0.1.1",
+    "audit-eval": "v0.1.0",
+    "subsystem-sdk": "v0.0.0",
+    "orchestrator": "v0.1.1",
+    "assembly": "v0.0.0",
+    "feature-store": "v0.0.0",
+    "stream-layer": "v0.0.0",
+    "subsystem-announcement": "v0.0.0",
+    "subsystem-news": "v0.0.0",
+}
+
+
 def test_registry_artifacts_cover_expected_fourteen_modules() -> None:
     rows = parse_registry_md(REGISTRY_MD)
     entries = load_registry_yaml(REGISTRY_YAML)
 
     assert len(rows) == 14
     assert {entry.module_id for entry in entries} == EXPECTED_MODULE_IDS
+    assert (
+        STAGE_4_VERIFIED_MODULE_IDS
+        | STAGE_4_PARTIAL_MODULE_IDS
+        | STAGE_4_NOT_STARTED_MODULE_IDS
+        == EXPECTED_MODULE_IDS
+    ), "Stage 4 §4.1 baseline groups must cover all 14 modules disjointly"
 
-    unstarted_entries = [
-        entry for entry in entries if entry.module_id != "assembly"
-    ]
-    assert all(
-        entry.integration_status == IntegrationStatus.not_started
-        for entry in unstarted_entries
-    )
-    assert all(
-        entry.module_version == "0.0.0"
-        and entry.contract_version == "v0.0.0"
-        and entry.supported_profiles == ["lite-local", "full-dev"]
-        for entry in unstarted_entries
-    )
+    by_id = {entry.module_id: entry for entry in entries}
+
+    # Stage 4 §4.1 integration_status invariants.
+    for module_id in STAGE_4_VERIFIED_MODULE_IDS:
+        assert (
+            by_id[module_id].integration_status == IntegrationStatus.verified
+        ), f"{module_id} should be verified at Stage 4 §4.1"
+    for module_id in STAGE_4_PARTIAL_MODULE_IDS:
+        assert (
+            by_id[module_id].integration_status == IntegrationStatus.partial
+        ), f"{module_id} should remain partial pending Stage 4 §4.3"
+    for module_id in STAGE_4_NOT_STARTED_MODULE_IDS:
+        assert (
+            by_id[module_id].integration_status == IntegrationStatus.not_started
+        ), (
+            f"{module_id} is a frozen slot per master plan §1.1; must stay "
+            "not_started at Stage 4 §4.1"
+        )
+
+    # Stage 4 §4.1 module_version + contract_version + supported_profiles
+    # per-module evidence.
+    for module_id, expected_module_version in STAGE_4_MODULE_VERSIONS.items():
+        assert by_id[module_id].module_version == expected_module_version, (
+            f"{module_id} module_version should be {expected_module_version} "
+            f"per Stage 4 §4.1 evidence; got {by_id[module_id].module_version}"
+        )
+    for module_id, expected_contract_version in STAGE_4_CONTRACT_VERSIONS.items():
+        assert (
+            by_id[module_id].contract_version == expected_contract_version
+        ), (
+            f"{module_id} contract_version should be {expected_contract_version} "
+            f"per Stage 4 §4.1 evidence; got "
+            f"{by_id[module_id].contract_version}"
+        )
+
+    # All 14 modules expose the same canonical 5-entrypoint surface +
+    # supported_profiles set; this part is invariant across Stage 0/4.
     for entry in entries:
         assert_phase_zero_public_entrypoints(entry)
-
-    assembly = next(entry for entry in entries if entry.module_id == "assembly")
-    assert assembly.module_version == "0.1.0"
-    assert assembly.integration_status == IntegrationStatus.partial
+        assert entry.supported_profiles == ["lite-local", "full-dev"]
 
 
 def test_markdown_status_drift_raises_inconsistent_error(tmp_path: Path) -> None:
+    # Pick a module currently at ``not_started`` (not the verified Stage 4
+    # §4.1 set) so flipping its MD value to ``verified`` actually creates
+    # drift vs the YAML. ``rows[0]`` was the Stage 0 default but post-§4.1
+    # it is ``contracts`` which is already ``verified``; the drift would be
+    # zero and the test would silently pass. ``feature-store`` is a
+    # frozen-slot ``not_started`` module per master plan §1.1.
     rows = parse_registry_md(REGISTRY_MD)
-    rows[0] = {**rows[0], "integration_status": "verified"}
+    target_index = next(
+        index
+        for index, row in enumerate(rows)
+        if row["module_id"] == "feature-store"
+    )
+    rows[target_index] = {
+        **rows[target_index],
+        "integration_status": "verified",
+    }
     drifted_md = write_registry_md(tmp_path / "MODULE_REGISTRY.md", rows)
 
     with pytest.raises(RegistryInconsistentError, match="integration_status"):

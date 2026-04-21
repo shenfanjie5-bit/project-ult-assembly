@@ -78,9 +78,18 @@ def test_load_all_missing_artifacts_raise_registry_error(
 def test_load_all_registry_consistency_errors_are_preserved(tmp_path: Path) -> None:
     _copy_project_artifacts(tmp_path)
     registry_md = tmp_path / "MODULE_REGISTRY.md"
+    # Target the assembly row's ``notes`` cell — at Stage 4 §4.1 this row
+    # carries the post-§4.1 status string ``Stage 4 §4.1 done (11 active
+    # subsystem modules verified); pending §4.2 e2e runner extension + §4.3
+    # self-verify upgrade.``. Replacing the leading sentinel with a different
+    # string introduces drift between MD and YAML, which ``load_all`` must
+    # surface via ``RegistryInconsistentError`` with the offending column
+    # ``notes`` referenced. (Pre-§4.1 this targeted the Stage 0 sentinel
+    # ``"Stage 0 registry implementation is partial"``; that string was
+    # removed when the assembly row was updated by Stage 4 §4.1.)
     registry_md.write_text(
         registry_md.read_text(encoding="utf-8").replace(
-            "Stage 0 registry implementation is partial",
+            "Stage 4 §4.1 done",
             "Drifted registry note",
             1,
         ),

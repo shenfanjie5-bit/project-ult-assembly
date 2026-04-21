@@ -20,9 +20,38 @@ from assembly.registry import CompatibilityMatrixEntry, RegistryResolutionError,
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 
-def test_run_contract_suite_writes_default_lite_partial_report(
+def test_run_contract_suite_writes_default_lite_failed_report_without_cross_repo_install(
     tmp_path: Path,
 ) -> None:
+    """Stage 4 §4.1 behavior: assembly's own venv has only assembly itself
+    installed (the 11 cross-repo subsystem modules are NOT pip-installed
+    here — they live in sibling repos, importable only via PYTHONPATH or
+    a full-system venv).
+
+    Pre-§4.1 the registry held all 11 active modules at ``not_started``,
+    so ``PublicApiBoundaryCheck`` early-exited (only the focus subset
+    ``{main-core, graph-engine, audit-eval}`` even returned a
+    ``not_started`` row), and the overall record status was ``partial``.
+
+    Post-§4.1 the 11 active modules are at ``verified`` per Stage 3
+    cross-project compat audit evidence (see ``Stage 4 §4.1`` rollout in
+    the master plan). ``_check_entry`` now actually runs for every
+    promoted module and tries ``importlib.import_module(...)`` on its
+    public entrypoint reference. In assembly's own venv that import
+    fails for every cross-repo module, ``_check_entry`` returns
+    ``CompatibilityCheckStatus.failed`` with ``failure_reason`` carrying
+    the ``ModuleNotFoundError`` text, and the overall record status
+    becomes ``failed`` (per ``_record_status``: any failed → failed).
+
+    This test pins that **honest** baseline: without a full-system venv
+    or PYTHONPATH covering the 11 sibling repos, the contract suite
+    correctly reports ``failed`` and surfaces every cross-repo module in
+    ``failing_modules`` with the import error in ``checks[*].details``.
+    The Stage 3 cross-project compat audit
+    (``scripts/stage_3_compat_audit.py``) is the proper venue for
+    running this suite against installed/PYTHONPATH-resolvable modules.
+    """
+
     reports_dir = tmp_path / "reports/contract"
 
     report = run_contract_suite(
@@ -36,13 +65,48 @@ def test_run_contract_suite_writes_default_lite_partial_report(
     )
 
     assert report.run_record.run_type == "contract"
-    assert report.run_record.status == "partial"
+    assert report.run_record.status == "failed"
     assert report.matrix_version == "0.1.0"
     assert report.report_path.exists()
     payload = json.loads(report.report_path.read_text(encoding="utf-8"))
     assert payload["run_record"]["run_type"] == "contract"
     assert payload["run_record"]["failing_modules"]
+    # At least one of the 11 active subsystem modules must show up in
+    # failing_modules (the cross-repo import failure surface).
+    assert set(payload["run_record"]["failing_modules"]) & {
+        "contracts",
+        "data-platform",
+        "entity-registry",
+        "reasoner-runtime",
+        "graph-engine",
+        "main-core",
+        "audit-eval",
+        "subsystem-sdk",
+        "orchestrator",
+        "subsystem-announcement",
+        "subsystem-news",
+    }, (
+        "Expected at least one cross-repo subsystem module in failing_modules; "
+        f"got {payload['run_record']['failing_modules']}"
+    )
     assert payload["checks"]
+    # Every check failure for a cross-repo module should carry an
+    # ``import`` failure_reason (the legitimate "module not pip-installed
+    # in assembly's venv" surface). Stage 3 audit script runs the same
+    # check stack against a PYTHONPATH-covered context where these
+    # imports succeed.
+    cross_repo_failure_messages = [
+        check["details"].get("failure_reason", "")
+        for check in payload["checks"]
+        if check["status"] == "failed"
+        and check.get("details", {}).get("failure_reason")
+    ]
+    assert any(
+        "No module named" in reason for reason in cross_repo_failure_messages
+    ), (
+        "Expected at least one ModuleNotFoundError-shaped failure_reason; got "
+        f"{cross_repo_failure_messages}"
+    )
     assert payload["matrix_version"] == "0.1.0"
     context_artifact = next(
         artifact
