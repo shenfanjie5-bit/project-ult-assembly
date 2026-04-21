@@ -86,18 +86,40 @@ def test_optional_bundles_are_not_declared_for_lite_local() -> None:
 
 
 def test_lite_local_modules_cover_registry_supported_modules() -> None:
+    """Lite profile's ``enabled_modules`` equals the set of registry modules
+    whose ``supported_profiles`` declares ``lite-local``, minus the frozen
+    slots that are declared-but-not-runnable this round.
+
+    Per master plan §1.1, ``feature-store`` (P7 Feast enablement) and
+    ``stream-layer`` (P11 Kafka/Flink enablement) keep
+    ``supported_profiles: [lite-local, full-dev]`` in the registry as a
+    forward declaration of compatibility, but they are **not** enabled in
+    the Lite/Full profile ``enabled_modules`` list at Stage 4 §4.1.5 —
+    per-module ``integration_status`` stays at ``not_started`` to
+    explicitly reflect the freeze. Dropping them from
+    ``enabled_modules`` prevents ``ContractsVersionCheck`` from returning
+    ``not_started`` rows that would silently degrade the contract suite
+    to ``partial``; Stage 3/4 contract suite runs ``success`` as a result.
+    """
     profile = load_profile(PROFILE_PATH)
     registry_entries = load_registry_yaml(REGISTRY_YAML)
     registry_module_ids = {entry.module_id for entry in registry_entries}
-    lite_module_ids = {
+    lite_supported_module_ids = {
         entry.module_id
         for entry in registry_entries
         if profile.profile_id in entry.supported_profiles
     }
+    #: Frozen slots per master plan §1.1 (P7 / P11 future enablement). They
+    #: stay declared as supported in both profiles but are not enabled in
+    #: this round's ``enabled_modules``.
+    frozen_slots = {"feature-store", "stream-layer"}
 
     assert set(profile.enabled_modules) <= registry_module_ids
-    assert set(profile.enabled_modules) == lite_module_ids
-    assert len(profile.enabled_modules) == 14
+    assert (
+        set(profile.enabled_modules)
+        == lite_supported_module_ids - frozen_slots
+    )
+    assert len(profile.enabled_modules) == 12
 
 
 def test_env_example_contains_lite_keys_and_empty_full_secret_placeholders() -> None:

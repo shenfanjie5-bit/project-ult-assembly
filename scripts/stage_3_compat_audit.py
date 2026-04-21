@@ -59,6 +59,7 @@ from assembly.compat.schema import (
     CompatibilityCheckContext,
     CompatibilityCheckStatus,
 )
+from assembly.profiles.loader import load_profile
 from assembly.profiles.resolver import ResolvedConfigSnapshot
 from assembly.registry import (
     IntegrationStatus,
@@ -143,27 +144,43 @@ def _pick_matrix_entry(registry: Registry, *, profile_id: str):  # type: ignore[
 
 
 def _build_context(
-    registry: Registry, *, profile_id: str
+    registry: Registry,
+    *,
+    profile_id: str,
+    profiles_root: Path,
 ) -> CompatibilityCheckContext:
-    """Build a CompatibilityCheckContext mirroring tests/compat/test_checks.py::_context().
+    """Build a CompatibilityCheckContext for the requested profile.
 
-    All 5 required fields are populated. ``ResolvedConfigSnapshot`` uses
-    ``extra="forbid"`` so all 11 fields must match exactly.
+    Mirrors ``tests/compat/test_checks.py::_context()`` for the 5
+    required ``CompatibilityCheckContext`` fields, but derives
+    ``mode`` and ``max_long_running_daemons`` from the **actual
+    profile file** rather than hardcoding Lite defaults. The previous
+    version hardcoded ``mode="lite"`` / ``max_long_running_daemons=4``
+    which was fine for ``--profile-id lite-local`` but semantically
+    wrong for ``--profile-id full-dev`` (mode: full, different daemon
+    budget). ``PublicApiBoundaryCheck`` happens not to read those
+    snapshot fields today, so the previous hardcode was latent rather
+    than active incorrect behavior — but the script is now faithfully
+    constructing the requested profile context regardless.
+
+    ``ResolvedConfigSnapshot`` uses ``extra="forbid"`` so all 11 fields
+    must match exactly.
     """
 
     matrix_entry = _pick_matrix_entry(registry, profile_id=profile_id)
+    profile = load_profile(profiles_root / f"{profile_id}.yaml")
     return CompatibilityCheckContext(
         profile_id=profile_id,
         snapshot=ResolvedConfigSnapshot(
             profile_id=profile_id,
-            mode="lite",
+            mode=profile.mode.value,
             enabled_modules=[entry.module_id for entry in registry.modules],
             enabled_service_bundles=[],
             required_env={},
             optional_env={},
             storage_backends={},
             resource_expectation={},
-            max_long_running_daemons=4,
+            max_long_running_daemons=profile.max_long_running_daemons,
             service_bundles=[],
             resolved_at=datetime.now(timezone.utc),
         ),
@@ -224,11 +241,23 @@ def main(argv: list[str] | None = None) -> int:
 
     promoted_registry = _promote_target_modules_to_partial(registry)
 
+    profiles_root = args.repo_root / "profiles"
     try:
-        context = _build_context(promoted_registry, profile_id=args.profile_id)
+        context = _build_context(
+            promoted_registry,
+            profile_id=args.profile_id,
+            profiles_root=profiles_root,
+        )
     except SystemExit as exc:
         # _pick_matrix_entry raises SystemExit on missing profile.
         print(f"[stage_3_compat_audit] SETUP ERROR: {exc}", file=sys.stderr)
+        return 2
+    except Exception as exc:  # profile load / parse errors
+        print(
+            f"[stage_3_compat_audit] SETUP ERROR loading profile "
+            f"{args.profile_id!r}: {type(exc).__name__}: {exc}",
+            file=sys.stderr,
+        )
         return 2
 
     # Run the check. Each target module's public_entrypoints reference is

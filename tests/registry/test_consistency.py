@@ -124,21 +124,30 @@ STAGE_4_MODULE_VERSIONS = {
 #: stay at ``v0.0.0``. ``graph-engine`` re-exports ``contracts.__version__``
 #: with the canonical ``v`` prefix added by ``_safe_contract_version`` per
 #: §4.0 Op-2.
+#: Per Stage 4 §4.1.5, all 11 active subsystem modules align to the canonical
+#: contracts schema version (``v0.1.3``) — this is what each module's
+#: ``public.py`` hardcodes in its ``_CONTRACT_VERSION`` constant (or
+#: ``graph-engine`` dynamically computes via ``f"v{contracts.__version__}"``
+#: in ``_safe_contract_version``). This is NOT the module's own
+#: ``module_version``; it's the canonical contracts schema version the
+#: module declares compatibility with. Assembly stays at ``v0.0.0`` (meta-
+#: orchestration module — owns no contracts schema); frozen slots stay at
+#: ``v0.0.0`` per master plan §1.1 freeze.
 STAGE_4_CONTRACT_VERSIONS = {
     "contracts": "v0.1.3",
-    "data-platform": "v0.1.1",
-    "entity-registry": "v0.1.1",
-    "reasoner-runtime": "v0.1.1",
+    "data-platform": "v0.1.3",
+    "entity-registry": "v0.1.3",
+    "reasoner-runtime": "v0.1.3",
     "graph-engine": "v0.1.3",
-    "main-core": "v0.1.1",
-    "audit-eval": "v0.1.0",
-    "subsystem-sdk": "v0.0.0",
-    "orchestrator": "v0.1.1",
+    "main-core": "v0.1.3",
+    "audit-eval": "v0.1.3",
+    "subsystem-sdk": "v0.1.3",
+    "orchestrator": "v0.1.3",
     "assembly": "v0.0.0",
     "feature-store": "v0.0.0",
     "stream-layer": "v0.0.0",
-    "subsystem-announcement": "v0.0.0",
-    "subsystem-news": "v0.0.0",
+    "subsystem-announcement": "v0.1.3",
+    "subsystem-news": "v0.1.3",
 }
 
 
@@ -279,12 +288,21 @@ def test_compatibility_matrix_is_draft_and_covers_registry_modules() -> None:
     assert set(entries_by_profile) == {"lite-local", "full-dev"}
     assert all(entry.status == "draft" for entry in entries)
     assert all(entry.verified_at is None for entry in entries)
+    #: At Stage 4 §4.1.5 the matrix ``module_set`` drops the two frozen slots
+    #: (``feature-store``, ``stream-layer``) from both profile entries.
+    #: Those modules remain declared in the registry with
+    #: ``supported_profiles=[lite-local, full-dev]`` as a forward declaration
+    #: of compatibility for their future P7/P11 enablement, but are not
+    #: part of the verified combination this round. See master plan §1.1
+    #: frozen slots + ``profiles/lite-local.yaml`` + ``profiles/full-dev.yaml``
+    #: where their ``enabled_modules`` entries were also removed.
+    frozen_slots = {"feature-store", "stream-layer"}
     assert {
         module.module_id for module in entries_by_profile["lite-local"].module_set
-    } == EXPECTED_MODULE_IDS
+    } == EXPECTED_MODULE_IDS - frozen_slots
     assert {
         module.module_id for module in entries_by_profile["full-dev"].module_set
-    } == EXPECTED_MODULE_IDS
+    } == EXPECTED_MODULE_IDS - frozen_slots
 
 
 def test_full_dev_supported_profiles_are_explicit_for_feature_and_stream() -> None:

@@ -135,6 +135,9 @@ def _single_entrypoint(
     return matches[0]
 
 
+_NO_OWNED_CONTRACT_VERSION = "v0.0.0"
+
+
 def _version_mismatches(
     declared: VersionInfo,
     entry: ModuleRegistryEntry,
@@ -142,19 +145,36 @@ def _version_mismatches(
     matrix_module_version: str | None,
     matrix_contract_version: str,
 ) -> dict[str, dict[str, str | None]]:
+    """Return per-field mismatches between declared and registry/matrix facts.
+
+    The ``matrix_contract_version`` comparison (declared vs matrix entry's
+    top-level ``contract_version``) is **only** enforced for modules that
+    own/consume a contracts schema — i.e., whose registry
+    ``contract_version`` is non-sentinel. Modules registered at the
+    ``v0.0.0`` sentinel ("no owned contract version") include ``assembly``
+    itself (the meta-orchestration module) and any frozen slot. These
+    modules legitimately declare ``v0.0.0`` even when the verified
+    combination's matrix top-level contract_version has moved to e.g.
+    ``v0.1.3``: the matrix top-level is the canonical contracts schema
+    version for this verified combination, NOT a constraint that every
+    member module must also declare.
+
+    Per-module contract_version alignment (declared vs registry) is still
+    enforced for every module — that is the real single-source-of-truth
+    check.
+    """
+
     expected = {
         "module_id": entry.module_id,
         "module_version": entry.module_version,
         "contract_version": entry.contract_version,
         "matrix_module_version": matrix_module_version,
-        "matrix_contract_version": matrix_contract_version,
     }
     actual = {
         "module_id": declared.module_id,
         "module_version": declared.module_version,
         "contract_version": declared.contract_version,
         "matrix_module_version": declared.module_version,
-        "matrix_contract_version": declared.contract_version,
     }
 
     mismatches: dict[str, dict[str, str | None]] = {}
@@ -164,6 +184,15 @@ def _version_mismatches(
             mismatches[field] = {
                 "expected": expected_value,
                 "actual": actual_value,
+            }
+
+    # Enforce matrix_contract_version equality only for modules with a
+    # declared owned contracts schema (registry contract_version != v0.0.0).
+    if entry.contract_version != _NO_OWNED_CONTRACT_VERSION:
+        if declared.contract_version != matrix_contract_version:
+            mismatches["matrix_contract_version"] = {
+                "expected": matrix_contract_version,
+                "actual": declared.contract_version,
             }
 
     return mismatches

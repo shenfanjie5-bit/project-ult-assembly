@@ -93,7 +93,43 @@ class IntegrationRunRecord(BaseModel):
 
 
 class VersionInfo(BaseModel):
-    """Module version and compatible contract version declaration."""
+    """Module version and compatible contract version declaration.
+
+    The four core fields — ``module_id`` / ``module_version`` /
+    ``contract_version`` / ``compatible_contract_range`` — are the baseline
+    contract. The remaining fields are **typed optional structural
+    markers** that specific modules publish to declare semantic invariants
+    (see master plan §4.1.5). They are intentionally modeled here (not
+    stored in an opaque ``metadata`` dict and not ignored via
+    ``extra="allow"``) so the assembly contract stays strict:
+    ``extra="forbid"`` still rejects unknown fields, but marker fields
+    declared below are first-class introspectable attributes.
+
+    Marker field usage (as of Stage 4 §4.1.5):
+
+    * ``supported_ex_types`` — set by ``subsystem-sdk``, ``subsystem-
+      announcement``, ``subsystem-news`` (Ex-1/2/3 producer surface; SDK
+      adds Ex-0 heartbeat).
+    * ``consumed_ex_types`` — set by ``graph-engine`` (Ex-3 consumer
+      surface; semantic distinction from producer modules).
+    * ``backend_kinds`` — set by ``subsystem-sdk`` (Lite/Full/mock backend
+      kinds supported by the SDK dispatch layer).
+    * ``sdk_envelope_fields`` — set by ``subsystem-announcement`` /
+      ``subsystem-news`` (declares which envelope keys the module strips
+      before dispatch — iron rule #7 wire-shape boundary documentation).
+    * ``ex0_semantic`` — set by ``subsystem-sdk`` (Ex-0 heartbeat semantic
+      marker).
+    * ``ex3_high_threshold_marker`` — set by ``subsystem-announcement`` /
+      ``subsystem-news`` (CLAUDE.md §10 Ex-3 high-threshold guard marker).
+    * ``neo4j_status_enum_values`` — set by ``graph-engine`` (3-state
+      ``Neo4jGraphStatus.graph_status`` Literal values).
+    * ``canonical_truth_layer`` — set by ``graph-engine`` (CLAUDE.md §10
+      #1 truth-before-mirror invariant marker — must equal ``"iceberg"``).
+
+    Modules that do not publish a given marker leave the corresponding
+    field at ``None``. Each marker is optional to avoid forcing unrelated
+    modules to populate fields they have no semantic stake in.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
@@ -101,6 +137,15 @@ class VersionInfo(BaseModel):
     module_version: Semver
     contract_version: ContractVersion
     compatible_contract_range: str
+
+    supported_ex_types: list[str] | None = None
+    consumed_ex_types: list[str] | None = None
+    backend_kinds: list[str] | None = None
+    sdk_envelope_fields: list[str] | None = None
+    ex0_semantic: str | None = None
+    ex3_high_threshold_marker: bool | None = None
+    neo4j_status_enum_values: list[str] | None = None
+    canonical_truth_layer: str | None = None
 
     @field_validator("compatible_contract_range")
     @classmethod

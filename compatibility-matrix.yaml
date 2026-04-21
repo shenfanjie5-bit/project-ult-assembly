@@ -21,15 +21,11 @@
       module_version: 0.1.1
     - module_id: assembly
       module_version: 0.1.0
-    - module_id: feature-store
-      module_version: 0.0.0
-    - module_id: stream-layer
-      module_version: 0.0.0
     - module_id: subsystem-announcement
       module_version: 0.1.1
     - module_id: subsystem-news
       module_version: 0.1.1
-  contract_version: v0.0.0
+  contract_version: v0.1.3
   required_tests:
     - contract-suite
     - smoke
@@ -59,15 +55,11 @@
       module_version: 0.1.1
     - module_id: assembly
       module_version: 0.1.0
-    - module_id: feature-store
-      module_version: 0.0.0
-    - module_id: stream-layer
-      module_version: 0.0.0
     - module_id: subsystem-announcement
       module_version: 0.1.1
     - module_id: subsystem-news
       module_version: 0.1.1
-  contract_version: v0.0.0
+  contract_version: v0.1.3
   required_tests:
     - contract-suite
     - smoke

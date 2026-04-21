@@ -20,13 +20,128 @@ from assembly.registry import CompatibilityMatrixEntry, RegistryResolutionError,
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 
-def test_run_contract_suite_writes_default_lite_failed_report_without_cross_repo_install(
+#: 11 cross-repo subsystem modules that must be resolvable (via PYTHONPATH
+#: or a full-system venv) for the contract suite to exercise the real
+#: resolved-module path. Each name is the ``module:symbol`` reference used
+#: by ``assembly.contracts.entrypoints.load_reference`` — we check
+#: importability of just the ``.public`` module surface here; the check
+#: itself later does the full ``module:symbol`` resolution per entry.
+_CROSS_REPO_PUBLIC_MODULES = (
+    "contracts.public",
+    "audit_eval.public",
+    "reasoner_runtime.public",
+    "main_core.public",
+    "data_platform.public",
+    "orchestrator.public",
+    "entity_registry.public",
+    "subsystem_sdk.public",
+    "subsystem_announcement.public",
+    "subsystem_news.public",
+    "graph_engine.public",
+)
+
+
+def test_run_contract_suite_succeeds_in_resolved_module_env(
     tmp_path: Path,
 ) -> None:
-    """Stage 4 §4.1 behavior: assembly's own venv has only assembly itself
-    installed (the 11 cross-repo subsystem modules are NOT pip-installed
-    here — they live in sibling repos, importable only via PYTHONPATH or
-    a full-system venv).
+    """Stage 4 §4.1.5 positive regression: when every cross-repo subsystem
+    module is resolvable (either via PYTHONPATH covering the 11 sibling
+    repos, or a full-system venv with all of them editable-installed),
+    the full contract suite against ``lite-local`` must pass with
+    ``status == "success"`` and ``failing_modules == []``.
+
+    This is the **real** gate codex review #6 asked for: after §4.1.5
+    baseline alignment (registry contract_version v0.1.3 for 11 active
+    modules + matrix top-level contract_version v0.1.3 + VersionInfo
+    typed optional marker fields + frozen slots removed from profiles),
+    the resolved-module path must be green. The alternative "stub
+    everything with monkeypatch" approach was explicitly rejected
+    because it would bypass the real registry/profile/matrix semantics
+    that this test needs to verify.
+
+    If the cross-repo modules are NOT importable (e.g., running against
+    an assembly-only venv with no PYTHONPATH), the test SKIPS gracefully
+    via ``pytest.importorskip`` with a clear setup-required message. The
+    companion test ``test_run_contract_suite_fails_gracefully_without_
+    cross_repo_install`` locks in the legitimate degraded behavior
+    (``status == "failed"`` with ``ModuleNotFoundError``-shaped
+    failure_reasons) for the no-PYTHONPATH case.
+    """
+    # Gate: require every cross-repo public module to be importable. If
+    # any is not, skip with the canonical importorskip message.
+    for module_name in _CROSS_REPO_PUBLIC_MODULES:
+        pytest.importorskip(
+            module_name,
+            reason=(
+                f"Stage 4 §4.1.5 positive regression requires {module_name} "
+                "to be resolvable. Run with PYTHONPATH covering the 11 "
+                "sibling repos' src/root dirs, or with a full-system venv "
+                "that has them editable-installed. The Stage 3 cross-project "
+                "compat audit script (scripts/stage_3_compat_audit.py) "
+                "documents the canonical PYTHONPATH setup."
+            ),
+        )
+
+    reports_dir = tmp_path / "reports/contract"
+    report = run_contract_suite(
+        "lite-local",
+        profiles_root=PROJECT_ROOT / "profiles",
+        bundles_root=PROJECT_ROOT / "bundles",
+        registry_root=PROJECT_ROOT,
+        reports_dir=reports_dir,
+        env=_env_from_example(),
+        timeout_sec=5.0,
+    )
+
+    assert report.run_record.status == "success", (
+        f"contract suite did not reach success in resolved-module env; "
+        f"status={report.run_record.status!r}, "
+        f"failing_modules={report.run_record.failing_modules}. "
+        "See the check details in the persisted report for root cause."
+    )
+    assert report.run_record.failing_modules == []
+    assert report.run_record.run_type == "contract"
+    assert report.matrix_version == "0.1.0"
+    assert report.report_path.exists()
+
+    payload = json.loads(report.report_path.read_text(encoding="utf-8"))
+    assert payload["run_record"]["run_type"] == "contract"
+    assert payload["run_record"]["status"] == "success"
+    assert payload["run_record"]["failing_modules"] == []
+    assert payload["matrix_version"] == "0.1.0"
+
+    # Every check on every active module must be ``success`` — the full
+    # positive regression that codex review #6 demanded.
+    non_success = [
+        c
+        for c in payload["checks"]
+        if c["status"] != "success"
+    ]
+    assert non_success == [], (
+        "Every check on every active module must be ``success`` in the "
+        f"resolved-module env; got non-success checks: {non_success}"
+    )
+
+    # Smoke-test the context artifact so consumers downstream (Stage 4
+    # §4.3 matrix promotion) have the matrix_digest available.
+    context_artifact = next(
+        artifact
+        for artifact in payload["run_record"]["artifacts"]
+        if artifact["kind"] == "compatibility_context"
+    )
+    assert context_artifact["matrix_version"] == "0.1.0"
+    assert context_artifact["matrix_digest"]
+
+
+def test_run_contract_suite_fails_gracefully_without_cross_repo_install(
+    tmp_path: Path,
+) -> None:
+    """Stage 4 §4.1.5 degraded-baseline regression: in an environment
+    where cross-repo subsystem modules are NOT importable (assembly's
+    own venv with no PYTHONPATH), the contract suite must fail
+    gracefully with ``status == "failed"`` and every missing module in
+    ``failing_modules`` carrying an ``ImportError``-shaped
+    ``failure_reason`` in its check ``details``.
 
     Pre-§4.1 the registry held all 11 active modules at ``not_started``,
     so ``PublicApiBoundaryCheck`` early-exited (only the focus subset
@@ -50,7 +165,28 @@ def test_run_contract_suite_writes_default_lite_failed_report_without_cross_repo
     The Stage 3 cross-project compat audit
     (``scripts/stage_3_compat_audit.py``) is the proper venue for
     running this suite against installed/PYTHONPATH-resolvable modules.
+
+    Gate: if the cross-repo modules ARE importable (i.e., PYTHONPATH
+    covers the 11 sibling repos OR a full-system venv has them editable-
+    installed), this degraded-baseline test is irrelevant and gets
+    skipped — the companion
+    ``test_run_contract_suite_succeeds_in_resolved_module_env`` covers
+    the positive-regression case in that environment.
     """
+
+    import importlib.util
+
+    cross_repo_importable = all(
+        importlib.util.find_spec(module_name) is not None
+        for module_name in _CROSS_REPO_PUBLIC_MODULES
+    )
+    if cross_repo_importable:
+        pytest.skip(
+            "Cross-repo public modules are importable (PYTHONPATH set or "
+            "full-system venv); resolved-module positive regression covers "
+            "this environment. This degraded-baseline test only applies "
+            "when cross-repo modules are NOT importable."
+        )
 
     reports_dir = tmp_path / "reports/contract"
 

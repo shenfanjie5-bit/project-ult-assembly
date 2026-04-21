@@ -11,8 +11,6 @@ enabled_modules:
   - subsystem-sdk
   - orchestrator
   - assembly
-  - feature-store
-  - stream-layer
   - subsystem-announcement
   - subsystem-news
 enabled_service_bundles:
