@@ -30,8 +30,24 @@
     - contract-suite
     - smoke
     - min-cycle-e2e
-  status: draft
-  verified_at: null
+  status: verified
+  # Stage 4 §4.3 PASS evidence: real Lite-stack
+  # ``run_min_cycle_e2e("lite-local", ...)`` from
+  # ``test_e2e_runner_consumes_audit_eval_fixtures_minimal_cycle``
+  # completed at 2026-04-22T06:08:55Z (UTC) against PostgreSQL +
+  # Neo4j + Dagster (built locally from compose/dagster/Dockerfile)
+  # + 11 sibling repos editable-installed in a Python 3.12 venv.
+  # Test exercised full e2e + 9 case-content invariants + 4
+  # artifact-payload invariants + cross-check formula
+  # (cycle_publish_manifest_id == MAN_CYC_2025_01_03_DAILY_v0).
+  verified_at: 2026-04-22T06:08:55Z
+# Stage 4 §4.3 status: ONLY `lite-local` promoted to `verified` per codex
+# review #10 strict call. The real e2e PASS evidence collected user-side is
+# `run_min_cycle_e2e("lite-local", ...)` from
+# `test_e2e_runner_consumes_audit_eval_fixtures_minimal_cycle`, which only
+# covers the `lite-local` profile. `full-dev` matrix entry stays `draft`
+# until a separate `run_min_cycle_e2e("full-dev", ...)` PASS is recorded
+# (Future work; not in this round).
 - matrix_version: 0.1.0
   profile_id: full-dev
   module_set:

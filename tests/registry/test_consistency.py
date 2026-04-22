@@ -91,8 +91,14 @@ STAGE_4_VERIFIED_MODULE_IDS = {
     "orchestrator",
     "subsystem-announcement",
     "subsystem-news",
+    # Stage 4 §4.3 promotion: assembly moves from `partial` to `verified`
+    # after the real Lite-stack PASS of test_e2e_runner_consumes_audit_
+    # eval_fixtures_minimal_cycle is recorded (codex review #8 strict
+    # call). All 4 §4.3 gates met: profile resolve ✓ + public smoke
+    # probes ✓ + contract suite ✓ + minimal-cycle e2e real PASS ✓.
+    "assembly",
 }
-STAGE_4_PARTIAL_MODULE_IDS = {"assembly"}
+STAGE_4_PARTIAL_MODULE_IDS: set[str] = set()
 STAGE_4_NOT_STARTED_MODULE_IDS = {"feature-store", "stream-layer"}
 
 #: Per-module ``module_version`` baseline at Stage 4 §4.1 — sourced from each
@@ -280,14 +286,30 @@ def test_deprecated_matrix_status_is_valid_but_not_current() -> None:
     assert entry.status == "deprecated"
 
 
-def test_compatibility_matrix_is_draft_and_covers_registry_modules() -> None:
+def test_compatibility_matrix_lite_local_verified_full_dev_still_draft() -> None:
+    """Stage 4 §4.3 promotion is **per-profile** (codex review #10 strict
+    call): only `lite-local` moves to `verified` with a non-None
+    ``verified_at`` ISO timestamp because the recorded real e2e PASS
+    evidence (``test_e2e_runner_consumes_audit_eval_fixtures_minimal_
+    cycle``) invokes ``run_min_cycle_e2e("lite-local", ...)`` and
+    therefore only covers the `lite-local` profile. `full-dev` stays
+    `draft` until a separate ``run_min_cycle_e2e("full-dev", ...)``
+    PASS is recorded; promoting it now would over-promote the
+    matrix's evidence surface.
+    """
     raw = yaml.safe_load(MATRIX_YAML.read_text(encoding="utf-8"))
     entries = [CompatibilityMatrixEntry.model_validate(item) for item in raw]
     entries_by_profile = {entry.profile_id: entry for entry in entries}
 
     assert set(entries_by_profile) == {"lite-local", "full-dev"}
-    assert all(entry.status == "draft" for entry in entries)
-    assert all(entry.verified_at is None for entry in entries)
+
+    lite_local = entries_by_profile["lite-local"]
+    assert lite_local.status == "verified"
+    assert lite_local.verified_at is not None
+
+    full_dev = entries_by_profile["full-dev"]
+    assert full_dev.status == "draft"
+    assert full_dev.verified_at is None
     #: At Stage 4 §4.1.5 the matrix ``module_set`` drops the two frozen slots
     #: (``feature-store``, ``stream-layer``) from both profile entries.
     #: Those modules remain declared in the registry with

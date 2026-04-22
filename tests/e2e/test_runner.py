@@ -1420,10 +1420,17 @@ def test_e2e_runner_consumes_audit_eval_fixtures_minimal_cycle(
     # Independent direct check: load each cycle_summary.json artifact and
     # verify the 4 invariants directly (belt-and-suspenders against the
     # in-runner assertion that already passed).
+    # The orchestrator-side artifacts (cycle_summary.json, etc.) live
+    # next to ``orchestrator-report.json`` in the run-specific
+    # subdirectory under ``reports/e2e/<run-id>/``. The top-level
+    # ``e2e_report.json`` sits one level above (``reports/e2e/<run-id>
+    # .json``), so resolving the orchestrator report's parent is the
+    # right base for the artifact filenames the orchestrator wrote.
+    orchestrator_report_path = _artifact_path(record, "orchestrator_report")
     orchestrator_report = json.loads(
-        _artifact_path(record, "orchestrator_report").read_text(encoding="utf-8")
+        orchestrator_report_path.read_text(encoding="utf-8")
     )
-    e2e_report_dir = e2e_report_path.parent
+    orchestrator_run_dir = orchestrator_report_path.parent
     # Cross-check (codex review #8 P2 fix): the orchestrator-emitted
     # cycle_publish_manifest_id MUST equal the shared case's
     # metadata.manifest_cycle_id with the orchestrator-side "_v0"
@@ -1447,7 +1454,7 @@ def test_e2e_runner_consumes_audit_eval_fixtures_minimal_cycle(
     )
 
     for kind, rel_path in orchestrator_report["artifacts"].items():
-        artifact_path = (e2e_report_dir / rel_path).resolve()
+        artifact_path = (orchestrator_run_dir / rel_path).resolve()
         artifact_payload = json.loads(artifact_path.read_text(encoding="utf-8"))
         assert artifact_payload["real_phase_execution"] is True
         assert artifact_payload["assembled_job_names"]

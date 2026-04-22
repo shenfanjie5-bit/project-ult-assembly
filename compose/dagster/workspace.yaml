@@ -1,0 +1,14 @@
+# Empty workspace — Lite stack runs Dagster as a probe surface only
+# (no Phase 0-3 jobs loaded into this image). The orchestrator project
+# loads its real Dagster jobs via ``orchestrator.jobs.cycle.build_daily
+# _cycle_jobs`` in the test runner's Python environment, not in this
+# container — see ``orchestrator/src/orchestrator/cli/min_cycle.py
+# ::_try_assemble_dagster_jobs``.
+#
+# An empty ``load_from`` list lets ``dagster-webserver`` start (serving
+# ``/server_info`` for the assembly DagsterWebserverProbe) and
+# ``dagster-daemon run`` start (responding to
+# ``dagster-daemon liveness-check`` for ComposeRunningProbe) without
+# requiring any project-side code-locations module to exist.
+
+load_from: []

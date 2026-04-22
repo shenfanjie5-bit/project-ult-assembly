@@ -2,26 +2,52 @@ bundle_name: dagster
 services:
   - name: dagster-daemon
     image_or_cmd: dagster-daemon
-    image: dagster/dagster:1.7.16
+    # Stage 4 §4.3 prerequisite: image is built locally from
+    # ``compose/dagster/Dockerfile`` — there is no published
+    # ``dagster/dagster:*`` image on Docker Hub (verified via Hub API).
+    # The compose files reference the same image tag and add a ``build:``
+    # directive so ``docker compose build`` materializes it.
+    image: project-ult/dagster-lite:1.7.16
     command: dagster-daemon run
     health_probe: dagster-daemon liveness-check
     env:
+      # ``DAGSTER_POSTGRES_HOST: postgres`` is the **compose service
+      # name**, NOT ``${POSTGRES_HOST}``. Inside the dagster container
+      # Docker's bridge network resolves the literal ``postgres`` to the
+      # postgres container, while the host-side test code keeps
+      # ``POSTGRES_HOST=localhost`` to reach the published port. These
+      # are different DNS scopes; one env var serving both would force
+      # the host-side tests to also use ``postgres`` (impossible without
+      # joining the docker network). assembly's bootstrap
+      # ``_validate_environment`` does literal-match on env values so
+      # the compose env block must mirror this exactly.
       DAGSTER_HOME: ${DAGSTER_HOME}
-      DAGSTER_POSTGRES_HOST: ${POSTGRES_HOST}
+      DAGSTER_POSTGRES_HOST: postgres
       DAGSTER_POSTGRES_PORT: ${POSTGRES_PORT}
       DAGSTER_POSTGRES_DB: ${POSTGRES_DB}
       DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
       DAGSTER_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
   - name: dagster-webserver
     image_or_cmd: dagster-webserver
-    image: dagster/dagster:1.7.16
+    image: project-ult/dagster-lite:1.7.16
     command: dagster-webserver -h 0.0.0.0 -p ${DAGSTER_PORT:-3000}
     health_probe: >-
       python -c "import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:%s' % os.environ.get('DAGSTER_PORT', '3000'), timeout=2)"
     env:
+      # dagster-webserver loads the same DAGSTER_HOME/dagster.yaml as the
+      # daemon (Postgres-backed unified storage), so it needs the same
+      # DAGSTER_POSTGRES_* env block to resolve the env-var refs in
+      # dagster.yaml. Without these the webserver crashes at startup
+      # with "PostProcessingError: env variable DAGSTER_POSTGRES_PORT
+      # not set" before reaching the /server_info HTTP probe surface.
       DAGSTER_HOME: ${DAGSTER_HOME}
       DAGSTER_HOST: ${DAGSTER_HOST:-127.0.0.1}
       DAGSTER_PORT: ${DAGSTER_PORT}
+      DAGSTER_POSTGRES_HOST: postgres
+      DAGSTER_POSTGRES_PORT: ${POSTGRES_PORT}
+      DAGSTER_POSTGRES_DB: ${POSTGRES_DB}
+      DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
+      DAGSTER_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
 startup_order:
   - dagster-daemon
   - dagster-webserver

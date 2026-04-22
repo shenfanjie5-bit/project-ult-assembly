@@ -35,10 +35,17 @@ services:
       retries: 12
 
   dagster-daemon:
-    image: dagster/dagster:1.7.16
+    # Stage 4 §4.3 prerequisite: image is built locally from
+    # ``compose/dagster/Dockerfile`` (no published ``dagster/dagster:*``
+    # exists on Docker Hub). See ``bundles/dagster.yaml`` + the matching
+    # ``compose/lite-local.yaml`` block for full rationale.
+    build:
+      context: ./dagster
+      dockerfile: Dockerfile
+    image: project-ult/dagster-lite:1.7.16
     environment:
       DAGSTER_HOME: ${DAGSTER_HOME}
-      DAGSTER_POSTGRES_HOST: ${POSTGRES_HOST}
+      DAGSTER_POSTGRES_HOST: postgres
       DAGSTER_POSTGRES_PORT: ${POSTGRES_PORT}
       DAGSTER_POSTGRES_DB: ${POSTGRES_DB}
       DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
@@ -54,11 +61,22 @@ services:
       retries: 12
 
   dagster-webserver:
-    image: dagster/dagster:1.7.16
+    build:
+      context: ./dagster
+      dockerfile: Dockerfile
+    image: project-ult/dagster-lite:1.7.16
     environment:
+      # Webserver loads the same DAGSTER_HOME/dagster.yaml as the daemon
+      # (Postgres-backed unified storage), so DAGSTER_POSTGRES_* env vars
+      # are required here too — see ``bundles/dagster.yaml`` rationale.
       DAGSTER_HOME: ${DAGSTER_HOME}
       DAGSTER_HOST: ${DAGSTER_HOST:-127.0.0.1}
       DAGSTER_PORT: ${DAGSTER_PORT}
+      DAGSTER_POSTGRES_HOST: postgres
+      DAGSTER_POSTGRES_PORT: ${POSTGRES_PORT}
+      DAGSTER_POSTGRES_DB: ${POSTGRES_DB}
+      DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
+      DAGSTER_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     command:
       [
         "dagster-webserver",

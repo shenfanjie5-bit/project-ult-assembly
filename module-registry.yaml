@@ -285,9 +285,9 @@
   supported_profiles:
     - lite-local
     - full-dev
-  integration_status: partial
+  integration_status: verified
   last_smoke_result: null
-  notes: Stage 4 §4.1 done (11 active subsystem modules verified); pending §4.2 e2e runner extension + §4.3 self-verify upgrade.
+  notes: Stage 4 §4.0 + §4.1 + §4.1.5 + §4.2 + §4.3 done; assembly self-verify upgrade after real Lite-stack e2e PASS recorded.
 - module_id: feature-store
   module_version: 0.0.0
   contract_version: v0.0.0

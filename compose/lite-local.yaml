@@ -35,10 +35,24 @@ services:
       retries: 12
 
   dagster-daemon:
-    image: dagster/dagster:1.7.16
+    # Stage 4 §4.3 prerequisite: image is built locally from
+    # ``compose/dagster/Dockerfile`` (no published ``dagster/dagster:*``
+    # exists on Docker Hub — verified via Hub API). The ``build:`` +
+    # ``image:`` pair makes ``docker compose build`` materialize the
+    # image with this exact tag, which the bundle manifest in
+    # ``bundles/dagster.yaml`` matches verbatim — assembly's bootstrap
+    # ``_validate_image_or_command`` does literal comparison.
+    build:
+      context: ./dagster
+      dockerfile: Dockerfile
+    image: project-ult/dagster-lite:1.7.16
     environment:
+      # ``DAGSTER_POSTGRES_HOST: postgres`` is the **compose service
+      # name** (Docker bridge-network DNS), NOT ``${POSTGRES_HOST}``
+      # which is host-side ``localhost`` for tests. See
+      # ``bundles/dagster.yaml`` env block for the rationale.
       DAGSTER_HOME: ${DAGSTER_HOME}
-      DAGSTER_POSTGRES_HOST: ${POSTGRES_HOST}
+      DAGSTER_POSTGRES_HOST: postgres
       DAGSTER_POSTGRES_PORT: ${POSTGRES_PORT}
       DAGSTER_POSTGRES_DB: ${POSTGRES_DB}
       DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
@@ -54,11 +68,22 @@ services:
       retries: 12
 
   dagster-webserver:
-    image: dagster/dagster:1.7.16
+    build:
+      context: ./dagster
+      dockerfile: Dockerfile
+    image: project-ult/dagster-lite:1.7.16
     environment:
+      # Webserver loads the same DAGSTER_HOME/dagster.yaml as the daemon
+      # (Postgres-backed unified storage), so DAGSTER_POSTGRES_* env vars
+      # are required here too — see ``bundles/dagster.yaml`` rationale.
       DAGSTER_HOME: ${DAGSTER_HOME}
       DAGSTER_HOST: ${DAGSTER_HOST:-127.0.0.1}
       DAGSTER_PORT: ${DAGSTER_PORT}
+      DAGSTER_POSTGRES_HOST: postgres
+      DAGSTER_POSTGRES_PORT: ${POSTGRES_PORT}
+      DAGSTER_POSTGRES_DB: ${POSTGRES_DB}
+      DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
+      DAGSTER_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     command:
       [
         "dagster-webserver",

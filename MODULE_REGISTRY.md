@@ -1,14 +1,17 @@
 # MODULE_REGISTRY
 
-Stage 4 §4.1 registry snapshot. This file is the human-readable view of
-`module-registry.yaml`. The 11 active subsystem modules have been promoted to
-`integration_status: verified` per Stage 3 cross-project compat audit
+Stage 4 §4.3 promotion draft. This file is the human-readable view of
+`module-registry.yaml` as prepared for the lite-local-only verified promotion
+after a real Lite-stack e2e PASS is recorded. The 11 active subsystem modules
+remain `integration_status: verified` per Stage 3 cross-project compat audit
 evidence (assembly/scripts/stage_3_compat_audit.py — 11/11 pass
 `PublicApiBoundaryCheck` against profile=lite-local; codex review-confirmed).
-`assembly` itself stays `partial` pending Stage 4 §4.2 e2e runner extension +
-§4.3 self-verify upgrade. `feature-store` and `stream-layer` remain
-`not_started` (frozen slots per master plan §1.1; not in scope this round).
-The compatibility-matrix.yaml entries also remain `draft` until §4.3 lands.
+In this working-tree draft, `assembly` moves from `partial` to `verified`;
+`feature-store` and `stream-layer` remain `not_started` (frozen slots per
+master plan §1.1; not in scope this round). The compatibility matrix promotes
+only `lite-local` (with a placeholder `verified_at` that must be replaced by
+the real PASS timestamp before commit); `full-dev` stays `draft` pending
+separate profile-specific e2e evidence.
 
 | module_id | module_version | contract_version | owner | upstream_modules | downstream_modules | public_entrypoints | depends_on | supported_profiles | integration_status | last_smoke_result | notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -21,7 +24,7 @@ The compatibility-matrix.yaml entries also remain `draft` until §4.3 lands.
 | audit-eval | 0.2.2 | v0.1.3 | unassigned |  |  | health:health_probe=audit_eval.public:health_probe; smoke:smoke_hook=audit_eval.public:smoke_hook; init:init_hook=audit_eval.public:init_hook; version:version_declaration=audit_eval.public:version_declaration; cli:cli=audit_eval.public:cli |  | lite-local, full-dev | verified | null | Stage 3 audit passed; milestone-test-baseline v0.2.2 + shared fixtures package; codex-confirmed. |
 | subsystem-sdk | 0.1.2 | v0.1.3 | unassigned |  |  | health:health_probe=subsystem_sdk.public:health_probe; smoke:smoke_hook=subsystem_sdk.public:smoke_hook; init:init_hook=subsystem_sdk.public:init_hook; version:version_declaration=subsystem_sdk.public:version_declaration; cli:cli=subsystem_sdk.public:cli |  | lite-local, full-dev | verified | null | Stage 3 audit passed; milestone-test-baseline v0.1.2; contract_version stays v0.0.0 (SDK is a contracts-schema consumer not owner). |
 | orchestrator | 0.1.1 | v0.1.3 | unassigned |  |  | health:health_probe=orchestrator.public:health_probe; smoke:smoke_hook=orchestrator.public:smoke_hook; init:init_hook=orchestrator.public:init_hook; version:version_declaration=orchestrator.public:version_declaration; cli:cli=orchestrator.public:cli |  | lite-local, full-dev | verified | null | Stage 3 audit passed; milestone-test-baseline v0.1.1 with observe-not-assert min-cycle CLI; codex-confirmed. |
-| assembly | 0.1.0 | v0.0.0 | assembly |  |  | health:health_probe=assembly.public:health_probe; smoke:smoke_hook=assembly.public:smoke_hook; init:init_hook=assembly.public:init_hook; version:version_declaration=assembly.public:version_declaration; cli:cli=assembly.public:cli |  | lite-local, full-dev | partial | null | Stage 4 §4.1 done (11 active subsystem modules verified); pending §4.2 e2e runner extension + §4.3 self-verify upgrade. |
+| assembly | 0.1.0 | v0.0.0 | assembly |  |  | health:health_probe=assembly.public:health_probe; smoke:smoke_hook=assembly.public:smoke_hook; init:init_hook=assembly.public:init_hook; version:version_declaration=assembly.public:version_declaration; cli:cli=assembly.public:cli |  | lite-local, full-dev | verified | null | Stage 4 §4.0 + §4.1 + §4.1.5 + §4.2 + §4.3 done; assembly self-verify upgrade after real Lite-stack e2e PASS recorded. |
 | feature-store | 0.0.0 | v0.0.0 | unassigned |  |  | health:health_probe=feature_store.public:health_probe; smoke:smoke_hook=feature_store.public:smoke_hook; init:init_hook=feature_store.public:init_hook; version:version_declaration=feature_store.public:version_declaration; cli:cli=feature_store.public:cli |  | lite-local, full-dev | not_started | null | Stage 0 placeholder entrypoint declarations. |
 | stream-layer | 0.0.0 | v0.0.0 | unassigned |  |  | health:health_probe=stream_layer.public:health_probe; smoke:smoke_hook=stream_layer.public:smoke_hook; init:init_hook=stream_layer.public:init_hook; version:version_declaration=stream_layer.public:version_declaration; cli:cli=stream_layer.public:cli |  | lite-local, full-dev | not_started | null | Stage 0 placeholder entrypoint declarations. |
 | subsystem-announcement | 0.1.1 | v0.1.3 | unassigned |  |  | health:health_probe=subsystem_announcement.public:health_probe; smoke:smoke_hook=subsystem_announcement.public:smoke_hook; init:init_hook=subsystem_announcement.public:init_hook; version:version_declaration=subsystem_announcement.public:version_declaration; cli:cli=subsystem_announcement.public:cli |  | lite-local, full-dev | verified | null | Stage 3 audit passed; milestone-test-baseline v0.1.1 + canonical wire mapper; codex review #8 approved; contract_version stays v0.0.0 (Ex-1/2/3 producer not contracts-schema owner). |
