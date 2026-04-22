@@ -35,6 +35,7 @@ from assembly.registry import (
     resolve_for_profile,
 )
 from assembly.tests.e2e.assertions import (
+    assert_artifact_payload_invariants,
     assert_orchestrator_report,
     assert_phase_order,
     assert_required_artifacts,
@@ -431,6 +432,26 @@ class E2ERunner:
                         cycle_report.artifacts,
                         fixture.required_artifacts,
                         base_dir=paths.run_dir,
+                    ),
+                    fixture.scenario_id,
+                )
+            )
+            # Stage 4 §4.2 — verify each required-artifact JSON carries the
+            # 4 assembly-facing payload invariants written by
+            # ``orchestrator.cli.min_cycle._emit_runtime_artifacts``:
+            # real_phase_execution=True / assembled_job_names non-empty /
+            # assembly_error is None / cycle_publish_manifest_id matches the
+            # stable derived synthetic id for ``scenario_id``. These live in
+            # the artifact payload (NOT the report top-level —
+            # ``OrchestratorCycleReport`` is ``extra="forbid"``, only 5
+            # fields). assembly e2e is the integration gate that locks them in.
+            assertion_results.extend(
+                _with_scenario_id(
+                    assert_artifact_payload_invariants(
+                        artifacts=cycle_report.artifacts,
+                        required_artifacts=fixture.required_artifacts,
+                        base_dir=paths.run_dir,
+                        scenario_id=fixture.scenario_id,
                     ),
                     fixture.scenario_id,
                 )

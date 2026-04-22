@@ -684,8 +684,30 @@ class FakeCliEntrypoint:
         artifact_key = str(self.state["required_artifact"])
         artifact_path = str(self.state["artifact_path"])
         if not self.state.get("skip_artifact_write", False):
+            # Stage 4 §4.2 — fake CLI must mirror the real
+            # ``orchestrator.cli.min_cycle._emit_runtime_artifacts`` payload
+            # contract so the new ``assert_artifact_payload_invariants``
+            # assertion in the runner sees a conformant JSON. Tests that
+            # want to exercise specific failure modes can override these
+            # fields via ``state["artifact_payload_overrides"]`` (a dict
+            # merged on top of the defaults).
+            scenario_id = str(
+                self.state.get("scenario_id", "test-minimal-cycle")
+            )
+            sanitized = scenario_id.replace("-", "_").replace(".", "_")
+            default_payload: dict[str, object] = {
+                "kind": artifact_key,
+                "scenario_id": scenario_id,
+                "real_phase_execution": True,
+                "assembled_job_names": ["fake_daily_cycle_job"],
+                "assembly_error": None,
+                "cycle_publish_manifest_id": f"MAN_{sanitized}_v0",
+                "ok": True,
+            }
+            overrides = self.state.get("artifact_payload_overrides") or {}
+            payload = {**default_payload, **overrides}
             (run_dir / artifact_path).write_text(
-                json.dumps({"ok": True}) + "\n",
+                json.dumps(payload) + "\n",
                 encoding="utf-8",
             )
         report_path.parent.mkdir(parents=True, exist_ok=True)
@@ -938,3 +960,371 @@ def _compatibility_context(record_payload: object) -> dict[str, str]:
     return next(
         artifact for artifact in artifacts if artifact["kind"] == "compatibility_context"
     )
+
+
+# ───────────────────────── Stage 4 §4.2 §4.2 ─────────────────────────
+
+
+_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+
+_REQUIRED_ARTIFACT_PAYLOAD_KEYS_FOR_TEST = (
+    "real_phase_execution",
+    "assembled_job_names",
+    "assembly_error",
+    "cycle_publish_manifest_id",
+)
+
+
+def _conformant_artifact_payload(
+    *,
+    scenario_id: str,
+    artifact_kind: str = "cycle_summary",
+    overrides: dict[str, object] | None = None,
+) -> dict[str, object]:
+    """Build a conformant artifact payload for direct assertion testing.
+
+    Mirrors the shape ``orchestrator.cli.min_cycle._emit_runtime_artifacts``
+    writes per master plan §4.2 contract. Tests can pass ``overrides`` to
+    flip individual invariants and exercise the failure path.
+    """
+    sanitized = scenario_id.replace("-", "_").replace(".", "_")
+    payload: dict[str, object] = {
+        "kind": artifact_kind,
+        "scenario_id": scenario_id,
+        "real_phase_execution": True,
+        "assembled_job_names": ["daily_cycle_job"],
+        "assembly_error": None,
+        "cycle_publish_manifest_id": f"MAN_{sanitized}_v0",
+        "phases_executed": ["resolve-profile", "execute-minimal-cycle"],
+        "produced_by": "orchestrator.cli.min_cycle",
+        "published_at": "2026-04-22T10:00:00+00:00",
+    }
+    if overrides:
+        payload.update(overrides)
+    return payload
+
+
+def test_assert_artifact_payload_invariants_passes_on_conformant_payload(
+    tmp_path: Path,
+) -> None:
+    """Direct unit test: conformant payload yields exactly one passed result."""
+    from assembly.tests.e2e.assertions import assert_artifact_payload_invariants
+
+    scenario_id = "shared-fixture-minimal-cycle-v1"
+    artifact_kind = "cycle_summary"
+    artifact_path = tmp_path / "cycle_summary.json"
+    artifact_path.write_text(
+        json.dumps(
+            _conformant_artifact_payload(
+                scenario_id=scenario_id,
+                artifact_kind=artifact_kind,
+            )
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    results = assert_artifact_payload_invariants(
+        artifacts={artifact_kind: "cycle_summary.json"},
+        required_artifacts=[artifact_kind],
+        base_dir=tmp_path,
+        scenario_id=scenario_id,
+    )
+
+    assert len(results) == 1
+    assert results[0].status == "passed"
+    assert results[0].assertion_name == "artifact_payload_invariants"
+    assert results[0].details["artifact_kind"] == artifact_kind
+    assert results[0].details["assembled_job_count"] == 1
+    assert results[0].details["cycle_publish_manifest_id"] == (
+        f"MAN_{scenario_id.replace('-', '_').replace('.', '_')}_v0"
+    )
+
+
+@pytest.mark.parametrize(
+    ("override_field", "override_value", "expected_violation_key"),
+    [
+        ("real_phase_execution", False, "real_phase_execution"),
+        ("assembled_job_names", [], "assembled_job_names"),
+        ("assembly_error", "Dagster import failed", "assembly_error"),
+        (
+            "cycle_publish_manifest_id",
+            "MAN_someone_else_v0",
+            "cycle_publish_manifest_id",
+        ),
+    ],
+)
+def test_assert_artifact_payload_invariants_fails_per_invariant(
+    tmp_path: Path,
+    override_field: str,
+    override_value: object,
+    expected_violation_key: str,
+) -> None:
+    """Each of the 4 invariants must be enforced individually."""
+    from assembly.tests.e2e.assertions import assert_artifact_payload_invariants
+
+    scenario_id = "shared-fixture-minimal-cycle-v1"
+    artifact_kind = "cycle_summary"
+    artifact_path = tmp_path / "cycle_summary.json"
+    artifact_path.write_text(
+        json.dumps(
+            _conformant_artifact_payload(
+                scenario_id=scenario_id,
+                artifact_kind=artifact_kind,
+                overrides={override_field: override_value},
+            )
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    results = assert_artifact_payload_invariants(
+        artifacts={artifact_kind: "cycle_summary.json"},
+        required_artifacts=[artifact_kind],
+        base_dir=tmp_path,
+        scenario_id=scenario_id,
+    )
+
+    assert len(results) == 1
+    result = results[0]
+    assert result.status == "failed"
+    assert result.assertion_name == "artifact_payload_invariants"
+    assert expected_violation_key in result.details["violations"]
+
+
+def test_assert_artifact_payload_invariants_fails_on_missing_keys(
+    tmp_path: Path,
+) -> None:
+    """Payload missing any of the 4 required keys should be flagged."""
+    from assembly.tests.e2e.assertions import assert_artifact_payload_invariants
+
+    artifact_path = tmp_path / "cycle_summary.json"
+    artifact_path.write_text(json.dumps({"ok": True}) + "\n", encoding="utf-8")
+
+    results = assert_artifact_payload_invariants(
+        artifacts={"cycle_summary": "cycle_summary.json"},
+        required_artifacts=["cycle_summary"],
+        base_dir=tmp_path,
+        scenario_id="shared-fixture-minimal-cycle-v1",
+    )
+
+    assert len(results) == 1
+    assert results[0].status == "failed"
+    assert results[0].details["missing_keys"] == list(
+        _REQUIRED_ARTIFACT_PAYLOAD_KEYS_FOR_TEST
+    )
+
+
+_AUDIT_EVAL_FIXTURES_MINIMAL_CYCLE_CASE = "case_001_one_stock_one_cycle"
+
+#: Cross-repo public modules required for the full Stage 4 §4.2 e2e
+#: run-through. Same set as the contract-suite positive regression in
+#: ``tests/compat/test_runner.py`` — gated by ``pytest.importorskip``
+#: per module so the test SKIPs gracefully without PYTHONPATH coverage.
+_E2E_CROSS_REPO_PUBLIC_MODULES = (
+    "contracts.public",
+    "audit_eval.public",
+    "reasoner_runtime.public",
+    "main_core.public",
+    "data_platform.public",
+    "orchestrator.public",
+    "orchestrator.cli.min_cycle",
+    "entity_registry.public",
+    "subsystem_sdk.public",
+    "subsystem_announcement.public",
+    "subsystem_news.public",
+    "graph_engine.public",
+)
+
+
+def test_e2e_runner_consumes_audit_eval_fixtures_minimal_cycle(
+    tmp_path: Path,
+) -> None:
+    """Stage 4 §4.2 positive regression: drive the REAL e2e runner against
+    a fixture manifest that anchors to the shared
+    ``audit_eval_fixtures.minimal_cycle.case_001_one_stock_one_cycle``
+    case identity, invoke the real ``orchestrator min-cycle`` CLI through
+    assembly's e2e pipeline, and assert all 4 artifact-payload
+    invariants land green.
+
+    This is the test that locks in the master plan §4.2 contract:
+
+    * The shared ``audit_eval_fixtures.minimal_cycle`` case is consumed
+      (via ``load_case``) and its ``fixture_id`` becomes the e2e
+      ``scenario_id`` — so any drift in the shared fixture identity
+      propagates into ``cycle_publish_manifest_id`` and surfaces here.
+    * The real orchestrator ``min-cycle`` CLI runs through assembly's
+      ``run_min_cycle_e2e``, which invokes the
+      ``_emit_runtime_artifacts`` path that writes the 4 invariants per
+      required artifact.
+    * The new ``assert_artifact_payload_invariants`` assertion (added
+      to the runner in this commit) reads each artifact JSON and pins
+      the 4 fields green.
+
+    Gate: SKIPs if any of the 11 cross-repo public modules are not
+    importable (PYTHONPATH not set, no full-system venv) or if
+    ``audit_eval_fixtures`` is not installed. Same import-attempt
+    criterion the contract-suite positive regression uses.
+    """
+    audit_eval_fixtures = pytest.importorskip(
+        "audit_eval_fixtures",
+        reason=(
+            "Stage 4 §4.2 positive regression requires audit_eval_fixtures. "
+            "Install via the [shared-fixtures] extra or PYTHONPATH cover "
+            "audit-eval/src."
+        ),
+    )
+    for module_name in _E2E_CROSS_REPO_PUBLIC_MODULES:
+        pytest.importorskip(
+            module_name,
+            reason=(
+                f"Stage 4 §4.2 positive regression requires {module_name}. "
+                "Run with PYTHONPATH covering the 11 sibling repos' src/root "
+                "dirs, or with a full-system venv."
+            ),
+        )
+
+    # Infra-reachability gate: lite-local profile health preflight checks
+    # PostgreSQL + Neo4j + Dagster service liveness. In a dev box without
+    # the Lite stack running, the e2e blocks on "health preflight did not
+    # converge" and fails — that is a legitimate environmental gate
+    # failure, not a contract failure. SKIP so the positive regression
+    # only asserts the contract when the contract can actually be
+    # exercised end-to-end.
+    import socket
+
+    def _service_reachable(host: str, port: int) -> bool:
+        try:
+            with socket.create_connection((host, port), timeout=0.5):
+                return True
+        except (OSError, ValueError):
+            return False
+
+    if not _service_reachable("localhost", 5432):
+        pytest.skip(
+            "Stage 4 §4.2 positive regression requires the Lite stack "
+            "(PostgreSQL on localhost:5432) to be running. Start the Lite "
+            "stack via docker-compose or skip this test in CI envs that "
+            "lack infra. Cross-repo PYTHONPATH alone is not sufficient."
+        )
+
+    case = audit_eval_fixtures.load_case(
+        "minimal_cycle", _AUDIT_EVAL_FIXTURES_MINIMAL_CYCLE_CASE
+    )
+    fixture_id = case.metadata["fixture_id"]
+    # Derive a scenario_id from the shared fixture identity. Any drift in
+    # the shared fixture's ``fixture_id`` flows into the synthetic
+    # ``cycle_publish_manifest_id`` the orchestrator writes, and the new
+    # ``assert_artifact_payload_invariants`` will surface it.
+    scenario_id = fixture_id.replace("/", "-").replace("_", "-")
+
+    # Build a minimal-cycle manifest YAML in tmp_path that consumes the
+    # shared fixture's identity. Layout mirrors
+    # ``src/assembly/tests/e2e/fixtures/minimal_cycle/manifest.yaml``.
+    fixture_dir = tmp_path / "fixture"
+    fixture_dir.mkdir()
+    (fixture_dir / "manifest.yaml").write_text(
+        yaml.safe_dump(
+            {
+                "scenario_id": scenario_id,
+                "expected_phases": [
+                    "resolve-profile",
+                    "load-fixture",
+                    "execute-minimal-cycle",
+                    "write-report",
+                ],
+                "required_artifacts": ["cycle_summary"],
+                "orchestrator_args": [
+                    "min-cycle",
+                    "--profile",
+                    "{profile_id}",
+                    "--fixture",
+                    "{fixture_manifest}",
+                    "--run-artifacts-dir",
+                    "{run_dir}",
+                    "--report",
+                    "{orchestrator_report_path}",
+                ],
+            },
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+
+    env = {
+        "POSTGRES_HOST": "localhost",
+        "POSTGRES_PORT": "5432",
+        "POSTGRES_DB": "proj",
+        "POSTGRES_USER": "postgres",
+        "POSTGRES_PASSWORD": "changeme",
+        "NEO4J_URI": "bolt://localhost:7687",
+        "NEO4J_USER": "neo4j",
+        "NEO4J_PASSWORD": "changeme",
+        "DAGSTER_HOME": "/tmp",
+        "DAGSTER_HOST": "localhost",
+        "DAGSTER_PORT": "3000",
+    }
+
+    record = run_min_cycle_e2e(
+        "lite-local",
+        profiles_root=_PROJECT_ROOT / "profiles",
+        bundles_root=_PROJECT_ROOT / "bundles",
+        registry_root=_PROJECT_ROOT,
+        fixture_dir=fixture_dir,
+        reports_dir=tmp_path / "reports/e2e",
+        env=env,
+        timeout_sec=60.0,
+        bootstrap_if_needed=False,
+    )
+
+    assert record.run_type == "e2e"
+    assert record.status == "success", (
+        f"e2e did not reach success; status={record.status!r}, "
+        f"failing_modules={record.failing_modules}, summary={record.summary!r}"
+    )
+    assert record.failing_modules == []
+
+    # Verify assertion_results in the persisted e2e report all passed
+    # (including the new ``artifact_payload_invariants`` rows).
+    e2e_report_path = _artifact_path(record, "e2e_report")
+    payload = json.loads(e2e_report_path.read_text(encoding="utf-8"))
+    failed_assertions = [
+        result
+        for result in payload["assertion_results"]
+        if result["status"] != "passed"
+    ]
+    assert failed_assertions == [], (
+        "e2e assertions had failures: "
+        f"{[r['assertion_name'] for r in failed_assertions]}"
+    )
+
+    artifact_payload_assertions = [
+        result
+        for result in payload["assertion_results"]
+        if result["assertion_name"] == "artifact_payload_invariants"
+    ]
+    assert artifact_payload_assertions, (
+        "Stage 4 §4.2 requires at least one "
+        "``artifact_payload_invariants`` assertion to be reported"
+    )
+    assert all(r["status"] == "passed" for r in artifact_payload_assertions)
+
+    # Independent direct check: load each cycle_summary.json artifact and
+    # verify the 4 invariants directly (belt-and-suspenders against the
+    # in-runner assertion that already passed).
+    orchestrator_report = json.loads(
+        _artifact_path(record, "orchestrator_report").read_text(encoding="utf-8")
+    )
+    e2e_report_dir = e2e_report_path.parent
+    for kind, rel_path in orchestrator_report["artifacts"].items():
+        artifact_path = (e2e_report_dir / rel_path).resolve()
+        artifact_payload = json.loads(artifact_path.read_text(encoding="utf-8"))
+        assert artifact_payload["real_phase_execution"] is True
+        assert artifact_payload["assembled_job_names"]
+        assert artifact_payload["assembly_error"] is None
+        sanitized = scenario_id.replace("-", "_").replace(".", "_")
+        assert (
+            artifact_payload["cycle_publish_manifest_id"]
+            == f"MAN_{sanitized}_v0"
+        )

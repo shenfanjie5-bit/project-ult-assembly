@@ -7,6 +7,7 @@ from typing import Mapping
 
 from assembly.contracts.models import IntegrationRunRecord
 from assembly.tests.e2e.assertions import (
+    assert_artifact_payload_invariants,
     assert_orchestrator_report,
     assert_phase_order,
     assert_required_artifacts,
@@ -58,6 +59,7 @@ __all__ = [
     "E2ERunner",
     "MinimalCycleFixture",
     "OrchestratorCycleReport",
+    "assert_artifact_payload_invariants",
     "assert_orchestrator_report",
     "assert_phase_order",
     "assert_required_artifacts",

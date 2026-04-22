@@ -431,8 +431,33 @@ class ReleaseCliEntrypoint:
     def invoke(self, argv: list[str]) -> int:
         report_path = Path(argv[argv.index("--report") + 1])
         run_dir = Path(argv[argv.index("--run-artifacts-dir") + 1])
+        # Stage 4 §4.2 — release-freeze test's fake CLI must mirror
+        # ``orchestrator.cli.min_cycle._emit_runtime_artifacts`` payload
+        # contract so the runner's new
+        # ``assert_artifact_payload_invariants`` assertion sees a
+        # conformant JSON. Otherwise ``run_min_cycle_e2e`` reports
+        # ``status="failed"`` here and the freeze test's contract-suite
+        # promotion fails with "missing successful run records for: e2e".
+        # The scenario_id in the freeze fixture is
+        # "release-freeze-real-reports" (see ``_write_release_fixture``).
+        scenario_id = "release-freeze-real-reports"
+        sanitized = scenario_id.replace("-", "_").replace(".", "_")
         artifact_path = run_dir / "cycle-summary.json"
-        artifact_path.write_text(json.dumps({"ok": True}) + "\n", encoding="utf-8")
+        artifact_path.write_text(
+            json.dumps(
+                {
+                    "kind": "cycle_summary",
+                    "scenario_id": scenario_id,
+                    "real_phase_execution": True,
+                    "assembled_job_names": ["release_daily_cycle_job"],
+                    "assembly_error": None,
+                    "cycle_publish_manifest_id": f"MAN_{sanitized}_v0",
+                    "ok": True,
+                }
+            )
+            + "\n",
+            encoding="utf-8",
+        )
         report_path.parent.mkdir(parents=True, exist_ok=True)
         report_path.write_text(
             json.dumps(
