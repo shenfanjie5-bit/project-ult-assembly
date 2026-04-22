@@ -35,14 +35,24 @@ RUN apt-get update \
         curl \
  && rm -rf /var/lib/apt/lists/*
 
-# Pin matches orchestrator/pyproject.toml ``dagster>=1.7,<1.10``. The
-# psycopg2-binary fallback avoids the wheel-build cost when the platform
-# wheel is available.
+# Codex review #11 P2 fix: pin EXACT versions (not floating ranges) so
+# the ``project-ult/dagster-lite:1.7.16`` tag is actually reproducible.
+# Previous floating ``dagster>=1.7,<1.10`` ranges meant the same tag
+# rebuilt later could resolve to any minor (1.8.x / 1.9.x), making the
+# Stage 4 §4.3 evidence (``2026-04-22T06:08:55Z`` PASS) non-reproducible.
+#
+# dagster-postgres versioning tracks the dagster minor; for dagster
+# 1.7.16 the matching dagster-postgres release is 0.23.16 (Dagster's
+# release matrix maps dagster 1.X.Y -> dagster-postgres 0.(X+16).Y for
+# the 1.7+ era).
+#
+# psycopg2-binary stays pinned tight to a specific maintenance line so
+# wheel availability / libpq compatibility doesn't drift either.
 RUN pip install --no-cache-dir \
-        "dagster>=1.7,<1.10" \
-        "dagster-webserver>=1.7,<1.10" \
-        "dagster-postgres>=0.23,<0.27" \
-        "psycopg2-binary>=2.9,<3.0"
+        "dagster==1.7.16" \
+        "dagster-webserver==1.7.16" \
+        "dagster-postgres==0.23.16" \
+        "psycopg2-binary==2.9.9"
 
 # DAGSTER_HOME holds dagster.yaml (instance config — Postgres storage)
 # and workspace.yaml (locations to load — empty for Lite probe-only mode).

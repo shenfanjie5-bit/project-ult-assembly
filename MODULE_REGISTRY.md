@@ -1,17 +1,19 @@
 # MODULE_REGISTRY
 
-Stage 4 §4.3 promotion draft. This file is the human-readable view of
-`module-registry.yaml` as prepared for the lite-local-only verified promotion
-after a real Lite-stack e2e PASS is recorded. The 11 active subsystem modules
-remain `integration_status: verified` per Stage 3 cross-project compat audit
-evidence (assembly/scripts/stage_3_compat_audit.py — 11/11 pass
-`PublicApiBoundaryCheck` against profile=lite-local; codex review-confirmed).
-In this working-tree draft, `assembly` moves from `partial` to `verified`;
-`feature-store` and `stream-layer` remain `not_started` (frozen slots per
-master plan §1.1; not in scope this round). The compatibility matrix promotes
-only `lite-local` (with a placeholder `verified_at` that must be replaced by
-the real PASS timestamp before commit); `full-dev` stays `draft` pending
-separate profile-specific e2e evidence.
+Stage 4 §4.3 promoted state (lite-local profile). This file is the
+human-readable view of `module-registry.yaml`. All 12 active modules are
+`integration_status: verified`: the 11 active subsystem modules per Stage 3
+cross-project compat audit (`assembly/scripts/stage_3_compat_audit.py` —
+11/11 pass `PublicApiBoundaryCheck`) and `assembly` itself per the §4.3
+self-verify upgrade backed by a real Lite-stack e2e PASS recorded at
+`2026-04-22T06:08:55Z` (`test_e2e_runner_consumes_audit_eval_fixtures
+_minimal_cycle` against `compose/lite-local.yaml` with locally-built
+Dagster image). `feature-store` and `stream-layer` remain `not_started`
+(frozen slots per master plan §1.1; not in scope this round). The
+compatibility matrix records `lite-local` as `verified` with `verified_at`
+matching the PASS timestamp; `full-dev` stays `draft` until a separate
+profile-specific e2e PASS is recorded (per-profile evidence boundary,
+codex review #10 strict call).
 
 | module_id | module_version | contract_version | owner | upstream_modules | downstream_modules | public_entrypoints | depends_on | supported_profiles | integration_status | last_smoke_result | notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|
