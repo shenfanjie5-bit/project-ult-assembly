@@ -1151,9 +1151,16 @@ def test_e2e_runner_consumes_audit_eval_fixtures_minimal_cycle(
     This is the test that locks in the master plan §4.2 contract:
 
     * The shared ``audit_eval_fixtures.minimal_cycle`` case is consumed
-      (via ``load_case``) and its ``fixture_id`` becomes the e2e
-      ``scenario_id`` — so any drift in the shared fixture identity
-      propagates into ``cycle_publish_manifest_id`` and surfaces here.
+      via ``load_case``. Per the codex review #8 strict call (commit
+      `92aac55`), the test consumes the case's **content** —
+      ``input.json`` / ``expected.json`` / ``context.json`` /
+      ``metadata.json`` — not just ``metadata.fixture_id``. Pre-flight
+      asserts pin the canonical baseline shape (9 invariants), the e2e
+      ``scenario_id`` is derived from ``case.input["cycle_id"]``
+      (content, not metadata id), and the orchestrator-emitted
+      ``cycle_publish_manifest_id`` is cross-checked against
+      ``f"{case.metadata['manifest_cycle_id']}_v0"``. Any drift in the
+      shared case content surfaces here loudly.
     * The real orchestrator ``min-cycle`` CLI runs through assembly's
       ``run_min_cycle_e2e``, which invokes the
       ``_emit_runtime_artifacts`` path that writes the 4 invariants per
