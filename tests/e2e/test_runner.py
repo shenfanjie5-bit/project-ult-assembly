@@ -1162,10 +1162,30 @@ def test_e2e_runner_consumes_audit_eval_fixtures_minimal_cycle(
       to the runner in this commit) reads each artifact JSON and pins
       the 4 fields green.
 
-    Gate: SKIPs if any of the 11 cross-repo public modules are not
-    importable (PYTHONPATH not set, no full-system venv) or if
-    ``audit_eval_fixtures`` is not installed. Same import-attempt
-    criterion the contract-suite positive regression uses.
+    Gates (codex review of `3d9c872` strict call):
+
+    1. ``audit_eval_fixtures`` importable (importorskip).
+    2. Each of the 11 cross-repo public modules importable (importorskip).
+    3. **All 3 Lite-stack services reachable** (PostgreSQL + Neo4j +
+       Dagster) — codex review #8 P3 fix. Probing only Postgres (the
+       previous gate) let partially-started stacks slip through and
+       fail noisily on Neo4j or Dagster instead of skipping cleanly.
+
+    Shared-fixture consumption (codex review #8 P2 fix): the test
+    consumes the case's ``input.json`` / ``expected.json`` / ``context
+    .json`` / ``metadata.json`` content, NOT just ``metadata.fixture_id``.
+    Pre-flight invariants pin the case to the canonical
+    ``minimal_cycle_baseline`` shape (same fixture_kind, same
+    object_ref, same replay_mode, same target profile, internal
+    cycle_id consistency between input/expected, manifest formula
+    match between metadata and input, non-empty candidate_universe,
+    all phase_results=ok). The orchestrator scenario_id is derived
+    from ``case.input["cycle_id"]`` (content, not metadata id), and
+    the test cross-checks that the orchestrator-emitted
+    ``cycle_publish_manifest_id`` equals
+    ``f"{case.metadata['manifest_cycle_id']}_v0"`` — locking the
+    orchestrator-side formula directly to the shared case's manifest
+    id. Any drift in the shared case content surfaces here.
     """
     audit_eval_fixtures = pytest.importorskip(
         "audit_eval_fixtures",
@@ -1185,13 +1205,14 @@ def test_e2e_runner_consumes_audit_eval_fixtures_minimal_cycle(
             ),
         )
 
-    # Infra-reachability gate: lite-local profile health preflight checks
-    # PostgreSQL + Neo4j + Dagster service liveness. In a dev box without
-    # the Lite stack running, the e2e blocks on "health preflight did not
-    # converge" and fails — that is a legitimate environmental gate
-    # failure, not a contract failure. SKIP so the positive regression
-    # only asserts the contract when the contract can actually be
-    # exercised end-to-end.
+    # Infra-reachability gate (codex review #8 P3 fix): lite-local profile
+    # health preflight needs PostgreSQL + Neo4j + Dagster (the 3 Lite
+    # service bundles defined in ``profiles/lite-local.yaml`` /
+    # ``bundles/{postgres,neo4j,dagster}.yaml``). The previous version
+    # only probed Postgres, so a partially-started stack would run the
+    # test and fail noisily on Neo4j or Dagster instead of skipping
+    # cleanly. Probe each service explicitly; SKIP message names which
+    # specific service is down so the user knows what to start.
     import socket
 
     def _service_reachable(host: str, port: int) -> bool:
@@ -1201,27 +1222,106 @@ def test_e2e_runner_consumes_audit_eval_fixtures_minimal_cycle(
         except (OSError, ValueError):
             return False
 
-    if not _service_reachable("localhost", 5432):
+    _LITE_STACK_SERVICES = (
+        ("PostgreSQL", "localhost", 5432),
+        ("Neo4j (Bolt)", "localhost", 7687),
+        ("Dagster webserver", "localhost", 3000),
+    )
+    unreachable = [
+        f"{name} on {host}:{port}"
+        for name, host, port in _LITE_STACK_SERVICES
+        if not _service_reachable(host, port)
+    ]
+    if unreachable:
         pytest.skip(
-            "Stage 4 §4.2 positive regression requires the Lite stack "
-            "(PostgreSQL on localhost:5432) to be running. Start the Lite "
-            "stack via docker-compose or skip this test in CI envs that "
-            "lack infra. Cross-repo PYTHONPATH alone is not sufficient."
+            "Stage 4 §4.2 positive regression requires the full Lite stack "
+            f"to be running; unreachable: {unreachable}. Start the Lite "
+            "stack via the project's docker-compose under "
+            "``assembly/compose/`` or skip this test in CI envs that lack "
+            "infra. Cross-repo PYTHONPATH alone is not sufficient."
         )
 
+    # Codex review #8 P2 fix: actually consume the shared case's content.
+    # The earlier version only read case.metadata["fixture_id"] which
+    # let drift in input/expected/context payloads slip through. Now
+    # the test pre-flights the case content shape, then derives
+    # scenario_id from input.cycle_id, then cross-checks the
+    # orchestrator-emitted cycle_publish_manifest_id against
+    # case.metadata.manifest_cycle_id.
     case = audit_eval_fixtures.load_case(
         "minimal_cycle", _AUDIT_EVAL_FIXTURES_MINIMAL_CYCLE_CASE
     )
-    fixture_id = case.metadata["fixture_id"]
-    # Derive a scenario_id from the shared fixture identity. Any drift in
-    # the shared fixture's ``fixture_id`` flows into the synthetic
-    # ``cycle_publish_manifest_id`` the orchestrator writes, and the new
-    # ``assert_artifact_payload_invariants`` will surface it.
-    scenario_id = fixture_id.replace("/", "-").replace("_", "-")
+    case_metadata = case.metadata
+    case_input = case.input
+    case_expected = case.expected
+    case_context = case.context
+
+    # Pre-flight content-shape invariants on the shared case.
+    # Each assertion explains what would break if the case drifted.
+    assert case_metadata["fixture_kind"] == "minimal_cycle_baseline", (
+        "shared case is no longer the canonical Stage 4 §4.2 baseline "
+        "(metadata.fixture_kind drifted); audit-eval fixture replaced?"
+    )
+    assert case_metadata["object_ref"] == "cycle_publish_manifest", (
+        "shared case object identity drifted (metadata.object_ref); "
+        "expected cycle_publish_manifest"
+    )
+    assert case_metadata["replay_mode"] == "read_history", (
+        "shared case replay_mode must be read_history per audit-eval "
+        "CLAUDE.md C1 (replay = read_history only)"
+    )
+    assert case_context["active_profile"] == "lite-local", (
+        "shared case targets lite-local profile; this test exercises "
+        "the same — drift here would mismatch the Lite stack just "
+        "verified above"
+    )
+    assert case_context["neo4j_graph_status"] == "ready", (
+        "shared case assumes Neo4j is ready; drift here would invert "
+        "the Lite-stack precondition this test gates on"
+    )
+    case_input_cycle_id = case_input["cycle_id"]
+    case_expected_cycle_id = case_expected["cycle_publish_manifest"]["cycle_id"]
+    assert case_input_cycle_id == case_expected_cycle_id, (
+        f"shared case input/expected pair internally inconsistent: "
+        f"input.cycle_id={case_input_cycle_id!r} vs "
+        f"expected.cycle_publish_manifest.cycle_id="
+        f"{case_expected_cycle_id!r}"
+    )
+    assert (
+        case_metadata["manifest_cycle_id"] == f"MAN_{case_input_cycle_id}"
+    ), (
+        f"shared case manifest_cycle_id formula mismatch: "
+        f"metadata.manifest_cycle_id="
+        f"{case_metadata['manifest_cycle_id']!r} vs "
+        f"f'MAN_{{input.cycle_id}}'='MAN_{case_input_cycle_id}'"
+    )
+    assert len(case_input["candidate_universe"]) >= 1, (
+        "'one stock one cycle' case must have at least one candidate "
+        "in input.candidate_universe; drift to empty universe breaks "
+        "the case's own naming promise"
+    )
+    assert all(
+        v == "ok" for v in case_expected["phase_results"].values()
+    ), (
+        "shared case expected phase_results must all be 'ok' (a "
+        "regression baseline that fails phases is no longer a valid "
+        "minimal_cycle_baseline); got "
+        f"{case_expected['phase_results']}"
+    )
+
+    # Content-derived scenario_id: drives the orchestrator's
+    # _derive_cycle_publish_manifest_id formula from the shared case's
+    # input cycle_id. The orchestrator emits
+    # f"MAN_{sanitized_scenario_id}_v0", which when fed
+    # case_input_cycle_id="CYC_2025_01_03_DAILY" produces
+    # "MAN_CYC_2025_01_03_DAILY_v0" — exactly
+    # case_metadata["manifest_cycle_id"] + "_v0".
+    scenario_id = case_input_cycle_id
 
     # Build a minimal-cycle manifest YAML in tmp_path that consumes the
-    # shared fixture's identity. Layout mirrors
-    # ``src/assembly/tests/e2e/fixtures/minimal_cycle/manifest.yaml``.
+    # shared fixture's content (scenario_id from input.cycle_id; the
+    # orchestrator-emitted manifest id will then equal
+    # f"{case_metadata['manifest_cycle_id']}_v0", asserted below).
     fixture_dir = tmp_path / "fixture"
     fixture_dir.mkdir()
     (fixture_dir / "manifest.yaml").write_text(
@@ -1317,14 +1417,40 @@ def test_e2e_runner_consumes_audit_eval_fixtures_minimal_cycle(
         _artifact_path(record, "orchestrator_report").read_text(encoding="utf-8")
     )
     e2e_report_dir = e2e_report_path.parent
+    # Cross-check (codex review #8 P2 fix): the orchestrator-emitted
+    # cycle_publish_manifest_id MUST equal the shared case's
+    # metadata.manifest_cycle_id with the orchestrator-side "_v0"
+    # suffix appended. This locks the cross-module formula directly
+    # against the shared fixture content — any drift in either the
+    # orchestrator's _derive_cycle_publish_manifest_id formula OR
+    # case.metadata.manifest_cycle_id surfaces here.
+    expected_manifest_id_from_shared_case = (
+        f"{case_metadata['manifest_cycle_id']}_v0"
+    )
+    sanitized = scenario_id.replace("-", "_").replace(".", "_")
+    expected_manifest_id_from_formula = f"MAN_{sanitized}_v0"
+    assert (
+        expected_manifest_id_from_shared_case
+        == expected_manifest_id_from_formula
+    ), (
+        "shared case + orchestrator formula mismatch (test setup bug, "
+        "not a runtime drift): "
+        f"case-derived={expected_manifest_id_from_shared_case!r} vs "
+        f"formula-derived={expected_manifest_id_from_formula!r}"
+    )
+
     for kind, rel_path in orchestrator_report["artifacts"].items():
         artifact_path = (e2e_report_dir / rel_path).resolve()
         artifact_payload = json.loads(artifact_path.read_text(encoding="utf-8"))
         assert artifact_payload["real_phase_execution"] is True
         assert artifact_payload["assembled_job_names"]
         assert artifact_payload["assembly_error"] is None
-        sanitized = scenario_id.replace("-", "_").replace(".", "_")
         assert (
             artifact_payload["cycle_publish_manifest_id"]
-            == f"MAN_{sanitized}_v0"
+            == expected_manifest_id_from_shared_case
+        ), (
+            f"orchestrator-emitted cycle_publish_manifest_id "
+            f"{artifact_payload['cycle_publish_manifest_id']!r} does not "
+            f"match the shared case's metadata.manifest_cycle_id + '_v0' "
+            f"({expected_manifest_id_from_shared_case!r})"
         )
