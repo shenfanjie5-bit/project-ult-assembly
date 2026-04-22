@@ -229,7 +229,7 @@
     - full-dev
   integration_status: verified
   last_smoke_result: null
-  notes: Stage 3 audit passed; milestone-test-baseline v0.1.2; contract_version stays v0.0.0 (SDK is a contracts-schema consumer not owner).
+  notes: "Stage 3 audit passed; milestone-test-baseline v0.1.2; Stage 4 §4.1.5 harmonized contract_version to v0.1.3 (SDK is a contracts-schema consumer; pinned to the contracts package version it's bound against)."
 - module_id: orchestrator
   module_version: 0.1.1
   contract_version: v0.1.3
@@ -374,7 +374,7 @@
     - full-dev
   integration_status: verified
   last_smoke_result: null
-  notes: "Stage 3 audit passed; milestone-test-baseline v0.1.1 + canonical wire mapper; codex review #8 approved; contract_version stays v0.0.0 (Ex-1/2/3 producer not contracts-schema owner)."
+  notes: "Stage 3 audit passed; milestone-test-baseline v0.1.1 + canonical wire mapper; codex review #8 approved; Stage 4 §4.1.5 harmonized contract_version to v0.1.3 (Ex-1/2/3 producer; pinned to the contracts package version this subsystem is bound against)."
 - module_id: subsystem-news
   module_version: 0.1.1
   contract_version: v0.1.3
@@ -403,4 +403,4 @@
     - full-dev
   integration_status: verified
   last_smoke_result: null
-  notes: "Stage 3 audit passed; milestone-test-baseline v0.1.1 + canonical wire mapper; codex review #4 approved; contract_version stays v0.0.0 (Ex-1/2/3 producer not contracts-schema owner)."
+  notes: "Stage 3 audit passed; milestone-test-baseline v0.1.1 + canonical wire mapper; codex review #4 approved; Stage 4 §4.1.5 harmonized contract_version to v0.1.3 (Ex-1/2/3 producer; pinned to the contracts package version this subsystem is bound against)."
