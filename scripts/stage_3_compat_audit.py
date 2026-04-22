@@ -149,19 +149,28 @@ def _build_context(
     profile_id: str,
     profiles_root: Path,
 ) -> CompatibilityCheckContext:
-    """Build a CompatibilityCheckContext for the requested profile.
+    """Build a CompatibilityCheckContext faithful to the requested profile.
 
-    Mirrors ``tests/compat/test_checks.py::_context()`` for the 5
-    required ``CompatibilityCheckContext`` fields, but derives
-    ``mode`` and ``max_long_running_daemons`` from the **actual
-    profile file** rather than hardcoding Lite defaults. The previous
-    version hardcoded ``mode="lite"`` / ``max_long_running_daemons=4``
-    which was fine for ``--profile-id lite-local`` but semantically
-    wrong for ``--profile-id full-dev`` (mode: full, different daemon
-    budget). ``PublicApiBoundaryCheck`` happens not to read those
-    snapshot fields today, so the previous hardcode was latent rather
-    than active incorrect behavior — but the script is now faithfully
-    constructing the requested profile context regardless.
+    The snapshot's ``mode`` and ``max_long_running_daemons`` are derived
+    from the actual profile file via ``assembly.profiles.loader
+    .load_profile``. ``enabled_modules`` and ``resolved_entries`` are
+    derived from the profile's ``enabled_modules`` list (i.e., the
+    subset of registry modules the profile actually activates), NOT the
+    full registry.
+
+    Why this matters: ``PublicApiBoundaryCheck`` happens not to read
+    ``snapshot.enabled_modules`` or filter on ``resolved_entries``
+    today, so an audit running over the full registry vs only the
+    profile-enabled subset returns the same module results. But codex
+    review #7 (P3) called out that future checks could rely on these
+    fields, and the previous "all-registry" snapshot would silently
+    drift from the requested profile context. Building the snapshot
+    faithfully now (rather than later) prevents that latent bug.
+
+    Frozen slots like ``feature-store`` / ``stream-layer`` are absent
+    from the profile's ``enabled_modules`` (per Stage 4 §4.1.5 master
+    plan §1.1 frozen slot rule), so they are correctly omitted from
+    both ``snapshot.enabled_modules`` and ``resolved_entries``.
 
     ``ResolvedConfigSnapshot`` uses ``extra="forbid"`` so all 11 fields
     must match exactly.
@@ -169,12 +178,18 @@ def _build_context(
 
     matrix_entry = _pick_matrix_entry(registry, profile_id=profile_id)
     profile = load_profile(profiles_root / f"{profile_id}.yaml")
+    enabled_module_ids = set(profile.enabled_modules)
+    resolved_entries = [
+        entry
+        for entry in registry.modules
+        if entry.module_id in enabled_module_ids
+    ]
     return CompatibilityCheckContext(
         profile_id=profile_id,
         snapshot=ResolvedConfigSnapshot(
             profile_id=profile_id,
             mode=profile.mode.value,
-            enabled_modules=[entry.module_id for entry in registry.modules],
+            enabled_modules=list(profile.enabled_modules),
             enabled_service_bundles=[],
             required_env={},
             optional_env={},
@@ -185,7 +200,7 @@ def _build_context(
             resolved_at=datetime.now(timezone.utc),
         ),
         registry=registry,
-        resolved_entries=registry.modules,
+        resolved_entries=resolved_entries,
         matrix_entry=matrix_entry,
         timeout_sec=30.0,
     )

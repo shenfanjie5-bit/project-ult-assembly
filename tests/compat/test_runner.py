@@ -166,26 +166,44 @@ def test_run_contract_suite_fails_gracefully_without_cross_repo_install(
     (``scripts/stage_3_compat_audit.py``) is the proper venue for
     running this suite against installed/PYTHONPATH-resolvable modules.
 
-    Gate: if the cross-repo modules ARE importable (i.e., PYTHONPATH
-    covers the 11 sibling repos OR a full-system venv has them editable-
-    installed), this degraded-baseline test is irrelevant and gets
+    Gate: if every cross-repo module **actually imports successfully**
+    (i.e., PYTHONPATH covers the 11 sibling repos OR a full-system venv
+    has them editable-installed AND each module's transitive dependency
+    chain resolves), this degraded-baseline test is irrelevant and gets
     skipped — the companion
     ``test_run_contract_suite_succeeds_in_resolved_module_env`` covers
     the positive-regression case in that environment.
+
+    Codex review #7 caught a subtle hole in an earlier version of this
+    gate: it used ``importlib.util.find_spec(module_name) is not None``
+    which only checks whether the module is **discoverable** on
+    ``sys.path``, not whether it actually imports. In a partially-broken
+    resolved-module env (e.g., the ``*.public`` module is reachable on
+    ``PYTHONPATH`` but its import raises ``ImportError`` because some
+    transitive dependency is missing), the positive test would skip via
+    ``pytest.importorskip(...)`` AND this degraded test would also skip
+    via ``find_spec`` — leaving the broken state with zero test
+    coverage. The two gates must use the **same import-attempt**
+    criterion (actually try ``importlib.import_module(...)`` and catch
+    ``ImportError``) so a mid-state failure causes one of them to run.
     """
 
-    import importlib.util
+    import importlib
 
-    cross_repo_importable = all(
-        importlib.util.find_spec(module_name) is not None
-        for module_name in _CROSS_REPO_PUBLIC_MODULES
-    )
+    cross_repo_importable = True
+    try:
+        for module_name in _CROSS_REPO_PUBLIC_MODULES:
+            importlib.import_module(module_name)
+    except ImportError:
+        cross_repo_importable = False
+
     if cross_repo_importable:
         pytest.skip(
-            "Cross-repo public modules are importable (PYTHONPATH set or "
-            "full-system venv); resolved-module positive regression covers "
-            "this environment. This degraded-baseline test only applies "
-            "when cross-repo modules are NOT importable."
+            "Every cross-repo public module imported successfully (PYTHONPATH "
+            "set or full-system venv with all transitive deps resolvable); "
+            "resolved-module positive regression covers this environment. "
+            "This degraded-baseline test only applies when at least one "
+            "cross-repo module fails to import."
         )
 
     reports_dir = tmp_path / "reports/contract"
