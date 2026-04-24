@@ -14,7 +14,7 @@
     - module_id: main-core
       module_version: 0.1.1
     - module_id: audit-eval
-      module_version: 0.2.2
+      module_version: 0.2.5
     - module_id: subsystem-sdk
       module_version: 0.1.2
     - module_id: orchestrator
@@ -31,7 +31,7 @@
     - smoke
     - min-cycle-e2e
   status: verified
-  # Stage 4 §4.3 PASS evidence: real Lite-stack
+  # Stage 4 §4.3 PASS evidence (initial): real Lite-stack
   # ``run_min_cycle_e2e("lite-local", ...)`` from
   # ``test_e2e_runner_consumes_audit_eval_fixtures_minimal_cycle``
   # completed at 2026-04-22T06:08:55Z (UTC) against PostgreSQL +
@@ -40,14 +40,26 @@
   # Test exercised full e2e + 9 case-content invariants + 4
   # artifact-payload invariants + cross-check formula
   # (cycle_publish_manifest_id == MAN_CYC_2025_01_03_DAILY_v0).
-  verified_at: 2026-04-22T06:08:55Z
-# Stage 4 §4.3 status: ONLY `lite-local` promoted to `verified` per codex
-# review #10 strict call. The real e2e PASS evidence collected user-side is
-# `run_min_cycle_e2e("lite-local", ...)` from
-# `test_e2e_runner_consumes_audit_eval_fixtures_minimal_cycle`, which only
-# covers the `lite-local` profile. `full-dev` matrix entry stays `draft`
-# until a separate `run_min_cycle_e2e("full-dev", ...)` PASS is recorded
-# (Future work; not in this round).
+  #
+  # Stage 5 re-verification at 2026-04-24T05:24:14Z (UTC) after the
+  # audit-eval pin sync 0.2.2 → 0.2.5 (fixture-only bumps from #2
+  # canonical_entity_id reconciliation + #4 historical_replay_pack
+  # T+1 tushare extension). Same test, same Lite stack — confirmed
+  # pin sync did not regress the Stage 4 §4.3 evidence.
+  verified_at: 2026-04-24T05:24:14Z
+# Stage 5 status: BOTH `lite-local` and `full-dev` are now promoted to
+# `verified`. The full-dev evidence (per-profile evidence boundary,
+# codex review #10 strict call from Stage 4 §4.3) is the new
+# ``test_e2e_runner_consumes_audit_eval_fixtures_minimal_cycle_full_dev``
+# PASS at 2026-04-24T05:24:14Z (UTC), driven against the SAME
+# 4-service Lite stack that physically backs both profiles. The
+# equivalence is documented in ``docs/PROFILE_COMPARISON.md``: default
+# ``full-dev`` and ``lite-local`` resolve THE SAME 3
+# enabled_service_bundles (postgres / neo4j / dagster); they differ
+# only in mode, resource_expectation, max_long_running_daemons, and
+# ``full-dev``'s ability to opt into extra optional bundles via
+# ``--extra-bundles``. The new e2e test enforces this equivalence at
+# preflight time so any future drift surfaces before the e2e runs.
 - matrix_version: 0.1.0
   profile_id: full-dev
   module_set:
@@ -64,7 +76,7 @@
     - module_id: main-core
       module_version: 0.1.1
     - module_id: audit-eval
-      module_version: 0.2.2
+      module_version: 0.2.5
     - module_id: subsystem-sdk
       module_version: 0.1.2
     - module_id: orchestrator
@@ -80,5 +92,18 @@
     - contract-suite
     - smoke
     - min-cycle-e2e
-  status: draft
-  verified_at: null
+  status: verified
+  # Stage 5 PASS evidence: real Lite-stack
+  # ``run_min_cycle_e2e("full-dev", ...)`` from
+  # ``test_e2e_runner_consumes_audit_eval_fixtures_minimal_cycle_full_dev``
+  # completed at 2026-04-24T05:24:14Z (UTC). Driven against the same
+  # 4-service Lite stack (PostgreSQL + Neo4j + Dagster — the 3
+  # enabled_service_bundles full-dev shares with lite-local per
+  # ``docs/PROFILE_COMPARISON.md``); 11 sibling repos
+  # editable-installed in Python 3.12 venv. Test exercises the same
+  # shared ``audit_eval_fixtures.minimal_cycle.case_001`` as
+  # lite-local, plus a profile-equivalence preflight assertion
+  # (``case-target-profile.enabled_service_bundles ==
+  # full-dev.enabled_service_bundles``) that fails-fast on any future
+  # drift before invoking the e2e.
+  verified_at: 2026-04-24T05:24:14Z

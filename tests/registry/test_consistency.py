@@ -103,8 +103,13 @@ STAGE_4_NOT_STARTED_MODULE_IDS = {"feature-store", "stream-layer"}
 
 #: Per-module ``module_version`` baseline at Stage 4 §4.1 — sourced from each
 #: module's ``version_declaration.declare()`` after the §4.0 source drift
-#: fixes (audit-eval 0.2.1→0.2.2; graph-engine ``_safe_contract_version``
-#: now adds ``v`` prefix). Frozen slots stay at ``0.0.0``.
+#: fixes (audit-eval 0.2.1→0.2.2 originally; subsequent fixture-only
+#: audit-eval bumps 0.2.2→0.2.3→0.2.4→0.2.5 covered shared-case
+#: canonical_entity_id reconciliation + 2 Phase-B tushare cases +
+#: historical_replay_pack T+1 tushare extension — wheel content-only
+#: changes; assembly re-pinned at Stage 5 alongside the full-dev profile
+#: parallel verification; graph-engine ``_safe_contract_version`` now adds
+#: ``v`` prefix). Frozen slots stay at ``0.0.0``.
 STAGE_4_MODULE_VERSIONS = {
     "contracts": "0.1.3",
     "data-platform": "0.1.1",
@@ -112,7 +117,7 @@ STAGE_4_MODULE_VERSIONS = {
     "reasoner-runtime": "0.1.1",
     "graph-engine": "0.1.1",
     "main-core": "0.1.1",
-    "audit-eval": "0.2.2",
+    "audit-eval": "0.2.5",
     "subsystem-sdk": "0.1.2",
     "orchestrator": "0.1.1",
     "assembly": "0.1.0",
@@ -286,16 +291,17 @@ def test_deprecated_matrix_status_is_valid_but_not_current() -> None:
     assert entry.status == "deprecated"
 
 
-def test_compatibility_matrix_lite_local_verified_full_dev_still_draft() -> None:
-    """Stage 4 §4.3 promotion is **per-profile** (codex review #10 strict
-    call): only `lite-local` moves to `verified` with a non-None
-    ``verified_at`` ISO timestamp because the recorded real e2e PASS
-    evidence (``test_e2e_runner_consumes_audit_eval_fixtures_minimal_
-    cycle``) invokes ``run_min_cycle_e2e("lite-local", ...)`` and
-    therefore only covers the `lite-local` profile. `full-dev` stays
-    `draft` until a separate ``run_min_cycle_e2e("full-dev", ...)``
-    PASS is recorded; promoting it now would over-promote the
-    matrix's evidence surface.
+def test_compatibility_matrix_lite_local_and_full_dev_both_verified() -> None:
+    """Stage 5 promotion: BOTH `lite-local` and `full-dev` are now
+    `verified` with non-None ``verified_at`` ISO timestamps. The
+    per-profile evidence boundary (codex review #10 strict call from
+    Stage 4 §4.3) is preserved — full-dev required its own
+    ``test_e2e_runner_consumes_audit_eval_fixtures_minimal_cycle_full_dev``
+    PASS, separately recorded from the lite-local PASS.
+
+    Pre-Stage-5 this test was named
+    ``test_compatibility_matrix_lite_local_verified_full_dev_still_draft``
+    and asserted ``full_dev.status == "draft" and verified_at is None``.
     """
     raw = yaml.safe_load(MATRIX_YAML.read_text(encoding="utf-8"))
     entries = [CompatibilityMatrixEntry.model_validate(item) for item in raw]
@@ -308,8 +314,8 @@ def test_compatibility_matrix_lite_local_verified_full_dev_still_draft() -> None
     assert lite_local.verified_at is not None
 
     full_dev = entries_by_profile["full-dev"]
-    assert full_dev.status == "draft"
-    assert full_dev.verified_at is None
+    assert full_dev.status == "verified"
+    assert full_dev.verified_at is not None
     #: At Stage 4 §4.1.5 the matrix ``module_set`` drops the two frozen slots
     #: (``feature-store``, ``stream-layer``) from both profile entries.
     #: Those modules remain declared in the registry with

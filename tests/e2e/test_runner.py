@@ -1468,3 +1468,318 @@ def test_e2e_runner_consumes_audit_eval_fixtures_minimal_cycle(
             f"match the shared case's metadata.manifest_cycle_id + '_v0' "
             f"({expected_manifest_id_from_shared_case!r})"
         )
+
+
+# ───────────────────────── Stage 5 — full-dev profile parallel ─────────────────────────
+#
+# Stage 5 mirrors the Stage 4 §4.2 lite-local positive regression but
+# drives the e2e through the ``full-dev`` profile. Per
+# ``docs/PROFILE_COMPARISON.md`` (and verified structurally by
+# ``tests/profiles/test_full_dev.py``), default ``full-dev`` and
+# ``lite-local`` resolve THE SAME 3 enabled_service_bundles
+# (``postgres / neo4j / dagster``). They differ only in
+# ``mode`` / ``resource_expectation`` / ``max_long_running_daemons``
+# and in ``full-dev``'s ability to opt-in extra optional bundles via
+# ``--extra-bundles``.
+#
+# That equivalence is what makes the SAME 4-service Lite stack
+# (started from ``compose/lite-local.yaml``) sufficient infra to
+# verify both profiles. The shared
+# ``audit_eval_fixtures.minimal_cycle.case_001_one_stock_one_cycle``
+# case currently targets ``active_profile: lite-local``; the test
+# below exercises ``run_min_cycle_e2e("full-dev", ...)`` against that
+# same case under the principled relaxation
+# "case.context.active_profile and the test profile must resolve to
+# the SAME enabled_service_bundles list" — which it does, because the
+# profile-equivalence is part of the documented full-dev contract.
+# Any future drift (e.g. full-dev gaining a new mandatory bundle)
+# would surface here loudly as the equivalence assertion failing.
+#
+# On PASS, ``compatibility-matrix.yaml`` full-dev entry is promoted
+# from ``status: draft`` → ``status: verified`` with its own
+# ``verified_at`` timestamp (per-profile evidence boundary, codex
+# review #10 strict call from Stage 4 §4.3).
+
+
+def test_e2e_runner_consumes_audit_eval_fixtures_minimal_cycle_full_dev(
+    tmp_path: Path,
+) -> None:
+    """Stage 5 positive regression: drive the REAL e2e runner against
+    the same shared ``audit_eval_fixtures.minimal_cycle.case_001`` case
+    but via the ``full-dev`` profile (vs lite-local exercised by the
+    sibling test above).
+
+    Equivalence guard (the only difference vs lite-local test, beyond
+    the ``"full-dev"`` profile id): instead of asserting
+    ``case.context.active_profile == "lite-local"``, this test loads
+    BOTH profiles via ``assembly.profiles.load_profile`` and asserts
+    that ``case.context.active_profile``'s enabled_service_bundles ==
+    ``"full-dev"``'s enabled_service_bundles. This makes the lite-local
+    case legitimately reusable here ONLY as long as the documented
+    equivalence (PROFILE_COMPARISON.md) holds; if full-dev ever adds a
+    new mandatory bundle this test fails before invoking the e2e.
+
+    Same gates as the lite-local test:
+
+    1. ``audit_eval_fixtures`` importable (importorskip).
+    2. Each of the 11 cross-repo public modules importable
+       (importorskip).
+    3. All 3 Lite-stack services reachable (PostgreSQL + Neo4j +
+       Dagster) — the same 4-service stack physically backs both
+       profiles.
+
+    On PASS, captures the ISO-8601 UTC timestamp into the e2e report so
+    the assembly maintainer can stamp ``compatibility-matrix.yaml``
+    full-dev's ``verified_at``.
+    """
+    audit_eval_fixtures = pytest.importorskip(
+        "audit_eval_fixtures",
+        reason=(
+            "Stage 5 positive regression requires audit_eval_fixtures. "
+            "Install via the [shared-fixtures] extra or PYTHONPATH cover "
+            "audit-eval/src."
+        ),
+    )
+    for module_name in _E2E_CROSS_REPO_PUBLIC_MODULES:
+        pytest.importorskip(
+            module_name,
+            reason=(
+                f"Stage 5 positive regression requires {module_name}. "
+                "Run with PYTHONPATH covering the 11 sibling repos' src/root "
+                "dirs, or with a full-system venv."
+            ),
+        )
+
+    # Same 3-service infra-reachability gate as the lite-local test —
+    # full-dev's enabled_service_bundles is the same set, so the same
+    # ports must be reachable.
+    import socket
+
+    def _service_reachable(host: str, port: int) -> bool:
+        try:
+            with socket.create_connection((host, port), timeout=0.5):
+                return True
+        except (OSError, ValueError):
+            return False
+
+    _LITE_STACK_SERVICES_FULL_DEV = (
+        ("PostgreSQL", "localhost", 5432),
+        ("Neo4j (Bolt)", "localhost", 7687),
+        ("Dagster webserver", "localhost", 3000),
+    )
+    unreachable = [
+        f"{name} on {host}:{port}"
+        for name, host, port in _LITE_STACK_SERVICES_FULL_DEV
+        if not _service_reachable(host, port)
+    ]
+    if unreachable:
+        pytest.skip(
+            "Stage 5 positive regression requires the same Lite stack as "
+            f"lite-local (full-dev shares the 3 core bundles); "
+            f"unreachable: {unreachable}. Start the Lite stack via "
+            "``docker compose -f compose/lite-local.yaml --env-file .env "
+            "up -d --build`` before running this test."
+        )
+
+    case = audit_eval_fixtures.load_case(
+        "minimal_cycle", _AUDIT_EVAL_FIXTURES_MINIMAL_CYCLE_CASE
+    )
+    case_metadata = case.metadata
+    case_input = case.input
+    case_expected = case.expected
+    case_context = case.context
+
+    # Pre-flight content-shape invariants — same set as the lite-local
+    # test, EXCEPT the active_profile assertion is replaced by the
+    # equivalence guard below.
+    assert case_metadata["fixture_kind"] == "minimal_cycle_baseline", (
+        "shared case is no longer the canonical baseline "
+        "(metadata.fixture_kind drifted); audit-eval fixture replaced?"
+    )
+    assert case_metadata["object_ref"] == "cycle_publish_manifest", (
+        "shared case object identity drifted (metadata.object_ref); "
+        "expected cycle_publish_manifest"
+    )
+    assert case_metadata["replay_mode"] == "read_history", (
+        "shared case replay_mode must be read_history per audit-eval "
+        "CLAUDE.md C1 (replay = read_history only)"
+    )
+    assert case_context["neo4j_graph_status"] == "ready", (
+        "shared case assumes Neo4j is ready; drift here would invert "
+        "the Lite-stack precondition this test gates on"
+    )
+
+    # Stage 5 profile-equivalence guard (replaces lite-local test's
+    # ``active_profile == 'lite-local'``): both the case-target profile
+    # and the test profile MUST resolve to the SAME
+    # enabled_service_bundles. Documented by PROFILE_COMPARISON.md;
+    # enforced here so any future drift surfaces before the e2e runs.
+    from assembly.profiles import load_profile as _load_profile
+
+    case_profile_id = case_context["active_profile"]
+    case_profile_path = _PROJECT_ROOT / "profiles" / f"{case_profile_id}.yaml"
+    full_dev_profile_path = _PROJECT_ROOT / "profiles" / "full-dev.yaml"
+    case_profile = _load_profile(case_profile_path)
+    full_dev_profile = _load_profile(full_dev_profile_path)
+    assert (
+        case_profile.enabled_service_bundles
+        == full_dev_profile.enabled_service_bundles
+    ), (
+        f"profile equivalence violated: case targets "
+        f"{case_profile_id!r} with bundles "
+        f"{case_profile.enabled_service_bundles!r}, but the test "
+        f"exercises 'full-dev' with bundles "
+        f"{full_dev_profile.enabled_service_bundles!r}. Stage 5 only "
+        f"guarantees a lite-targeted case is reusable here while the "
+        f"two profiles' core bundle sets stay identical "
+        f"(PROFILE_COMPARISON.md). Add a full-dev-targeted case (or "
+        f"narrow this test) before promoting full-dev with a non-"
+        f"equivalent core bundle set."
+    )
+
+    case_input_cycle_id = case_input["cycle_id"]
+    case_expected_cycle_id = case_expected["cycle_publish_manifest"]["cycle_id"]
+    assert case_input_cycle_id == case_expected_cycle_id, (
+        f"shared case input/expected pair internally inconsistent: "
+        f"input.cycle_id={case_input_cycle_id!r} vs "
+        f"expected.cycle_publish_manifest.cycle_id="
+        f"{case_expected_cycle_id!r}"
+    )
+    assert (
+        case_metadata["manifest_cycle_id"] == f"MAN_{case_input_cycle_id}"
+    ), (
+        f"shared case manifest_cycle_id formula mismatch: "
+        f"metadata.manifest_cycle_id="
+        f"{case_metadata['manifest_cycle_id']!r} vs "
+        f"f'MAN_{{input.cycle_id}}'='MAN_{case_input_cycle_id}'"
+    )
+    assert len(case_input["candidate_universe"]) >= 1, (
+        "'one stock one cycle' case must have at least one candidate"
+    )
+    assert all(
+        v == "ok" for v in case_expected["phase_results"].values()
+    ), (
+        "shared case expected phase_results must all be 'ok'; got "
+        f"{case_expected['phase_results']}"
+    )
+
+    scenario_id = case_input_cycle_id
+
+    fixture_dir = tmp_path / "fixture"
+    fixture_dir.mkdir()
+    (fixture_dir / "manifest.yaml").write_text(
+        yaml.safe_dump(
+            {
+                "scenario_id": scenario_id,
+                "expected_phases": [
+                    "resolve-profile",
+                    "load-fixture",
+                    "execute-minimal-cycle",
+                    "write-report",
+                ],
+                "required_artifacts": ["cycle_summary"],
+                "orchestrator_args": [
+                    "min-cycle",
+                    "--profile",
+                    "{profile_id}",
+                    "--fixture",
+                    "{fixture_manifest}",
+                    "--run-artifacts-dir",
+                    "{run_dir}",
+                    "--report",
+                    "{orchestrator_report_path}",
+                ],
+            },
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+
+    env = {
+        "POSTGRES_HOST": "localhost",
+        "POSTGRES_PORT": "5432",
+        "POSTGRES_DB": "proj",
+        "POSTGRES_USER": "postgres",
+        "POSTGRES_PASSWORD": "changeme",
+        "NEO4J_URI": "bolt://localhost:7687",
+        "NEO4J_USER": "neo4j",
+        "NEO4J_PASSWORD": "changeme",
+        "DAGSTER_HOME": "/tmp",
+        "DAGSTER_HOST": "localhost",
+        "DAGSTER_PORT": "3000",
+    }
+
+    record = run_min_cycle_e2e(
+        "full-dev",
+        profiles_root=_PROJECT_ROOT / "profiles",
+        bundles_root=_PROJECT_ROOT / "bundles",
+        registry_root=_PROJECT_ROOT,
+        fixture_dir=fixture_dir,
+        reports_dir=tmp_path / "reports/e2e",
+        env=env,
+        timeout_sec=60.0,
+        bootstrap_if_needed=False,
+    )
+
+    assert record.run_type == "e2e"
+    assert record.status == "success", (
+        f"full-dev e2e did not reach success; status={record.status!r}, "
+        f"failing_modules={record.failing_modules}, "
+        f"summary={record.summary!r}"
+    )
+    assert record.failing_modules == []
+
+    e2e_report_path = _artifact_path(record, "e2e_report")
+    payload = json.loads(e2e_report_path.read_text(encoding="utf-8"))
+    failed_assertions = [
+        result
+        for result in payload["assertion_results"]
+        if result["status"] != "passed"
+    ]
+    assert failed_assertions == [], (
+        "full-dev e2e assertions had failures: "
+        f"{[r['assertion_name'] for r in failed_assertions]}"
+    )
+
+    artifact_payload_assertions = [
+        result
+        for result in payload["assertion_results"]
+        if result["assertion_name"] == "artifact_payload_invariants"
+    ]
+    assert artifact_payload_assertions
+    assert all(r["status"] == "passed" for r in artifact_payload_assertions)
+
+    # Stage 5: cross-check the full-dev e2e emitted the same
+    # cycle_publish_manifest_id formula as the lite-local sibling test
+    # — formula independence from profile id is a Stage 4 §4.2
+    # invariant that Stage 5 must not regress.
+    orchestrator_report_path = _artifact_path(record, "orchestrator_report")
+    orchestrator_report = json.loads(
+        orchestrator_report_path.read_text(encoding="utf-8")
+    )
+    orchestrator_run_dir = orchestrator_report_path.parent
+    expected_manifest_id_from_shared_case = (
+        f"{case_metadata['manifest_cycle_id']}_v0"
+    )
+    sanitized = scenario_id.replace("-", "_").replace(".", "_")
+    expected_manifest_id_from_formula = f"MAN_{sanitized}_v0"
+    assert (
+        expected_manifest_id_from_shared_case
+        == expected_manifest_id_from_formula
+    )
+
+    for kind, rel_path in orchestrator_report["artifacts"].items():
+        artifact_path = (orchestrator_run_dir / rel_path).resolve()
+        artifact_payload = json.loads(artifact_path.read_text(encoding="utf-8"))
+        assert artifact_payload["real_phase_execution"] is True
+        assert artifact_payload["assembled_job_names"]
+        assert artifact_payload["assembly_error"] is None
+        assert (
+            artifact_payload["cycle_publish_manifest_id"]
+            == expected_manifest_id_from_shared_case
+        ), (
+            f"full-dev orchestrator-emitted cycle_publish_manifest_id "
+            f"{artifact_payload['cycle_publish_manifest_id']!r} does not "
+            f"match the shared case's metadata.manifest_cycle_id + '_v0' "
+            f"({expected_manifest_id_from_shared_case!r})"
+        )

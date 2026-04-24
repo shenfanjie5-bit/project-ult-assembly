@@ -89,12 +89,13 @@ def test_load_all_registry_consistency_errors_are_preserved(tmp_path: Path) -> N
     # removed when the assembly row was updated by Stage 4 §4.1.)
     # Stage 4 §4.3 promotion updated the assembly row's notes to start
     # with ``Stage 4 §4.0 + §4.1 + §4.1.5 + §4.2 + §4.3 done`` (full
-    # promotion-chain attribution). Sentinel updated to match the
-    # current MD content; pre-§4.3 it targeted ``Stage 4 §4.1 done``
-    # which no longer appears verbatim in the file.
+    # promotion-chain attribution). Stage 5 extended that to
+    # ``Stage 4 §4.0 + §4.1 + §4.1.5 + §4.2 + §4.3 + Stage 5 done``
+    # — the sentinel below tracks the current MD content; pre-Stage-5
+    # it ended at ``§4.3 done`` which no longer appears verbatim.
     registry_md.write_text(
         registry_md.read_text(encoding="utf-8").replace(
-            "Stage 4 §4.0 + §4.1 + §4.1.5 + §4.2 + §4.3 done",
+            "Stage 4 §4.0 + §4.1 + §4.1.5 + §4.2 + §4.3 + Stage 5 done",
             "Drifted registry note",
             1,
         ),

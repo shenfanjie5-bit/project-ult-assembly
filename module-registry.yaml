@@ -173,7 +173,7 @@
   last_smoke_result: null
   notes: Stage 3 audit passed; milestone-test-baseline v0.1.1; codex-confirmed.
 - module_id: audit-eval
-  module_version: 0.2.2
+  module_version: 0.2.5
   contract_version: v0.1.3
   owner: unassigned
   upstream_modules: []
@@ -200,7 +200,7 @@
     - full-dev
   integration_status: verified
   last_smoke_result: null
-  notes: Stage 3 audit passed; milestone-test-baseline v0.2.2 + shared fixtures package; codex-confirmed.
+  notes: Stage 3 audit passed; milestone-test-baseline v0.2.5 (canonical_entity_id reconciled to runtime dot form + 2 phase-B tushare cases + historical_replay_pack T+1 tushare extension); codex-confirmed.
 - module_id: subsystem-sdk
   module_version: 0.1.2
   contract_version: v0.1.3
@@ -287,7 +287,7 @@
     - full-dev
   integration_status: verified
   last_smoke_result: null
-  notes: Stage 4 §4.0 + §4.1 + §4.1.5 + §4.2 + §4.3 done; assembly self-verify upgrade after real Lite-stack e2e PASS recorded.
+  notes: Stage 4 §4.0 + §4.1 + §4.1.5 + §4.2 + §4.3 + Stage 5 done; both lite-local and full-dev profiles verified at 2026-04-24T05:24:14Z (full-dev parallel verification reuses the same 4-service Lite stack per docs/PROFILE_COMPARISON.md equivalence).
 - module_id: feature-store
   module_version: 0.0.0
   contract_version: v0.0.0
