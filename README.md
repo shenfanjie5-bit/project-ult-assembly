@@ -67,7 +67,7 @@ into this venv so e2e and compat tests can drive real cross-repo
 public APIs.
 
 ```bash
-.venv-py312/bin/python -m pytest                         # full suite (289 + 1 skipped)
+.venv-py312/bin/python -m pytest                         # full suite (290 + 1 skipped)
 .venv-py312/bin/python -m pytest tests/registry/         # registry consistency
 .venv-py312/bin/python -m pytest tests/compat/           # cross-project compat audit
 .venv-py312/bin/python -m pytest tests/e2e/              # minimal-cycle e2e (Lite stack must be up)
@@ -75,7 +75,7 @@ public APIs.
 .venv-py312/bin/python -m pytest tests/release/          # release-freeze records
 ```
 
-## Verified module set (post-§4.3)
+## Verified module set (post-Stage 5)
 
 | module_id | module_version | contract_version | role |
 |---|---|---|---|
