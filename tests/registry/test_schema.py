@@ -10,6 +10,7 @@ from assembly.registry import (
     IntegrationStatus,
     ModuleRegistryEntry,
     PublicEntrypoint,
+    matrix_entry_key,
 )
 
 
@@ -149,3 +150,101 @@ def test_deprecated_matrix_entry_is_loadable() -> None:
     )
 
     assert entry.status == "deprecated"
+
+
+# ────────────── Codex P2 follow-up: extra_bundles normalization ──────────────
+
+
+def test_extra_bundles_defaults_to_empty_list_when_absent() -> None:
+    """Default matrix row (no extras) loads without extra_bundles key."""
+    entry = CompatibilityMatrixEntry.model_validate(valid_matrix_entry())
+    assert entry.extra_bundles == []
+
+
+def test_extra_bundles_none_is_normalized_to_empty_list() -> None:
+    entry = CompatibilityMatrixEntry.model_validate(
+        valid_matrix_entry(extra_bundles=None)
+    )
+    assert entry.extra_bundles == []
+
+
+def test_extra_bundles_sorts_deterministically() -> None:
+    """Two YAML authors who list extras in different order produce the
+    same matrix row identity and digest — precondition for row-
+    addressing via matrix_entry_key."""
+    entry_a = CompatibilityMatrixEntry.model_validate(
+        valid_matrix_entry(extra_bundles=["minio", "grafana"])
+    )
+    entry_b = CompatibilityMatrixEntry.model_validate(
+        valid_matrix_entry(extra_bundles=["grafana", "minio"])
+    )
+    assert entry_a.extra_bundles == ["grafana", "minio"]
+    assert entry_b.extra_bundles == ["grafana", "minio"]
+    assert matrix_entry_key(entry_a) == matrix_entry_key(entry_b)
+
+
+def test_extra_bundles_strips_whitespace() -> None:
+    entry = CompatibilityMatrixEntry.model_validate(
+        valid_matrix_entry(extra_bundles=["  minio  "])
+    )
+    assert entry.extra_bundles == ["minio"]
+
+
+def test_extra_bundles_rejects_empty_string() -> None:
+    with pytest.raises(ValidationError, match="non-empty"):
+        CompatibilityMatrixEntry.model_validate(
+            valid_matrix_entry(extra_bundles=[""])
+        )
+
+
+def test_extra_bundles_rejects_whitespace_only() -> None:
+    with pytest.raises(ValidationError, match="non-empty"):
+        CompatibilityMatrixEntry.model_validate(
+            valid_matrix_entry(extra_bundles=["   "])
+        )
+
+
+def test_extra_bundles_rejects_duplicates() -> None:
+    with pytest.raises(ValidationError, match="duplicates"):
+        CompatibilityMatrixEntry.model_validate(
+            valid_matrix_entry(extra_bundles=["minio", "minio"])
+        )
+
+
+def test_extra_bundles_rejects_duplicates_after_strip() -> None:
+    with pytest.raises(ValidationError, match="duplicates"):
+        CompatibilityMatrixEntry.model_validate(
+            valid_matrix_entry(extra_bundles=["minio", " minio "])
+        )
+
+
+def test_extra_bundles_rejects_non_string_entries() -> None:
+    with pytest.raises(ValidationError, match="strings"):
+        CompatibilityMatrixEntry.model_validate(
+            valid_matrix_entry(extra_bundles=[123])  # type: ignore[list-item]
+        )
+
+
+def test_extra_bundles_rejects_non_list_container() -> None:
+    with pytest.raises(ValidationError, match="must be a list"):
+        CompatibilityMatrixEntry.model_validate(
+            valid_matrix_entry(extra_bundles="minio")  # type: ignore[arg-type]
+        )
+
+
+def test_matrix_entry_key_is_profile_plus_sorted_extra_bundles() -> None:
+    """The public canonical identity for matrix rows — one source of
+    truth imported by every selector (e2e, smoke, compat, freezer).
+    """
+    default = CompatibilityMatrixEntry.model_validate(
+        valid_matrix_entry(profile_id="full-dev")
+    )
+    minio = CompatibilityMatrixEntry.model_validate(
+        valid_matrix_entry(profile_id="full-dev", extra_bundles=["minio"])
+    )
+    assert matrix_entry_key(default) == ("full-dev", ())
+    assert matrix_entry_key(minio) == ("full-dev", ("minio",))
+    # Rows collide by profile_id alone but are distinguishable by the
+    # canonical key — exactly what the codex P2 review called for.
+    assert default.profile_id == minio.profile_id
+    assert matrix_entry_key(default) != matrix_entry_key(minio)

@@ -47,7 +47,12 @@ def run_smoke(
             "enabled_modules": [entry.module_id for entry in resolved_entries],
         }
     )
-    matrix_entry = _select_matrix_entry(registry, profile_id, resolved_entries)
+    matrix_entry = _select_matrix_entry(
+        registry,
+        profile_id,
+        resolved_entries,
+        extra_bundles=extra_bundles or (),
+    )
     return SmokeSuite().run(
         snapshot,
         registry,
@@ -61,12 +66,22 @@ def _select_matrix_entry(
     registry: Registry,
     profile_id: str,
     resolved_entries: Sequence[ModuleRegistryEntry],
+    *,
+    extra_bundles: Sequence[str] = (),
 ) -> CompatibilityMatrixEntry:
+    """Select the active matrix row for ``(profile_id, sorted(extra_bundles))``.
+
+    See :func:`assembly.registry.matrix_entry_key` for the row identity
+    contract (codex P2 follow-up on MinIO pilot).
+    """
     expected_versions = {
         entry.module_id: entry.module_version for entry in resolved_entries
     }
+    expected_bundles = tuple(sorted(extra_bundles))
     for matrix_entry in registry.compatibility_matrix:
         if matrix_entry.profile_id != profile_id or matrix_entry.status == "deprecated":
+            continue
+        if tuple(matrix_entry.extra_bundles) != expected_bundles:
             continue
 
         matrix_versions = {
@@ -76,8 +91,13 @@ def _select_matrix_entry(
         if matrix_versions == expected_versions:
             return matrix_entry
 
+    extras_suffix = (
+        "" if not expected_bundles
+        else f" (extra_bundles={list(expected_bundles)!r})"
+    )
     raise LookupError(
-        f"No active compatibility matrix entry matches profile {profile_id}"
+        f"No active compatibility matrix entry matches profile "
+        f"{profile_id}{extras_suffix}"
     )
 
 

@@ -394,6 +394,66 @@ def test_freeze_rejects_direct_draft_entry(tmp_path: Path) -> None:
     assert not (project / "version-lock").exists()
 
 
+# ──── Codex P2 follow-up: find_verified_matrix_entry disambiguates by extra_bundles ────
+
+
+_REAL_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+
+def test_find_verified_matrix_entry_disambiguates_by_extra_bundles() -> None:
+    """Stage 5 + MinIO pilot introduces 2 verified full-dev rows:
+    default ``(full-dev, [])`` and ``(full-dev, [minio])``. Before the
+    P2 follow-up, ``find_verified_matrix_entry("full-dev")`` raised
+    "Multiple verified..." because the filter keyed only on
+    profile_id. Now the kwarg disambiguates.
+
+    This test loads the REAL project compatibility-matrix.yaml (3
+    verified rows) rather than a synthetic fixture — the whole point
+    of the fix is that the real matrix works again.
+    """
+    registry = load_all(_REAL_PROJECT_ROOT)
+
+    default = freezer.find_verified_matrix_entry(
+        registry, "full-dev", extra_bundles=()
+    )
+    assert default.profile_id == "full-dev"
+    assert default.extra_bundles == []
+
+    minio = freezer.find_verified_matrix_entry(
+        registry, "full-dev", extra_bundles=("minio",)
+    )
+    assert minio.profile_id == "full-dev"
+    assert minio.extra_bundles == ["minio"]
+
+    # Different rows → different verified_at timestamps (MinIO pilot
+    # stamped fresh; default full-dev stamped at Stage 5 close).
+    # Matrix_digest already proven to differ in
+    # tests/contracts/test_reporting.py.
+    assert default.verified_at != minio.verified_at
+
+
+def test_find_verified_matrix_entry_rejects_nonexistent_extra_bundles_combination() -> None:
+    """A hypothetical ``(full-dev, [grafana])`` combination isn't
+    verified yet — the selector must report that cleanly."""
+    registry = load_all(_REAL_PROJECT_ROOT)
+
+    with pytest.raises(ReleaseFreezeError, match="grafana"):
+        freezer.find_verified_matrix_entry(
+            registry, "full-dev", extra_bundles=("grafana",)
+        )
+
+
+def test_find_verified_matrix_entry_legacy_default_lookup_still_works() -> None:
+    """Callers that don't pass ``extra_bundles`` (``() `` default) still
+    find the default-profile row even when a 2nd verified row exists —
+    ``full-dev + [minio]`` has non-empty extra_bundles so it's filtered
+    out by the empty-tuple default."""
+    registry = load_all(_REAL_PROJECT_ROOT)
+
+    default = freezer.find_verified_matrix_entry(registry, "full-dev")
+    assert default.extra_bundles == []
+
+
 class ReleaseHealthProbe:
     def check(self, *, timeout_sec: float) -> HealthResult:
         return HealthResult(

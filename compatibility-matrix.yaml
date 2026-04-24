@@ -152,21 +152,28 @@
   status: verified
   # Stage 5 + MinIO pilot PASS evidence: real-stack
   # ``run_min_cycle_e2e("full-dev", ..., extra_bundles=["minio"])``
-  # from ``test_e2e_runner_full_dev_with_minio_extra_bundle``
-  # completed at 2026-04-24T06:24:24Z (UTC). Driven against the
-  # 4-service Lite stack PLUS a MinIO container started in a
-  # separate compose project (``docker compose -f
-  # compose/full-dev.yaml --project-name fulldev up -d minio``)
-  # to avoid colliding with the Lite stack's ``compose`` project.
-  # The new ``run_min_cycle_e2e`` ``extra_bundles`` kwarg threads
-  # through render_profile / healthcheck / bootstrap. The new
-  # ``minio-ready`` SocketPortProbe (registered conditionally by
-  # ``probes_builtin.build_builtin_probes`` only when minio appears
-  # in the resolved bundle set) returned ``healthy`` against
-  # 127.0.0.1:9000. Test asserts: extra_bundles parameter landed
-  # (snapshot.enabled_service_bundles includes minio), the
-  # minio-ready probe is present in the persisted health_results,
-  # AND its status is healthy. Compose drift fix landed in same
-  # commit: MinIO healthcheck ``curl -f http://.../minio/health/ready``
-  # → ``mc ready local`` (curl is not in the MinIO image; mc is).
-  verified_at: 2026-04-24T06:24:24Z
+  # from ``test_e2e_runner_full_dev_with_minio_extra_bundle``.
+  # Original PASS recorded at 2026-04-24T06:24:24Z (UTC).
+  # Re-verified at 2026-04-24T06:51:23Z (UTC) **after** the codex P2
+  # follow-up that made matrix row identity
+  # ``(profile_id, sorted(extra_bundles))`` across all selectors +
+  # ``compatibility_context_artifact`` digest. Before the follow-up,
+  # the persisted run's context was bound to the default full-dev
+  # row (selectors keyed on profile_id only). Re-running the test
+  # after the follow-up proved the run now binds to THIS row, so
+  # the timestamp is refreshed — evidence now truthfully belongs to
+  # this identity.
+  #
+  # Driven against the 4-service Lite stack PLUS a MinIO container
+  # started in a separate compose project (``docker compose -f
+  # compose/full-dev.yaml --project-name fulldev up -d minio``) to
+  # avoid colliding with the Lite stack's ``compose`` project. The
+  # ``run_min_cycle_e2e`` ``extra_bundles`` kwarg threads through
+  # render_profile / healthcheck / bootstrap / run_contract_suite.
+  # The new ``minio-ready`` SocketPortProbe (registered conditionally
+  # by ``probes_builtin.build_builtin_probes`` only when minio
+  # appears in the resolved bundle set) returned ``healthy`` against
+  # 127.0.0.1:9000. Compose drift fix landed in the pilot commit:
+  # MinIO healthcheck ``curl -f http://.../minio/health/ready`` →
+  # ``mc ready local`` (curl is not in the MinIO image; mc is).
+  verified_at: 2026-04-24T06:51:23Z

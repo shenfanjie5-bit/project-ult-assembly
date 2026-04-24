@@ -291,46 +291,80 @@ def test_deprecated_matrix_status_is_valid_but_not_current() -> None:
     assert entry.status == "deprecated"
 
 
-def test_compatibility_matrix_lite_local_and_full_dev_both_verified() -> None:
-    """Stage 5 promotion: BOTH `lite-local` and `full-dev` are now
-    `verified` with non-None ``verified_at`` ISO timestamps. The
-    per-profile evidence boundary (codex review #10 strict call from
-    Stage 4 §4.3) is preserved — full-dev required its own
-    ``test_e2e_runner_consumes_audit_eval_fixtures_minimal_cycle_full_dev``
-    PASS, separately recorded from the lite-local PASS.
+def test_compatibility_matrix_verified_rows_keyed_by_profile_and_extra_bundles() -> None:
+    """Stage 5 promoted BOTH lite-local and full-dev; Stage 5 + MinIO
+    pilot added ``(full-dev, [minio])``. Matrix row identity is
+    ``(profile_id, tuple(sorted(extra_bundles)))`` — the P2 codex
+    follow-up that prompted this rewrite.
+
+    Codex P3 finding (pre-follow-up): the previous implementation built
+    ``entries_by_profile = {entry.profile_id: ...}`` which collapsed
+    the default full-dev row and the MinIO row, so the test would pass
+    even if the default row disappeared. This version keys by the
+    canonical tuple and explicitly asserts all 3 keys exist with
+    correct metadata.
 
     Pre-Stage-5 this test was named
     ``test_compatibility_matrix_lite_local_verified_full_dev_still_draft``
-    and asserted ``full_dev.status == "draft" and verified_at is None``.
+    and asserted full_dev stayed draft.
     """
+    from assembly.registry import matrix_entry_key
+
     raw = yaml.safe_load(MATRIX_YAML.read_text(encoding="utf-8"))
     entries = [CompatibilityMatrixEntry.model_validate(item) for item in raw]
-    entries_by_profile = {entry.profile_id: entry for entry in entries}
+    entries_by_key = {matrix_entry_key(entry): entry for entry in entries}
 
-    assert set(entries_by_profile) == {"lite-local", "full-dev"}
+    # Every row must survive the key-by-tuple index — no collision.
+    assert len(entries_by_key) == len(entries), (
+        "matrix rows collided on matrix_entry_key — check for duplicate "
+        f"(profile_id, extra_bundles) combinations in {MATRIX_YAML}"
+    )
 
-    lite_local = entries_by_profile["lite-local"]
-    assert lite_local.status == "verified"
-    assert lite_local.verified_at is not None
+    expected_keys = {
+        ("lite-local", ()),
+        ("full-dev", ()),
+        ("full-dev", ("minio",)),
+    }
+    assert set(entries_by_key) == expected_keys, (
+        f"unexpected matrix row keys: got {sorted(entries_by_key)}, "
+        f"expected {sorted(expected_keys)}"
+    )
 
-    full_dev = entries_by_profile["full-dev"]
-    assert full_dev.status == "verified"
-    assert full_dev.verified_at is not None
-    #: At Stage 4 §4.1.5 the matrix ``module_set`` drops the two frozen slots
-    #: (``feature-store``, ``stream-layer``) from both profile entries.
-    #: Those modules remain declared in the registry with
-    #: ``supported_profiles=[lite-local, full-dev]`` as a forward declaration
-    #: of compatibility for their future P7/P11 enablement, but are not
-    #: part of the verified combination this round. See master plan §1.1
-    #: frozen slots + ``profiles/lite-local.yaml`` + ``profiles/full-dev.yaml``
-    #: where their ``enabled_modules`` entries were also removed.
+    # All 3 rows must be verified with a non-None timestamp.
+    for key, entry in entries_by_key.items():
+        assert entry.status == "verified", (
+            f"matrix row {key} is {entry.status!r} (expected 'verified')"
+        )
+        assert entry.verified_at is not None, (
+            f"matrix row {key} has no verified_at"
+        )
+
+    # Stage 4 §4.1.5 frozen slots (feature-store, stream-layer) stay
+    # OUT of every matrix row's module_set, even when the row opts-in
+    # an extra bundle.
     frozen_slots = {"feature-store", "stream-layer"}
-    assert {
-        module.module_id for module in entries_by_profile["lite-local"].module_set
-    } == EXPECTED_MODULE_IDS - frozen_slots
-    assert {
-        module.module_id for module in entries_by_profile["full-dev"].module_set
-    } == EXPECTED_MODULE_IDS - frozen_slots
+    for key, entry in entries_by_key.items():
+        module_ids = {module.module_id for module in entry.module_set}
+        assert module_ids == EXPECTED_MODULE_IDS - frozen_slots, (
+            f"matrix row {key} module_set drifted from the Stage 4 §4.1.5 "
+            f"frozen-slot-excluded baseline"
+        )
+
+    # MinIO row specifically: same module_set as default full-dev (the
+    # documented equivalence — optional bundles are infra slots, not
+    # contract-surface changes).
+    default_full_dev = entries_by_key[("full-dev", ())]
+    minio_full_dev = entries_by_key[("full-dev", ("minio",))]
+    default_versions = sorted(
+        (m.module_id, m.module_version) for m in default_full_dev.module_set
+    )
+    minio_versions = sorted(
+        (m.module_id, m.module_version) for m in minio_full_dev.module_set
+    )
+    assert default_versions == minio_versions, (
+        "full-dev default and full-dev+minio rows must share the same "
+        "module_set (optional bundles do not change the contract surface)"
+    )
 
 
 def test_full_dev_supported_profiles_are_explicit_for_feature_and_stream() -> None:

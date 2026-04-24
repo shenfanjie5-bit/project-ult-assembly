@@ -72,8 +72,17 @@ class CompatRunner:
         env: Mapping[str, str] | None = None,
         timeout_sec: float = 30.0,
         promote: bool = False,
+        extra_bundles: Sequence[str] | None = None,
     ) -> CompatibilityReport:
-        """Resolve registry/profile facts, run checks, and persist a report."""
+        """Resolve registry/profile facts, run checks, and persist a report.
+
+        ``extra_bundles`` (codex P2 follow-up, MinIO pilot) routes the
+        contract suite to a per-optional-bundle matrix row. Both the
+        default full-dev row and ``full-dev + extra_bundles=[minio]``
+        declare ``required_tests: [contract-suite, smoke, min-cycle-e2e]``
+        — so the contract suite must be able to target either row, not
+        just the first matching profile.
+        """
 
         started_at = datetime.now(timezone.utc)
         registry = load_all(registry_root)
@@ -87,10 +96,16 @@ class CompatRunner:
             profiles_root=profiles_root,
             bundles_root=bundles_root,
             env=env,
+            extra_bundles=extra_bundles,
         ).model_copy(
             update={"enabled_modules": [entry.module_id for entry in resolved_entries]}
         )
-        matrix_entry = _select_matrix_entry(registry, profile_id, resolved_entries)
+        matrix_entry = _select_matrix_entry(
+            registry,
+            profile_id,
+            resolved_entries,
+            extra_bundles=extra_bundles or (),
+        )
         context = CompatibilityCheckContext(
             profile_id=profile_id,
             snapshot=snapshot,
@@ -457,12 +472,22 @@ def _select_matrix_entry(
     registry: Registry,
     profile_id: str,
     resolved_entries: Sequence[ModuleRegistryEntry],
+    *,
+    extra_bundles: Sequence[str] = (),
 ) -> CompatibilityMatrixEntry:
+    """Select the active matrix row for ``(profile_id, sorted(extra_bundles))``.
+
+    See :func:`assembly.registry.matrix_entry_key` for the row identity
+    contract (codex P2 follow-up on MinIO pilot).
+    """
     expected_versions = {
         entry.module_id: entry.module_version for entry in resolved_entries
     }
+    expected_bundles = tuple(sorted(extra_bundles))
     for matrix_entry in registry.compatibility_matrix:
         if matrix_entry.profile_id != profile_id or matrix_entry.status == "deprecated":
+            continue
+        if tuple(matrix_entry.extra_bundles) != expected_bundles:
             continue
 
         matrix_versions = {
@@ -472,8 +497,13 @@ def _select_matrix_entry(
         if matrix_versions == expected_versions:
             return matrix_entry
 
+    extras_suffix = (
+        "" if not expected_bundles
+        else f" (extra_bundles={list(expected_bundles)!r})"
+    )
     raise CompatibilityError(
-        f"No active compatibility matrix entry matches profile {profile_id}"
+        f"No active compatibility matrix entry matches profile "
+        f"{profile_id}{extras_suffix}"
     )
 
 
@@ -681,8 +711,19 @@ def _find_raw_matrix_entry(
 
 
 def _matrix_entry_key(entry: CompatibilityMatrixEntry) -> tuple[object, ...]:
+    """Local promotion-lookup key.
+
+    Extended at the codex P2 follow-up (MinIO pilot) to include
+    ``extra_bundles`` so two otherwise identical rows with different
+    opt-in bundles don't collide at promotion lookup time. The public
+    canonical key is :func:`assembly.registry.matrix_entry_key`; this
+    local helper additionally pins matrix_version + contract_version
+    + module_set so in-place matrix-file updates (write-then-reload)
+    target the exact row.
+    """
     return (
         entry.profile_id,
+        tuple(entry.extra_bundles),
         entry.matrix_version,
         entry.contract_version,
         tuple((module.module_id, module.module_version) for module in entry.module_set),

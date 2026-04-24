@@ -74,23 +74,40 @@ def find_verified_matrix_entry(
     profile_id: str,
     *,
     profiles_root: Path = Path("profiles"),
+    extra_bundles: Sequence[str] = (),
 ) -> CompatibilityMatrixEntry:
-    """Return the unique verified matrix entry matching a resolved profile."""
+    """Return the unique verified matrix entry matching a resolved profile.
 
+    Codex P2 follow-up (MinIO pilot): filter on
+    ``(profile_id, sorted(extra_bundles))``. Callers that want the
+    default profile row pass ``extra_bundles=()`` (or omit the kwarg).
+    With two verified full-dev rows (default + minio), the old
+    profile-only filter raised "Multiple verified..." — now each row
+    is addressable by its opt-in bundles.
+    """
+
+    expected_bundles = tuple(sorted(extra_bundles))
     verified_entries = [
         entry
         for entry in registry.compatibility_matrix
-        if entry.profile_id == profile_id and entry.status == "verified"
+        if entry.profile_id == profile_id
+        and entry.status == "verified"
+        and tuple(entry.extra_bundles) == expected_bundles
     ]
+    extras_suffix = (
+        "" if not expected_bundles
+        else f" (extra_bundles={list(expected_bundles)!r})"
+    )
     if not verified_entries:
         raise ReleaseFreezeError(
-            f"No verified compatibility matrix entry found for profile {profile_id}"
+            f"No verified compatibility matrix entry found for profile "
+            f"{profile_id}{extras_suffix}"
         )
     if len(verified_entries) > 1:
         versions = ", ".join(entry.matrix_version for entry in verified_entries)
         raise ReleaseFreezeError(
             "Multiple verified compatibility matrix entries found for profile "
-            f"{profile_id}: {versions}"
+            f"{profile_id}{extras_suffix}: {versions}"
         )
 
     matrix_entry = verified_entries[0]
@@ -211,8 +228,16 @@ def freeze_profile(
     reports_root: Path = Path("reports"),
     out_dir: Path = Path("version-lock"),
     now: datetime | None = None,
+    extra_bundles: Sequence[str] = (),
 ) -> VersionLock:
-    """Load registry artifacts and freeze the verified entry for a profile."""
+    """Load registry artifacts and freeze the verified entry for a profile.
+
+    ``extra_bundles`` (codex P2 follow-up): select the verified row for
+    ``(profile_id, sorted(extra_bundles))``. With the MinIO pilot now
+    landed, callers that want to freeze the default full-dev row pass
+    ``extra_bundles=()``; callers that want the MinIO combination pass
+    ``extra_bundles=("minio",)``.
+    """
 
     try:
         registry = load_all(registry_root)
@@ -222,6 +247,7 @@ def freeze_profile(
         registry,
         profile_id,
         profiles_root=profiles_root,
+        extra_bundles=extra_bundles,
     )
     return freeze(
         registry,

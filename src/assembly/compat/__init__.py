@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Mapping
+from typing import Mapping, Sequence
 
 from assembly.compat.errors import CompatibilityError, CompatibilityPromotionError
 from assembly.compat.runner import CompatRunner, promote_matrix_entry
@@ -25,8 +25,14 @@ def run_contract_suite(
     env: Mapping[str, str] | None = None,
     timeout_sec: float = 30.0,
     promote: bool = False,
+    extra_bundles: Sequence[str] | None = None,
 ) -> CompatibilityReport:
-    """Resolve a profile and run the contract compatibility suite."""
+    """Resolve a profile and run the contract compatibility suite.
+
+    ``extra_bundles`` (codex P2 follow-up, MinIO pilot): route the
+    contract suite to a per-optional-bundle matrix row. Default
+    behavior (``None``/empty) still targets the default profile row.
+    """
 
     return CompatRunner().run(
         profile_id,
@@ -37,6 +43,7 @@ def run_contract_suite(
         env=env,
         timeout_sec=timeout_sec,
         promote=promote,
+        extra_bundles=extra_bundles,
     )
 
 
