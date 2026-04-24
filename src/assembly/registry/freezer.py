@@ -5,6 +5,7 @@ from __future__ import annotations
 import fcntl
 import json
 import os
+import re
 import tempfile
 from contextlib import contextmanager
 from datetime import datetime, timezone
@@ -12,7 +13,7 @@ from pathlib import Path
 from typing import Iterator, Literal, Sequence
 
 import yaml
-from pydantic import BaseModel, ConfigDict, ValidationError
+from pydantic import BaseModel, ConfigDict, ValidationError, field_validator
 
 from assembly.contracts.models import IntegrationRunRecord
 from assembly.contracts.reporting import record_matches_matrix_context
@@ -58,6 +59,7 @@ class VersionLock(BaseModel):
 
     lock_version: str
     profile_id: str
+    extra_bundles: list[str] = []
     matrix_version: str
     contract_version: str
     matrix_verified_at: datetime
@@ -67,6 +69,38 @@ class VersionLock(BaseModel):
     supporting_runs: list[VersionLockRunRef]
     source_artifacts: dict[str, str]
     lock_file: Path
+
+    @field_validator("extra_bundles", mode="before")
+    @classmethod
+    def _normalize_extra_bundles(cls, value: object) -> list[str]:
+        if value is None:
+            return []
+        if not isinstance(value, (list, tuple)):
+            raise ValueError(
+                f"extra_bundles must be a list, got {type(value).__name__}"
+            )
+
+        normalized: list[str] = []
+        for item in value:
+            if not isinstance(item, str):
+                raise ValueError(
+                    "extra_bundles entries must be strings, got "
+                    f"{type(item).__name__}: {item!r}"
+                )
+            stripped = item.strip()
+            if not stripped:
+                raise ValueError(
+                    "extra_bundles entries must be non-empty strings"
+                )
+            normalized.append(stripped)
+
+        if len(set(normalized)) != len(normalized):
+            duplicates = sorted({x for x in normalized if normalized.count(x) > 1})
+            raise ValueError(
+                f"extra_bundles must not contain duplicates; got {duplicates}"
+            )
+
+        return sorted(normalized)
 
 
 def find_verified_matrix_entry(
@@ -200,12 +234,15 @@ def freeze(
         profile_id=matrix_entry.profile_id,
     )
     frozen_at = _utc_datetime(now)
+    extra_bundles = list(matrix_entry.extra_bundles)
     lock_file = Path(out_dir) / (
-        f"{frozen_at.date().isoformat()}-{matrix_entry.profile_id}.yaml"
+        f"{frozen_at.date().isoformat()}-"
+        f"{_lock_profile_key(matrix_entry.profile_id, extra_bundles)}.yaml"
     )
     lock = VersionLock(
         lock_version="1",
         profile_id=matrix_entry.profile_id,
+        extra_bundles=extra_bundles,
         matrix_version=matrix_entry.matrix_version,
         contract_version=matrix_entry.contract_version,
         matrix_verified_at=matrix_entry.verified_at,
@@ -437,6 +474,16 @@ def _source_artifacts(registry: Registry) -> dict[str, str]:
         "module_registry_yaml": str(root / "module-registry.yaml"),
         "compatibility_matrix_yaml": str(root / "compatibility-matrix.yaml"),
     }
+
+
+def _lock_profile_key(profile_id: str, extra_bundles: Sequence[str]) -> str:
+    components = [_filename_component(profile_id)]
+    components.extend(_filename_component(bundle) for bundle in extra_bundles)
+    return components[0] if len(components) == 1 else "+".join(components)
+
+
+def _filename_component(value: str) -> str:
+    return re.sub(r"[^A-Za-z0-9._-]+", "-", value.strip()).strip("-") or "bundle"
 
 
 def _write_lock(lock: VersionLock, lock_file: Path) -> None:

@@ -46,6 +46,7 @@ def test_freeze_profile_writes_stable_version_lock(tmp_path: Path) -> None:
     assert list(payload) == [
         "lock_version",
         "profile_id",
+        "extra_bundles",
         "matrix_version",
         "contract_version",
         "matrix_verified_at",
@@ -57,6 +58,7 @@ def test_freeze_profile_writes_stable_version_lock(tmp_path: Path) -> None:
         "lock_file",
     ]
     assert payload["profile_id"] == "lite-local"
+    assert payload["extra_bundles"] == []
     assert payload["matrix_version"] == "0.1.0"
     assert payload["contract_version"] == "v0.0.0"
     assert payload["required_tests"] == [
@@ -93,6 +95,44 @@ def test_freeze_profile_writes_stable_version_lock(tmp_path: Path) -> None:
     )
     assert second.lock_file == lock.lock_file
     assert second.lock_file.read_text(encoding="utf-8") == first_text
+
+
+def test_freeze_profile_extra_bundles_writes_distinct_lock_files_and_payloads(
+    tmp_path: Path,
+) -> None:
+    project = _write_full_dev_bundle_project(tmp_path)
+    _write_required_run_records(project, matrix_index=0)
+    _write_required_run_records(project, matrix_index=1)
+
+    default = freeze_profile(
+        "full-dev",
+        registry_root=project,
+        reports_root=project / "reports",
+        out_dir=project / "version-lock",
+        now=_NOW,
+    )
+    minio = freeze_profile(
+        "full-dev",
+        registry_root=project,
+        reports_root=project / "reports",
+        out_dir=project / "version-lock",
+        now=_NOW,
+        extra_bundles=["minio"],
+    )
+
+    assert default.lock_file == project / "version-lock/2026-04-18-full-dev.yaml"
+    assert minio.lock_file == project / "version-lock/2026-04-18-full-dev+minio.yaml"
+    assert default.lock_file != minio.lock_file
+
+    default_payload = yaml.safe_load(default.lock_file.read_text(encoding="utf-8"))
+    minio_payload = yaml.safe_load(minio.lock_file.read_text(encoding="utf-8"))
+    assert default.extra_bundles == []
+    assert minio.extra_bundles == ["minio"]
+    assert default_payload["profile_id"] == "full-dev"
+    assert default_payload["extra_bundles"] == []
+    assert minio_payload["profile_id"] == "full-dev"
+    assert minio_payload["extra_bundles"] == ["minio"]
+    assert minio_payload["matrix_version"] == "0.2.0"
 
 
 def test_freeze_profile_accepts_real_runner_records(
@@ -755,6 +795,69 @@ def _write_project(
     return root
 
 
+def _write_full_dev_bundle_project(root: Path) -> Path:
+    modules = [
+        _module_data(
+            "app",
+            integration_status="verified",
+            supported_profiles=["full-dev"],
+        )
+    ]
+    (root / "profiles").mkdir(parents=True)
+    (root / "profiles/full-dev.yaml").write_text(
+        yaml.safe_dump(
+            {
+                "profile_id": "full-dev",
+                "mode": "full",
+                "enabled_modules": ["app"],
+                "enabled_service_bundles": [],
+                "required_env_keys": [],
+                "optional_env_keys": [],
+                "storage_backends": {},
+                "resource_expectation": {
+                    "cpu_cores": 1,
+                    "memory_gb": 1,
+                    "disk_gb": 1,
+                },
+                "max_long_running_daemons": 6,
+                "notes": "test full-dev profile",
+            },
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+    (root / "module-registry.yaml").write_text(
+        yaml.safe_dump(modules, sort_keys=False),
+        encoding="utf-8",
+    )
+    (root / "MODULE_REGISTRY.md").write_text(
+        _registry_markdown(modules),
+        encoding="utf-8",
+    )
+    (root / "compatibility-matrix.yaml").write_text(
+        yaml.safe_dump(
+            [
+                _matrix_entry_data(
+                    profile_id="full-dev",
+                    status="verified",
+                    verified_at=_VERIFIED_AT,
+                    matrix_version="0.1.0",
+                ),
+                _matrix_entry_data(
+                    profile_id="full-dev",
+                    status="verified",
+                    verified_at=_VERIFIED_AT,
+                    matrix_version="0.2.0",
+                    extra_bundles=["minio"],
+                ),
+            ],
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+    return root
+
+
 def _matrix_entry_data(
     *,
     profile_id: str,
@@ -762,8 +865,9 @@ def _matrix_entry_data(
     verified_at: datetime | None,
     matrix_version: str = "0.1.0",
     module_set: list[dict[str, str]] | None = None,
+    extra_bundles: list[str] | None = None,
 ) -> dict[str, object]:
-    return {
+    entry = {
         "matrix_version": matrix_version,
         "profile_id": profile_id,
         "module_set": module_set
@@ -775,9 +879,17 @@ def _matrix_entry_data(
         if verified_at is None
         else verified_at.isoformat().replace("+00:00", "Z"),
     }
+    if extra_bundles is not None:
+        entry["extra_bundles"] = extra_bundles
+    return entry
 
 
-def _module_data(module_id: str, *, integration_status: str) -> dict[str, object]:
+def _module_data(
+    module_id: str,
+    *,
+    integration_status: str,
+    supported_profiles: list[str] | None = None,
+) -> dict[str, object]:
     return {
         "module_id": module_id,
         "module_version": "0.1.0",
@@ -787,7 +899,7 @@ def _module_data(module_id: str, *, integration_status: str) -> dict[str, object
         "downstream_modules": [],
         "public_entrypoints": [],
         "depends_on": [],
-        "supported_profiles": ["lite-local"],
+        "supported_profiles": supported_profiles or ["lite-local"],
         "integration_status": integration_status,
         "last_smoke_result": None,
         "notes": "test module",
@@ -846,22 +958,28 @@ def _write_required_run_records(
     project: Path,
     *,
     include_e2e: bool = True,
+    matrix_index: int = 0,
 ) -> None:
-    matrix_entry = _matrix_entry(project)
-    contract_path = project / "reports/contract/contract-success.json"
+    matrix_entry = _matrix_entry(project, index=matrix_index)
+    suffix = (
+        ""
+        if not matrix_entry.extra_bundles
+        else "-" + "-".join(matrix_entry.extra_bundles)
+    )
+    contract_path = project / f"reports/contract/contract-success{suffix}.json"
     _write_run_record(
         contract_path,
         "contract",
         matrix_entry,
     )
     _write_run_record(
-        project / "reports/smoke/smoke-success.json",
+        project / f"reports/smoke/smoke-success{suffix}.json",
         "smoke",
         matrix_entry,
     )
     if include_e2e:
         _write_run_record(
-            project / "reports/e2e/e2e-success.json",
+            project / f"reports/e2e/e2e-success{suffix}.json",
             "e2e",
             matrix_entry,
             nested=True,
@@ -870,9 +988,9 @@ def _write_required_run_records(
     assert matrix_entry.status == "verified"
 
 
-def _matrix_entry(project: Path) -> CompatibilityMatrixEntry:
+def _matrix_entry(project: Path, *, index: int = 0) -> CompatibilityMatrixEntry:
     return CompatibilityMatrixEntry.model_validate(
-        yaml.safe_load((project / "compatibility-matrix.yaml").read_text())[0]
+        yaml.safe_load((project / "compatibility-matrix.yaml").read_text())[index]
     )
 
 
@@ -902,7 +1020,7 @@ def _run_record(
 ) -> IntegrationRunRecord:
     return IntegrationRunRecord(
         run_id=f"{run_type}-success",
-        profile_id="lite-local",
+        profile_id=matrix_entry.profile_id,
         run_type=run_type,  # type: ignore[arg-type]
         started_at=_NOW,
         finished_at=_NOW,

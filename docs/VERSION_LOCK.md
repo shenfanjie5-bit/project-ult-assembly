@@ -12,12 +12,19 @@ Each generated lockfile is named:
 
 ```text
 version-lock/<YYYY-MM-DD>-<profile_id>.yaml
+version-lock/<YYYY-MM-DD>-<profile_id>+<extra_bundle>[+<extra_bundle>].yaml
 ```
+
+The default profile row keeps the short filename. Optional-bundle rows append a
+stable sorted bundle suffix, for example
+`version-lock/2026-04-18-full-dev+minio.yaml`.
 
 The YAML fields are:
 
 - `lock_version`: lockfile schema version for release-freeze artifacts.
 - `profile_id`: frozen profile.
+- `extra_bundles`: sorted optional bundle names for the frozen matrix row;
+  `[]` means the default profile row.
 - `matrix_version`: verified compatibility matrix version.
 - `contract_version`: contract version declared by the matrix entry.
 - `matrix_verified_at`: timestamp from the verified matrix entry.

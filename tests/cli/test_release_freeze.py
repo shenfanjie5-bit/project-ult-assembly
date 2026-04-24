@@ -305,11 +305,46 @@ def test_release_freeze_cli_uses_real_executor_for_lock_and_failure(
     assert not failing_out_dir.exists()
 
 
+def test_release_freeze_cli_real_executor_extra_bundles_writes_optional_lock(
+    tmp_path: Path,
+) -> None:
+    project = _write_release_bundle_project(tmp_path / "bundle-project")
+    out_dir = tmp_path / "locks"
+
+    result = CliRunner().invoke(
+        entrypoint,
+        [
+            "release-freeze",
+            "--profile",
+            "full-dev",
+            "--registry-root",
+            str(project),
+            "--profiles-dir",
+            str(project / "profiles"),
+            "--reports-root",
+            str(project / "reports"),
+            "--out",
+            str(out_dir),
+            "--extra-bundles",
+            "minio",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    lock_path = _lock_path_from_output(result.output)
+    assert lock_path.name.endswith("-full-dev+minio.yaml")
+    payload = yaml.safe_load(lock_path.read_text(encoding="utf-8"))
+    assert payload["profile_id"] == "full-dev"
+    assert payload["extra_bundles"] == ["minio"]
+    assert payload["matrix_version"] == "0.2.0"
+
+
 def _version_lock(profile_id: str, lock_file: Path) -> VersionLock:
     now = datetime(2026, 4, 18, 12, 30, tzinfo=timezone.utc)
     return VersionLock(
         lock_version="1",
         profile_id=profile_id,
+        extra_bundles=[],
         matrix_version="0.1.0",
         contract_version="v0.0.0",
         matrix_verified_at=now,
@@ -398,7 +433,89 @@ def _write_release_project(root: Path, *, include_contract: bool) -> Path:
     return root
 
 
-def _release_module() -> dict[str, object]:
+def _write_release_bundle_project(root: Path) -> Path:
+    root.mkdir(parents=True)
+    modules = [_release_module(supported_profiles=["full-dev"])]
+    matrix_entries = [
+        CompatibilityMatrixEntry.model_validate(
+            {
+                "matrix_version": "0.1.0",
+                "profile_id": "full-dev",
+                "module_set": [{"module_id": "app", "module_version": "0.1.0"}],
+                "contract_version": "v0.0.0",
+                "required_tests": ["contract-suite"],
+                "status": "verified",
+                "verified_at": "2026-04-17T09:00:00Z",
+            }
+        ),
+        CompatibilityMatrixEntry.model_validate(
+            {
+                "matrix_version": "0.2.0",
+                "profile_id": "full-dev",
+                "extra_bundles": ["minio"],
+                "module_set": [{"module_id": "app", "module_version": "0.1.0"}],
+                "contract_version": "v0.0.0",
+                "required_tests": ["contract-suite"],
+                "status": "verified",
+                "verified_at": "2026-04-17T09:00:00Z",
+            }
+        ),
+    ]
+
+    profiles_root = root / "profiles"
+    profiles_root.mkdir()
+    (profiles_root / "full-dev.yaml").write_text(
+        yaml.safe_dump(
+            {
+                "profile_id": "full-dev",
+                "mode": "full",
+                "enabled_modules": ["app"],
+                "enabled_service_bundles": [],
+                "required_env_keys": [],
+                "optional_env_keys": [],
+                "storage_backends": {},
+                "resource_expectation": {
+                    "cpu_cores": 1,
+                    "memory_gb": 1,
+                    "disk_gb": 1,
+                },
+                "max_long_running_daemons": 6,
+                "notes": "release cli optional bundle profile",
+            },
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+    (root / "module-registry.yaml").write_text(
+        yaml.safe_dump(modules, sort_keys=False),
+        encoding="utf-8",
+    )
+    (root / "MODULE_REGISTRY.md").write_text(
+        _release_registry_markdown(modules),
+        encoding="utf-8",
+    )
+    (root / "compatibility-matrix.yaml").write_text(
+        yaml.safe_dump(
+            [entry.model_dump(mode="json") for entry in matrix_entries],
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+    _write_contract_record(
+        root / "reports/contract/contract-success.json",
+        matrix_entries[0],
+    )
+    _write_contract_record(
+        root / "reports/contract/contract-success-minio.json",
+        matrix_entries[1],
+    )
+    return root
+
+
+def _release_module(
+    *,
+    supported_profiles: list[str] | None = None,
+) -> dict[str, object]:
     return {
         "module_id": "app",
         "module_version": "0.1.0",
@@ -408,7 +525,7 @@ def _release_module() -> dict[str, object]:
         "downstream_modules": [],
         "public_entrypoints": [],
         "depends_on": [],
-        "supported_profiles": ["lite-local"],
+        "supported_profiles": supported_profiles or ["lite-local"],
         "integration_status": "verified",
         "last_smoke_result": None,
         "notes": "release cli test module",
@@ -422,7 +539,7 @@ def _write_contract_record(
     now = datetime(2026, 4, 18, 12, 30, tzinfo=timezone.utc)
     record = IntegrationRunRecord(
         run_id="contract-success",
-        profile_id="lite-local",
+        profile_id=matrix_entry.profile_id,
         run_type="contract",
         started_at=now,
         finished_at=now,
