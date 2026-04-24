@@ -610,6 +610,234 @@ def test_e2e_cli_maps_failed_record_to_exit_code_and_report(
     assert f"report={tmp_path / 'fake-e2e.json'}" in result.output
 
 
+# ──── Codex P2 follow-up: --extra-bundles forwarding on contract-suite + e2e ────
+#
+# The Python APIs gained ``extra_bundles`` kwargs in the matrix-identity
+# follow-up, but operators and any HTTP wrapper hit the CLI first. These
+# tests lock the forwarding contract: `--extra-bundles` arrives as a
+# ``list[str]`` in the executor call.
+
+
+def test_contract_suite_cli_forwards_extra_bundles(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    captured: dict[str, object] = {}
+
+    def fake_contract_suite(profile_id: str, **kwargs: object) -> CompatibilityReport:
+        captured["profile_id"] = profile_id
+        captured["extra_bundles"] = kwargs.get("extra_bundles")
+        reports_dir = kwargs["reports_dir"]
+        report_path = reports_dir / "fake-contract.json"
+        report_path.parent.mkdir(parents=True, exist_ok=True)
+        now = datetime.now(timezone.utc)
+        record = IntegrationRunRecord(
+            run_id="fake-contract",
+            profile_id=profile_id,
+            run_type="contract",
+            started_at=now,
+            finished_at=now,
+            status="success",
+            artifacts=[{"kind": "contract_report", "path": str(report_path)}],
+            failing_modules=[],
+            summary="ok",
+        )
+        report = CompatibilityReport(
+            run_record=record,
+            checks=[],
+            matrix_version="0.1.0",
+            promoted=False,
+            report_path=report_path,
+        )
+        report_path.write_text(report.model_dump_json(), encoding="utf-8")
+        return report
+
+    monkeypatch.setattr(main, "execute_contract_suite", fake_contract_suite)
+
+    result = CliRunner().invoke(
+        entrypoint,
+        [
+            "contract-suite",
+            "--profile",
+            "full-dev",
+            "--reports-dir",
+            str(tmp_path),
+            "--extra-bundles",
+            "minio",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert captured["profile_id"] == "full-dev"
+    assert captured["extra_bundles"] == ["minio"]
+
+
+def test_contract_suite_cli_default_extra_bundles_is_empty_list(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    captured: dict[str, object] = {}
+
+    def fake_contract_suite(profile_id: str, **kwargs: object) -> CompatibilityReport:
+        captured["extra_bundles"] = kwargs.get("extra_bundles")
+        reports_dir = kwargs["reports_dir"]
+        report_path = reports_dir / "fake-contract.json"
+        report_path.parent.mkdir(parents=True, exist_ok=True)
+        now = datetime.now(timezone.utc)
+        record = IntegrationRunRecord(
+            run_id="fake-contract",
+            profile_id=profile_id,
+            run_type="contract",
+            started_at=now,
+            finished_at=now,
+            status="success",
+            artifacts=[{"kind": "contract_report", "path": str(report_path)}],
+            failing_modules=[],
+            summary="ok",
+        )
+        report = CompatibilityReport(
+            run_record=record,
+            checks=[],
+            matrix_version="0.1.0",
+            promoted=False,
+            report_path=report_path,
+        )
+        report_path.write_text(report.model_dump_json(), encoding="utf-8")
+        return report
+
+    monkeypatch.setattr(main, "execute_contract_suite", fake_contract_suite)
+
+    result = CliRunner().invoke(
+        entrypoint,
+        [
+            "contract-suite",
+            "--profile",
+            "full-dev",
+            "--reports-dir",
+            str(tmp_path),
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert captured["extra_bundles"] == []
+
+
+def test_contract_suite_cli_rejects_duplicate_extra_bundles(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    def fake_contract_suite(profile_id: str, **kwargs: object) -> CompatibilityReport:
+        raise AssertionError("contract suite should not run when parse fails")
+
+    monkeypatch.setattr(main, "execute_contract_suite", fake_contract_suite)
+
+    result = CliRunner().invoke(
+        entrypoint,
+        [
+            "contract-suite",
+            "--profile",
+            "full-dev",
+            "--reports-dir",
+            str(tmp_path),
+            "--extra-bundles",
+            "minio,minio",
+        ],
+    )
+
+    assert result.exit_code != 0
+    assert "duplicate bundle names" in result.output
+
+
+def test_e2e_cli_forwards_extra_bundles(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    captured: dict[str, object] = {}
+
+    def fake_e2e(profile_id: str, **kwargs: object) -> IntegrationRunRecord:
+        captured["profile_id"] = profile_id
+        captured["extra_bundles"] = kwargs.get("extra_bundles")
+        reports_dir = kwargs["reports_dir"]
+        report_path = reports_dir / "fake-e2e.json"
+        report_path.parent.mkdir(parents=True, exist_ok=True)
+        report_path.write_text("{}\n", encoding="utf-8")
+        now = datetime.now(timezone.utc)
+        return IntegrationRunRecord(
+            run_id="fake-e2e-minio",
+            profile_id=profile_id,
+            run_type="e2e",
+            started_at=now,
+            finished_at=now,
+            status="success",
+            artifacts=[{"kind": "e2e_report", "path": str(report_path)}],
+            failing_modules=[],
+            summary="ok",
+        )
+
+    monkeypatch.setattr(main, "execute_e2e", fake_e2e)
+
+    result = CliRunner().invoke(
+        entrypoint,
+        [
+            "e2e",
+            "--profile",
+            "full-dev",
+            "--reports-dir",
+            str(tmp_path),
+            "--skip-bootstrap",
+            "--extra-bundles",
+            "minio",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert captured["profile_id"] == "full-dev"
+    assert captured["extra_bundles"] == ["minio"]
+
+
+def test_e2e_cli_default_extra_bundles_is_empty_list(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    captured: dict[str, object] = {}
+
+    def fake_e2e(profile_id: str, **kwargs: object) -> IntegrationRunRecord:
+        captured["extra_bundles"] = kwargs.get("extra_bundles")
+        reports_dir = kwargs["reports_dir"]
+        report_path = reports_dir / "fake-e2e.json"
+        report_path.parent.mkdir(parents=True, exist_ok=True)
+        report_path.write_text("{}\n", encoding="utf-8")
+        now = datetime.now(timezone.utc)
+        return IntegrationRunRecord(
+            run_id="fake-e2e",
+            profile_id=profile_id,
+            run_type="e2e",
+            started_at=now,
+            finished_at=now,
+            status="success",
+            artifacts=[{"kind": "e2e_report", "path": str(report_path)}],
+            failing_modules=[],
+            summary="ok",
+        )
+
+    monkeypatch.setattr(main, "execute_e2e", fake_e2e)
+
+    result = CliRunner().invoke(
+        entrypoint,
+        [
+            "e2e",
+            "--profile",
+            "full-dev",
+            "--reports-dir",
+            str(tmp_path),
+            "--skip-bootstrap",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert captured["extra_bundles"] == []
+
+
 def test_bootstrap_maps_runner_error_to_nonzero_exit(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

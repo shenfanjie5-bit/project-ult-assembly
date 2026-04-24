@@ -43,13 +43,22 @@ def run_min_cycle_e2e(
 
     ``extra_bundles`` opt-in to full-dev optional service bundles (MinIO,
     Grafana, Superset, Temporal, Feast, Kafka-Flink). The list is threaded
-    through to ``render_profile`` / ``healthcheck`` / ``bootstrap`` so the
-    resolver appends these bundles to ``enabled_service_bundles``,
-    healthcheck aggregator sees their probes, and bootstrap plan includes
-    them in startup_order. Only valid for profiles whose bundle declares
-    ``required_profiles: [<this profile>]`` (currently ``full-dev`` only).
-    ``run_contract_suite`` is intentionally NOT threaded — optional bundles
-    are infra slots, not contract-surface changes.
+    through to ``render_profile`` / ``healthcheck`` / ``bootstrap`` /
+    ``run_contract_suite`` so the resolver appends these bundles to
+    ``enabled_service_bundles``, the healthcheck aggregator sees their
+    probes, the bootstrap plan includes them in startup_order, and the
+    preflight contract suite binds to the correct
+    ``(profile_id, sorted(extra_bundles))`` matrix row. Only valid for
+    profiles whose bundle declares ``required_profiles: [<this profile>]``
+    (currently ``full-dev`` only).
+
+    Codex P2 follow-up (matrix-identity fix): before that round,
+    ``run_contract_suite`` was NOT threaded here — the assumption was
+    "bundles are infra, not contract surface". Codex pointed out the
+    per-optional-bundle matrix row declares the same ``required_tests``
+    list including ``contract-suite``, so threading is required for the
+    contract preflight's ``compatibility_context`` artifact to bind to
+    the right row.
     """
 
     return E2ERunner().run(

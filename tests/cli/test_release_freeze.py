@@ -146,7 +146,96 @@ def test_release_freeze_passes_path_options_to_executor(
         "profiles_root": profiles_root,
         "reports_root": reports_root,
         "out_dir": out_dir,
+        # Codex P2 follow-up: release-freeze CLI now forwards
+        # ``--extra-bundles`` (default = empty tuple = default profile row).
+        "extra_bundles": (),
     }
+
+
+# ──── Codex P2 follow-up: --extra-bundles forwarding on release-freeze ────
+
+
+def test_release_freeze_cli_forwards_extra_bundles(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Operators must be able to freeze the ``(full-dev, [minio])`` row
+    from the public CLI; otherwise the verified pilot evidence row is
+    unreachable outside of Python."""
+    out_dir = tmp_path / "version-lock"
+    captured: dict[str, object] = {}
+
+    def fake_execute_release_freeze(profile_id: str, **kwargs: object) -> VersionLock:
+        captured["profile_id"] = profile_id
+        captured.update(kwargs)
+        return _version_lock(profile_id, out_dir / "2026-04-24-full-dev.yaml")
+
+    monkeypatch.setattr(main, "execute_release_freeze", fake_execute_release_freeze)
+
+    result = CliRunner().invoke(
+        entrypoint,
+        [
+            "release-freeze",
+            "--profile",
+            "full-dev",
+            "--out",
+            str(out_dir),
+            "--extra-bundles",
+            "minio",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert captured["profile_id"] == "full-dev"
+    assert captured["extra_bundles"] == ("minio",)
+
+
+def test_release_freeze_cli_default_extra_bundles_is_empty_tuple(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    out_dir = tmp_path / "version-lock"
+    captured: dict[str, object] = {}
+
+    def fake_execute_release_freeze(profile_id: str, **kwargs: object) -> VersionLock:
+        captured["extra_bundles"] = kwargs.get("extra_bundles")
+        return _version_lock(profile_id, out_dir / "2026-04-18-lite-local.yaml")
+
+    monkeypatch.setattr(main, "execute_release_freeze", fake_execute_release_freeze)
+
+    result = CliRunner().invoke(
+        entrypoint,
+        ["release-freeze", "--profile", "lite-local", "--out", str(out_dir)],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert captured["extra_bundles"] == ()
+
+
+def test_release_freeze_cli_rejects_duplicate_extra_bundles(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    def fake_execute_release_freeze(profile_id: str, **kwargs: object) -> VersionLock:
+        raise AssertionError("executor should not run when parse fails")
+
+    monkeypatch.setattr(main, "execute_release_freeze", fake_execute_release_freeze)
+
+    result = CliRunner().invoke(
+        entrypoint,
+        [
+            "release-freeze",
+            "--profile",
+            "full-dev",
+            "--out",
+            str(tmp_path / "version-lock"),
+            "--extra-bundles",
+            "minio,minio",
+        ],
+    )
+
+    assert result.exit_code != 0
+    assert "duplicate bundle names" in result.output
 
 
 def test_release_freeze_cli_uses_real_executor_for_lock_and_failure(

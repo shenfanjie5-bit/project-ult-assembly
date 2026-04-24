@@ -93,10 +93,12 @@ class E2ERunner:
         """Run preflight checks, invoke orchestrator, assert outputs, and persist.
 
         ``extra_bundles`` (full-dev optional bundle opt-in) is threaded
-        through ``render_profile`` / ``healthcheck`` / ``bootstrap`` so
-        those preflights see the opt-in bundles in the resolved snapshot.
-        ``run_contract_suite`` is intentionally NOT threaded — optional
-        bundles are infra slots, not contract-surface changes.
+        through ``render_profile`` / ``healthcheck`` / ``bootstrap`` /
+        ``run_contract_suite`` (codex P2 follow-up on matrix-identity
+        fix — the per-optional-bundle matrix row declares the same
+        ``required_tests`` as the default row, so contract preflight
+        must target the correct ``(profile_id, sorted(extra_bundles))``
+        row for the ``compatibility_context`` artifact to bind).
         """
 
         started_at = datetime.now(timezone.utc)

@@ -4,13 +4,26 @@ from __future__ import annotations
 
 import hashlib
 import json
+from typing import TYPE_CHECKING
 
 from assembly.contracts.models import IntegrationRunRecord
-from assembly.registry.schema import CompatibilityMatrixEntry
+
+if TYPE_CHECKING:
+    # Import `CompatibilityMatrixEntry` under TYPE_CHECKING only — otherwise
+    # resolving ``assembly.registry.schema`` at import time triggers
+    # ``assembly.registry.__init__`` which eagerly imports ``freezer``,
+    # which imports this module back for ``record_matches_matrix_context``.
+    # Direct imports of this module (``from assembly.contracts.reporting
+    # import compatibility_context_artifact``) and isolated test collection
+    # (``pytest tests/contracts/test_reporting.py``) both failed with
+    # "partially initialized module" before this change. Codex P2 follow-up
+    # on the matrix-identity fix; functions below only duck-type against
+    # the matrix_entry parameter, so runtime class access isn't needed.
+    from assembly.registry.schema import CompatibilityMatrixEntry
 
 
 def compatibility_context_artifact(
-    matrix_entry: CompatibilityMatrixEntry,
+    matrix_entry: "CompatibilityMatrixEntry",
 ) -> dict[str, str]:
     """Return the compatibility-context artifact for a matrix entry.
 
@@ -55,7 +68,7 @@ def compatibility_context_artifact(
 
 def record_matches_matrix_context(
     record: IntegrationRunRecord,
-    matrix_entry: CompatibilityMatrixEntry,
+    matrix_entry: "CompatibilityMatrixEntry",
 ) -> bool:
     """Return whether a run record carries the selected matrix context."""
 

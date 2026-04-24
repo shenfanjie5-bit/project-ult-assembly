@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+from collections.abc import Sequence
 from pathlib import Path
 
 import click
@@ -343,6 +344,7 @@ def smoke_command(
 @ENV_FILE_OPTION
 @CONTRACT_REPORTS_DIR_OPTION
 @TIMEOUT_SEC_OPTION
+@EXTRA_BUNDLES_OPTION
 @click.option(
     "--promote",
     is_flag=True,
@@ -358,11 +360,18 @@ def contract_suite_command(
     env_file: Path,
     reports_dir: Path,
     timeout_sec: float,
+    extra_bundles: str,
     promote: bool,
 ) -> None:
-    """Run the contract compatibility suite for a resolved profile."""
+    """Run the contract compatibility suite for a resolved profile.
+
+    ``--extra-bundles`` routes the contract suite to a per-optional-bundle
+    matrix row (codex P2 follow-up on MinIO pilot). Without it, the
+    default-profile row is targeted.
+    """
 
     try:
+        parsed_extra_bundles = _parse_extra_bundles(extra_bundles)
         report = execute_contract_suite(
             profile_id,
             profiles_root=profiles_dir,
@@ -372,12 +381,14 @@ def contract_suite_command(
             env=_combined_env(env_file),
             timeout_sec=timeout_sec,
             promote=promote,
+            extra_bundles=parsed_extra_bundles,
         )
     except (
         ProfileError,
         RegistryError,
         CompatibilityError,
         OSError,
+        ValueError,
     ) as exc:
         raise click.ClickException(str(exc)) from exc
 
@@ -404,6 +415,7 @@ def contract_suite_command(
 )
 @E2E_REPORTS_DIR_OPTION
 @TIMEOUT_SEC_OPTION
+@EXTRA_BUNDLES_OPTION
 @click.option(
     "--skip-bootstrap",
     is_flag=True,
@@ -417,11 +429,19 @@ def e2e_command(
     fixture_dir: Path,
     reports_dir: Path,
     timeout_sec: float,
+    extra_bundles: str,
     skip_bootstrap: bool,
 ) -> None:
-    """Run the minimal-cycle e2e through orchestrator's public CLI."""
+    """Run the minimal-cycle e2e through orchestrator's public CLI.
+
+    ``--extra-bundles`` opts into full-dev optional service bundles so the
+    e2e's run record binds to the corresponding ``(full-dev,
+    sorted(extra_bundles))`` matrix row (codex P2 follow-up on MinIO pilot).
+    Without it, the default-profile row is targeted.
+    """
 
     try:
+        parsed_extra_bundles = _parse_extra_bundles(extra_bundles)
         record = execute_e2e(
             profile_id,
             profiles_root=profiles_dir,
@@ -432,8 +452,9 @@ def e2e_command(
             env=_combined_env(env_file),
             timeout_sec=timeout_sec,
             bootstrap_if_needed=not skip_bootstrap,
+            extra_bundles=parsed_extra_bundles,
         )
-    except (ProfileError, RegistryError, OSError) as exc:
+    except (ProfileError, RegistryError, OSError, ValueError) as exc:
         raise click.ClickException(str(exc)) from exc
 
     report_path = next(
@@ -476,8 +497,14 @@ def execute_release_freeze(
     profiles_root: Path,
     reports_root: Path,
     out_dir: Path,
+    extra_bundles: Sequence[str] = (),
 ) -> VersionLock:
-    """Freeze the verified compatibility matrix entry for a profile."""
+    """Freeze the verified compatibility matrix entry for a profile.
+
+    ``extra_bundles`` disambiguates matrix rows that share a ``profile_id``
+    (codex P2 follow-up on MinIO pilot). Default ``()`` targets the
+    default-profile row.
+    """
 
     return freeze_profile(
         profile_id,
@@ -485,18 +512,20 @@ def execute_release_freeze(
         profiles_root=profiles_root,
         reports_root=reports_root,
         out_dir=out_dir,
+        extra_bundles=extra_bundles,
     )
 
 
 entrypoint.add_command(
     make_release_freeze_command(
-        lambda profile_id, registry_root, profiles_root, reports_root, out_dir: (
+        lambda profile_id, registry_root, profiles_root, reports_root, out_dir, extra_bundles: (
             execute_release_freeze(
                 profile_id,
                 registry_root=registry_root,
                 profiles_root=profiles_root,
                 reports_root=reports_root,
                 out_dir=out_dir,
+                extra_bundles=extra_bundles,
             )
         )
     )
