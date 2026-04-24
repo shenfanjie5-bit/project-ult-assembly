@@ -1783,3 +1783,269 @@ def test_e2e_runner_consumes_audit_eval_fixtures_minimal_cycle_full_dev(
             f"match the shared case's metadata.manifest_cycle_id + '_v0' "
             f"({expected_manifest_id_from_shared_case!r})"
         )
+
+
+# ───────────────────────── Stage 5 + MinIO pilot — first optional bundle ─────────────────────────
+#
+# First real-stack PASS for an optional bundle (MinIO). The remaining 5
+# (Grafana, Superset, Temporal, Feast, Kafka-Flink) follow the same
+# template once their compose/bundle drift is resolved similarly.
+#
+# Stack assumption: the 4-service Lite stack is up via
+# ``docker compose -f compose/lite-local.yaml up -d`` AND MinIO is up via
+# ``docker compose -f compose/full-dev.yaml --project-name fulldev up -d minio``
+# (separate compose project to avoid colliding with the Lite stack's
+# ``compose`` project, since both files declare postgres etc.).
+#
+# What the test guards (per Stage 5 + MinIO pilot scope):
+#
+# 1. ``run_min_cycle_e2e("full-dev", ..., extra_bundles=["minio"])`` is a
+#    public API that threads ``extra_bundles`` through render_profile +
+#    healthcheck + bootstrap (``run_contract_suite`` is intentionally not
+#    threaded — bundles are infra slots, not contract changes).
+# 2. The resolved snapshot's ``enabled_service_bundles`` includes
+#    ``minio`` after the opt-in (proof the kwarg landed).
+# 3. The healthcheck aggregator returns a healthy ``minio-ready`` probe
+#    result (proof the new SocketPortProbe registration in
+#    ``probes_builtin.build_builtin_probes`` lights up only when minio is
+#    in the bundle set, and that the probe targets the right host:port).
+# 4. The e2e overall PASSes — same shared case as the 2 sibling tests.
+#
+# A FAILing minio probe (e.g. minio container down) would be classified
+# as ``degraded`` (per ``_classify_builtin_result`` for optional bundles),
+# NOT ``blocked`` — so the e2e would still succeed. To make this test
+# strictly assert "minio probed AND healthy", we read the persisted
+# health_results array in the e2e_report payload.
+
+
+def test_e2e_runner_full_dev_with_minio_extra_bundle(
+    tmp_path: Path,
+) -> None:
+    """Stage 5 + MinIO pilot: first real-stack PASS for an optional bundle.
+
+    Drives ``run_min_cycle_e2e("full-dev", ..., extra_bundles=["minio"])``
+    against the existing 4-service Lite stack PLUS a MinIO container
+    started in a separate compose project. Asserts:
+
+    * The new ``extra_bundles`` parameter on ``run_min_cycle_e2e`` is
+      threaded all the way down — proven by ``minio`` appearing in the
+      persisted ``resolved_config_snapshot``'s enabled_service_bundles.
+    * The ``minio-ready`` SocketPortProbe (newly registered by
+      ``probes_builtin.build_builtin_probes`` only when minio is opted
+      in) returns ``healthy`` — proven by reading the e2e_report payload
+      and finding a ``minio-ready`` row with status ``healthy``.
+    * The e2e overall PASSes — same shape as the 2 sibling tests.
+
+    Same skips as the lite-local + full-dev tests: cross-repo public
+    modules importable, audit_eval_fixtures installed, Lite-stack
+    services reachable. **Plus**: MinIO port 9000 reachable.
+    """
+    audit_eval_fixtures = pytest.importorskip(
+        "audit_eval_fixtures",
+        reason=(
+            "Stage 5 + MinIO pilot requires audit_eval_fixtures. Install via "
+            "the [shared-fixtures] extra or PYTHONPATH cover audit-eval/src."
+        ),
+    )
+    for module_name in _E2E_CROSS_REPO_PUBLIC_MODULES:
+        pytest.importorskip(
+            module_name,
+            reason=(
+                f"Stage 5 + MinIO pilot requires {module_name}. Run with "
+                "PYTHONPATH covering the 11 sibling repos' src/root dirs."
+            ),
+        )
+
+    import socket
+
+    def _service_reachable(host: str, port: int) -> bool:
+        try:
+            with socket.create_connection((host, port), timeout=0.5):
+                return True
+        except (OSError, ValueError):
+            return False
+
+    # Same 3 core services as the sibling tests, plus MinIO on 9000.
+    _SERVICES_FOR_MINIO_PILOT = (
+        ("PostgreSQL", "localhost", 5432),
+        ("Neo4j (Bolt)", "localhost", 7687),
+        ("Dagster webserver", "localhost", 3000),
+        ("MinIO", "localhost", 9000),
+    )
+    unreachable = [
+        f"{name} on {host}:{port}"
+        for name, host, port in _SERVICES_FOR_MINIO_PILOT
+        if not _service_reachable(host, port)
+    ]
+    if unreachable:
+        pytest.skip(
+            "Stage 5 + MinIO pilot requires the Lite stack AND MinIO "
+            f"running; unreachable: {unreachable}. Start MinIO via "
+            "``docker compose -f compose/full-dev.yaml --env-file .env "
+            "--project-name fulldev up -d minio``."
+        )
+
+    case = audit_eval_fixtures.load_case(
+        "minimal_cycle", _AUDIT_EVAL_FIXTURES_MINIMAL_CYCLE_CASE
+    )
+    case_metadata = case.metadata
+    case_input = case.input
+    case_expected = case.expected
+    case_context = case.context
+
+    # Same content-shape pre-flights as sibling tests, plus the
+    # profile-equivalence guard — but MinIO opt-in is allowed because the
+    # core enabled_service_bundles are identical between the case-target
+    # profile and full-dev.
+    assert case_metadata["fixture_kind"] == "minimal_cycle_baseline"
+    assert case_metadata["object_ref"] == "cycle_publish_manifest"
+    assert case_metadata["replay_mode"] == "read_history"
+    assert case_context["neo4j_graph_status"] == "ready"
+
+    from assembly.profiles import load_profile as _load_profile
+
+    case_profile_id = case_context["active_profile"]
+    case_profile = _load_profile(_PROJECT_ROOT / "profiles" / f"{case_profile_id}.yaml")
+    full_dev_profile = _load_profile(_PROJECT_ROOT / "profiles" / "full-dev.yaml")
+    assert (
+        case_profile.enabled_service_bundles
+        == full_dev_profile.enabled_service_bundles
+    ), (
+        "profile equivalence violated; see "
+        "test_e2e_runner_consumes_audit_eval_fixtures_minimal_cycle_full_dev "
+        "for the full rationale."
+    )
+
+    case_input_cycle_id = case_input["cycle_id"]
+    assert case_input_cycle_id == (
+        case_expected["cycle_publish_manifest"]["cycle_id"]
+    )
+    assert case_metadata["manifest_cycle_id"] == f"MAN_{case_input_cycle_id}"
+
+    scenario_id = case_input_cycle_id
+    fixture_dir = tmp_path / "fixture"
+    fixture_dir.mkdir()
+    (fixture_dir / "manifest.yaml").write_text(
+        yaml.safe_dump(
+            {
+                "scenario_id": scenario_id,
+                "expected_phases": [
+                    "resolve-profile",
+                    "load-fixture",
+                    "execute-minimal-cycle",
+                    "write-report",
+                ],
+                "required_artifacts": ["cycle_summary"],
+                "orchestrator_args": [
+                    "min-cycle",
+                    "--profile",
+                    "{profile_id}",
+                    "--fixture",
+                    "{fixture_manifest}",
+                    "--run-artifacts-dir",
+                    "{run_dir}",
+                    "--report",
+                    "{orchestrator_report_path}",
+                ],
+            },
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+
+    env = {
+        "POSTGRES_HOST": "localhost",
+        "POSTGRES_PORT": "5432",
+        "POSTGRES_DB": "proj",
+        "POSTGRES_USER": "postgres",
+        "POSTGRES_PASSWORD": "changeme",
+        "NEO4J_URI": "bolt://localhost:7687",
+        "NEO4J_USER": "neo4j",
+        "NEO4J_PASSWORD": "changeme",
+        "DAGSTER_HOME": "/tmp",
+        "DAGSTER_HOST": "localhost",
+        "DAGSTER_PORT": "3000",
+        # Optional-bundle env: MinIO needs root credentials (per
+        # ``profiles/full-dev.yaml`` optional_env_keys). Values must be
+        # truthy strings so the resolver doesn't trip the
+        # ``_enforce_selected_optional_env`` validator.
+        "MINIO_ROOT_USER": "assembly-minio-user",
+        "MINIO_ROOT_PASSWORD": "assembly-minio-password",
+        "MINIO_PORT": "9000",
+        "MINIO_CONSOLE_PORT": "9001",
+    }
+
+    record = run_min_cycle_e2e(
+        "full-dev",
+        profiles_root=_PROJECT_ROOT / "profiles",
+        bundles_root=_PROJECT_ROOT / "bundles",
+        registry_root=_PROJECT_ROOT,
+        fixture_dir=fixture_dir,
+        reports_dir=tmp_path / "reports/e2e",
+        env=env,
+        timeout_sec=60.0,
+        bootstrap_if_needed=False,
+        extra_bundles=["minio"],
+    )
+
+    assert record.run_type == "e2e"
+    assert record.status == "success", (
+        f"full-dev + minio e2e did not reach success; "
+        f"status={record.status!r}, "
+        f"failing_modules={record.failing_modules}, "
+        f"summary={record.summary!r}"
+    )
+    assert record.failing_modules == []
+
+    # Proof #1: extra_bundles threaded through to render_profile — the
+    # persisted resolved_config_snapshot must include "minio" in
+    # enabled_service_bundles (alongside the 3 core bundles).
+    snapshot_path = _artifact_path(record, "resolved_config_snapshot")
+    snapshot_payload = json.loads(snapshot_path.read_text(encoding="utf-8"))
+    enabled_bundles = snapshot_payload["enabled_service_bundles"]
+    assert "minio" in enabled_bundles, (
+        f"resolved snapshot.enabled_service_bundles {enabled_bundles!r} "
+        f"did not include 'minio' — extra_bundles parameter was not "
+        f"threaded through render_profile()"
+    )
+    assert enabled_bundles == ["postgres", "neo4j", "dagster", "minio"], (
+        f"unexpected bundle order: {enabled_bundles!r}; expected the 3 "
+        f"core bundles (in profile order) followed by the opt-in extras"
+    )
+
+    # Proof #2: minio-ready probe registered + returned healthy. The
+    # health_results live at the top level of e2e_report (not nested
+    # under run_record — IntegrationRunRecord doesn't carry them).
+    e2e_report_path = _artifact_path(record, "e2e_report")
+    payload = json.loads(e2e_report_path.read_text(encoding="utf-8"))
+    health_results = payload["health_results"]
+    minio_results = [
+        result for result in health_results
+        if result["module_id"] == "minio" or result["probe_name"] == "minio-ready"
+    ]
+    assert minio_results, (
+        f"no minio-related health probe in run_record.health_results — "
+        f"either the bundle wasn't enabled or build_builtin_probes() did "
+        f"not register a minio-ready probe; got "
+        f"{[r['probe_name'] for r in health_results]}"
+    )
+    assert len(minio_results) == 1
+    minio_result = minio_results[0]
+    assert minio_result["probe_name"] == "minio-ready"
+    assert minio_result["status"] == "healthy", (
+        f"minio-ready probe returned status={minio_result['status']!r} "
+        f"(expected 'healthy'); message={minio_result.get('message')!r}, "
+        f"details={minio_result.get('details')!r}. Verify the MinIO "
+        f"container is up via ``docker compose -f compose/full-dev.yaml "
+        f"--project-name fulldev ps``."
+    )
+
+    # Belt-and-suspenders: e2e assertion_results must all pass.
+    failed_assertions = [
+        result for result in payload["assertion_results"]
+        if result["status"] != "passed"
+    ]
+    assert failed_assertions == [], (
+        "full-dev + minio e2e assertions had failures: "
+        f"{[r['assertion_name'] for r in failed_assertions]}"
+    )

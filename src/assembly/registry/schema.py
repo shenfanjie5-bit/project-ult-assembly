@@ -66,12 +66,24 @@ class CompatibilityModuleRef(BaseModel):
 
 
 class CompatibilityMatrixEntry(BaseModel):
-    """Compatibility matrix row for a profile and module set."""
+    """Compatibility matrix row for a profile and module set.
+
+    ``extra_bundles`` (Stage 5 + MinIO pilot): the list of full-dev
+    optional service bundles opted-in for THIS verified combination.
+    Empty / absent = default profile (no extras). The unique evidence
+    key for matrix rows is ``(profile_id, sorted(extra_bundles))`` —
+    Stage 5 promoted ``(full-dev, [])``; MinIO pilot adds
+    ``(full-dev, [minio])``; future optional-bundle pilots add their
+    own rows. ``contract_version`` + ``module_set`` typically don't
+    differ by extra_bundles (bundles are infra slots, not contract
+    surface), but the schema doesn't forbid that.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
     matrix_version: Semver
     profile_id: ProfileId
+    extra_bundles: list[str] = []
     module_set: list[CompatibilityModuleRef]
     contract_version: ContractVersion
     required_tests: list[str]

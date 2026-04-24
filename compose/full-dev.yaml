@@ -111,12 +111,19 @@ services:
       - "127.0.0.1:${MINIO_CONSOLE_PORT:-9001}:9001"
     volumes:
       - minio_data:/data
+    # MinIO image (2024-07-16) does not ship ``curl`` or ``wget``; it does
+    # pre-configure the ``mc`` (MinIO Client) ``local`` alias pointing at
+    # the server's own port. ``mc ready local`` is MinIO's canonical
+    # healthcheck — it returns exit 0 when the cluster is ready. The
+    # previous ``curl -f http://.../minio/health/ready`` command was never
+    # reachable inside the container (``curl: command not found``). Fixed
+    # at Stage 5 + MinIO pilot.
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "curl -f http://127.0.0.1:9000/minio/health/ready",
-        ]
+      # CMD-SHELL form required by ``assembly/bootstrap/plan.py``
+      # ``_compose_healthcheck_command`` so shell-string bundle probes
+      # (``bundles/minio.yaml health_probe: mc ready local``) match the
+      # compose entry literally for the service_bundle_drift check.
+      test: ["CMD-SHELL", "mc ready local"]
       interval: 10s
       timeout: 5s
       retries: 12

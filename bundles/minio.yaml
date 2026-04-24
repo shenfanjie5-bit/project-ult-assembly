@@ -4,7 +4,12 @@ services:
     image_or_cmd: minio/minio:RELEASE.2024-07-16T23-46-41Z
     image: minio/minio:RELEASE.2024-07-16T23-46-41Z
     command: server /data --console-address :${MINIO_CONSOLE_PORT:-9001}
-    health_probe: curl -f http://127.0.0.1:9000/minio/health/ready
+    # MinIO image (2024-07-16) does not ship curl; `mc ready local` is
+    # MinIO's canonical in-container healthcheck (the `local` alias is
+    # pre-configured to point at the server's own port). Fixed at Stage 5
+    # + MinIO pilot; previous `curl -f http://.../minio/health/ready`
+    # command never worked inside the container.
+    health_probe: mc ready local
     env:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
@@ -13,7 +18,7 @@ startup_order:
 shutdown_order:
   - minio
 health_checks:
-  - curl -f http://127.0.0.1:9000/minio/health/ready
+  - mc ready local
 required_profiles:
   - full-dev
 optional: true

@@ -107,3 +107,66 @@
   # full-dev.enabled_service_bundles``) that fails-fast on any future
   # drift before invoking the e2e.
   verified_at: 2026-04-24T05:24:14Z
+# Stage 5 + MinIO pilot (first optional bundle). Per-bundle evidence
+# row uses the same module_set + contract_version as default full-dev
+# but adds ``extra_bundles: [minio]`` to indicate which optional
+# bundles were opted-in for THIS verified combination. Future bundles
+# (Grafana, Superset, Temporal, Feast, Kafka-Flink) follow the same
+# row shape — one verified row per (profile, sorted_extra_bundles)
+# combination, mirroring the per-profile evidence boundary from
+# Stage 4 §4.3 codex review #10.
+- matrix_version: 0.1.0
+  profile_id: full-dev
+  extra_bundles:
+    - minio
+  module_set:
+    - module_id: contracts
+      module_version: 0.1.3
+    - module_id: data-platform
+      module_version: 0.1.1
+    - module_id: entity-registry
+      module_version: 0.1.1
+    - module_id: reasoner-runtime
+      module_version: 0.1.1
+    - module_id: graph-engine
+      module_version: 0.1.1
+    - module_id: main-core
+      module_version: 0.1.1
+    - module_id: audit-eval
+      module_version: 0.2.5
+    - module_id: subsystem-sdk
+      module_version: 0.1.2
+    - module_id: orchestrator
+      module_version: 0.1.1
+    - module_id: assembly
+      module_version: 0.1.0
+    - module_id: subsystem-announcement
+      module_version: 0.1.1
+    - module_id: subsystem-news
+      module_version: 0.1.1
+  contract_version: v0.1.3
+  required_tests:
+    - contract-suite
+    - smoke
+    - min-cycle-e2e
+  status: verified
+  # Stage 5 + MinIO pilot PASS evidence: real-stack
+  # ``run_min_cycle_e2e("full-dev", ..., extra_bundles=["minio"])``
+  # from ``test_e2e_runner_full_dev_with_minio_extra_bundle``
+  # completed at 2026-04-24T06:24:24Z (UTC). Driven against the
+  # 4-service Lite stack PLUS a MinIO container started in a
+  # separate compose project (``docker compose -f
+  # compose/full-dev.yaml --project-name fulldev up -d minio``)
+  # to avoid colliding with the Lite stack's ``compose`` project.
+  # The new ``run_min_cycle_e2e`` ``extra_bundles`` kwarg threads
+  # through render_profile / healthcheck / bootstrap. The new
+  # ``minio-ready`` SocketPortProbe (registered conditionally by
+  # ``probes_builtin.build_builtin_probes`` only when minio appears
+  # in the resolved bundle set) returned ``healthy`` against
+  # 127.0.0.1:9000. Test asserts: extra_bundles parameter landed
+  # (snapshot.enabled_service_bundles includes minio), the
+  # minio-ready probe is present in the persisted health_results,
+  # AND its status is healthy. Compose drift fix landed in same
+  # commit: MinIO healthcheck ``curl -f http://.../minio/health/ready``
+  # → ``mc ready local`` (curl is not in the MinIO image; mc is).
+  verified_at: 2026-04-24T06:24:24Z

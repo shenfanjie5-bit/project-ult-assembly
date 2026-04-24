@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Mapping
+from typing import Mapping, Sequence
 
 from assembly.contracts.models import IntegrationRunRecord
 from assembly.tests.e2e.assertions import (
@@ -37,8 +37,20 @@ def run_min_cycle_e2e(
     env: Mapping[str, str] | None = None,
     timeout_sec: float = 600.0,
     bootstrap_if_needed: bool = True,
+    extra_bundles: Sequence[str] | None = None,
 ) -> IntegrationRunRecord:
-    """Run the minimal daily-cycle e2e through orchestrator's public CLI."""
+    """Run the minimal daily-cycle e2e through orchestrator's public CLI.
+
+    ``extra_bundles`` opt-in to full-dev optional service bundles (MinIO,
+    Grafana, Superset, Temporal, Feast, Kafka-Flink). The list is threaded
+    through to ``render_profile`` / ``healthcheck`` / ``bootstrap`` so the
+    resolver appends these bundles to ``enabled_service_bundles``,
+    healthcheck aggregator sees their probes, and bootstrap plan includes
+    them in startup_order. Only valid for profiles whose bundle declares
+    ``required_profiles: [<this profile>]`` (currently ``full-dev`` only).
+    ``run_contract_suite`` is intentionally NOT threaded — optional bundles
+    are infra slots, not contract-surface changes.
+    """
 
     return E2ERunner().run(
         profile_id,
@@ -50,6 +62,7 @@ def run_min_cycle_e2e(
         env=env,
         timeout_sec=timeout_sec,
         bootstrap_if_needed=bootstrap_if_needed,
+        extra_bundles=extra_bundles,
     )
 
 

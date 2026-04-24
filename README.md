@@ -12,25 +12,27 @@ Source of truth:
 - `CLAUDE.md` (project-specific guardrails — boundary rules, blocker
   triggers, KPI baselines)
 
-## Current state — Stage 5 closed (both lite-local + full-dev profiles verified)
+## Current state — Stage 5 closed + MinIO pilot landed
 
 - 12 of 14 module slots are `integration_status: verified` per
   `module-registry.yaml`. The two frozen slots (`feature-store`,
   `stream-layer`) stay `not_started` per master plan §1.1.
-- Compatibility matrix records BOTH profiles as `verified` at
-  `verified_at: 2026-04-24T05:24:14Z`:
-  - `lite-local` re-verified after the audit-eval pin sync 0.2.2 →
-    0.2.5 (fixture-only bumps; original Stage 4 §4.3 PASS was at
-    `2026-04-22T06:08:55Z`).
-  - `full-dev` newly verified via Stage 5
-    `tests/e2e/test_runner.py::test_e2e_runner_consumes_audit_eval_fixtures_minimal_cycle_full_dev`,
-    driven against the same 4-service Lite stack (default `full-dev`
-    and `lite-local` resolve the same 3 core
-    `enabled_service_bundles` per `docs/PROFILE_COMPARISON.md`).
-- Test baseline: 290 passed, 1 skipped (the 1 skipped is the
-  degraded-baseline gate that disables when cross-repo modules ARE
-  importable — Stage 4 §4.1.5 design). Δ vs Stage 4 §4.3 baseline =
-  +1 (the new full-dev e2e test).
+- Compatibility matrix records 3 verified rows:
+  - `lite-local` (default): `verified_at: 2026-04-24T05:24:14Z` (Stage
+    5 re-verification after audit-eval pin sync 0.2.2 → 0.2.5;
+    original Stage 4 §4.3 PASS was `2026-04-22T06:08:55Z`).
+  - `full-dev` (default, no extras): `verified_at:
+    2026-04-24T05:24:14Z` (Stage 5 full-dev parallel, driven against
+    the same 4-service Lite stack since both profiles resolve the
+    same 3 core `enabled_service_bundles`).
+  - `full-dev + extra_bundles=[minio]`: `verified_at:
+    2026-04-24T06:24:24Z` (**first optional bundle pilot** — proves
+    `run_min_cycle_e2e`'s new `extra_bundles` kwarg threads through
+    render/healthcheck/bootstrap; the new `minio-ready`
+    `SocketPortProbe` returned healthy against a MinIO container
+    started in a separate compose project).
+- Test baseline: 291 passed, 1 skipped. Δ vs Stage 5 baseline = +1
+  (the new MinIO pilot e2e test).
 
 ## Lite stack quickstart
 
@@ -67,7 +69,7 @@ into this venv so e2e and compat tests can drive real cross-repo
 public APIs.
 
 ```bash
-.venv-py312/bin/python -m pytest                         # full suite (290 + 1 skipped)
+.venv-py312/bin/python -m pytest                         # full suite (291 + 1 skipped)
 .venv-py312/bin/python -m pytest tests/registry/         # registry consistency
 .venv-py312/bin/python -m pytest tests/compat/           # cross-project compat audit
 .venv-py312/bin/python -m pytest tests/e2e/              # minimal-cycle e2e (Lite stack must be up)
@@ -115,12 +117,17 @@ fails the test suite if MD ⇄ YAML drifts.
 
 ## Next steps
 
-- Optional service bundles (MinIO / Grafana / Superset / Temporal /
-  Feast / Kafka/Flink) — verify per-bundle health probes against
-  `full-dev --extra-bundles=<bundle>` invocations of the e2e runner.
-  Each bundle is currently structurally-tested only
-  (`tests/profiles/test_full_dev.py`); a real-stack PASS would
-  promote each to its own evidence row in the compatibility matrix.
+- **Remaining 5 optional bundles** (Grafana, Superset, Temporal, Feast,
+  Kafka-Flink) — each follows the MinIO pilot template:
+  1. Bring bundle service up in the `fulldev` compose project,
+  2. Repair any compose/bundle healthcheck drift (MinIO's `curl` →
+     `mc ready local` fix at Stage 5 is the canonical example),
+  3. Add a built-in `SocketPortProbe` (or HTTP probe) conditionally in
+     `src/assembly/health/probes_builtin.py::build_builtin_probes`,
+  4. Add a parallel `test_e2e_runner_full_dev_with_<bundle>_extra_bundle`
+     in `tests/e2e/test_runner.py`,
+  5. Add a `(full-dev, extra_bundles=[<bundle>])` row to
+     `compatibility-matrix.yaml` with a fresh `verified_at`.
 - Stage-progress closure docs (`docs/VERSION_LOCK.md`,
   `docs/STARTUP_GUIDE.md`, `docs/TROUBLESHOOTING.md`,
   `docs/PROFILE_COMPARISON.md`) — already drafted; final cross-link

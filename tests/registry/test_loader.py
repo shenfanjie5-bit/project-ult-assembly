@@ -29,7 +29,9 @@ def test_load_all_loads_real_project_registry() -> None:
 
     assert registry.root == PROJECT_ROOT
     assert len(registry.modules) == 14
-    assert len(registry.compatibility_matrix) == 2
+    # Stage 5 + MinIO pilot added a 3rd row for
+    # (profile=full-dev, extra_bundles=[minio]).
+    assert len(registry.compatibility_matrix) == 3
 
 
 def test_load_all_runs_consistency_check_before_yaml_load(

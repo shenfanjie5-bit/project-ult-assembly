@@ -426,9 +426,13 @@ def test_lite_compose_published_ports_bind_loopback_only() -> None:
 def test_full_optional_healthchecks_use_container_ports_for_fixed_port_services() -> None:
     raw = yaml.safe_load(FULL_COMPOSE_FILE.read_text(encoding="utf-8"))
 
-    assert _healthcheck_command(raw, "minio") == (
-        "curl -f http://127.0.0.1:9000/minio/health/ready"
-    )
+    # Updated at Stage 5 + MinIO pilot: ``curl`` is not in the MinIO image
+    # (``curl: command not found`` confirmed via ``docker exec``). MinIO's
+    # canonical in-container healthcheck is ``mc ready local`` — the
+    # ``mc`` binary IS in the image and the ``local`` alias is
+    # pre-configured. ``bundles/minio.yaml`` health_probe / health_checks
+    # mirror this verbatim per service_bundle_drift literal-match.
+    assert _healthcheck_command(raw, "minio") == "mc ready local"
     assert _healthcheck_command(raw, "temporal") == (
         "tctl --address 127.0.0.1:7233 cluster health"
     )

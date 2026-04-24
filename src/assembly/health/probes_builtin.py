@@ -21,6 +21,11 @@ BUILTIN_PROBE_BY_SERVICE = {
     "neo4j": "neo4j-ready",
     "dagster-daemon": "dagster-daemon-ready",
     "dagster-webserver": "dagster-webserver-ready",
+    # Optional bundles (full-dev --extra-bundles=...). The probe is built
+    # only when the corresponding bundle appears in the resolved snapshot
+    # — see ``build_builtin_probes``. Missing-from-snapshot is fine; the
+    # service simply isn't enumerated in ``_builtin_probe_plan``.
+    "minio": "minio-ready",
 }
 
 
@@ -31,12 +36,20 @@ def build_builtin_probes(
     env_file: Path | None = None,
     command_runner: CommandRunner | None = None,
 ) -> dict[str, HealthProbe]:
-    """Build built-in health probes for the Lite service boundary."""
+    """Build built-in health probes for the Lite service boundary.
+
+    Optional-bundle probes (e.g. minio) are only added when the
+    corresponding bundle appears in ``snapshot.service_bundles``. Their
+    spec carries ``optional=True`` (per ``_builtin_probe_plan``), so a
+    healthy probe → ``healthy`` and a failing probe → ``degraded`` (not
+    ``blocked``). This means an opted-in optional bundle's failure
+    doesn't block the e2e — degraded is the documented contract.
+    """
 
     required_env = snapshot.required_env
     neo4j_host, neo4j_port = _neo4j_endpoint(required_env["NEO4J_URI"])
 
-    return {
+    probes: dict[str, HealthProbe] = {
         "postgres-ready": SocketPortProbe(
             module_id="postgres",
             probe_name="postgres-ready",
@@ -65,6 +78,25 @@ def build_builtin_probes(
             port=required_env["DAGSTER_PORT"],
         ),
     }
+
+    bundle_names = {bundle.bundle_name for bundle in snapshot.service_bundles}
+    if "minio" in bundle_names:
+        # MinIO TCP-readiness on the host-bound port. Default 9000 matches
+        # ``compose/full-dev.yaml`` ``${MINIO_PORT:-9000}`` fallback. The
+        # probe doesn't validate object-storage protocol; it just verifies
+        # the port is open. That matches the existing pattern for
+        # postgres / neo4j (also TCP-only). The compose-side healthcheck
+        # (``mc ready local``) is the deeper validation that runs inside
+        # the container.
+        minio_port = (snapshot.optional_env.get("MINIO_PORT") or "9000")
+        probes["minio-ready"] = SocketPortProbe(
+            module_id="minio",
+            probe_name="minio-ready",
+            host="127.0.0.1",
+            port=minio_port,
+        )
+
+    return probes
 
 
 @dataclass(frozen=True)

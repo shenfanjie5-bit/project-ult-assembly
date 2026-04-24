@@ -88,8 +88,16 @@ class E2ERunner:
         env: Mapping[str, str] | None = None,
         timeout_sec: float = 600.0,
         bootstrap_if_needed: bool = True,
+        extra_bundles: Sequence[str] | None = None,
     ) -> IntegrationRunRecord:
-        """Run preflight checks, invoke orchestrator, assert outputs, and persist."""
+        """Run preflight checks, invoke orchestrator, assert outputs, and persist.
+
+        ``extra_bundles`` (full-dev optional bundle opt-in) is threaded
+        through ``render_profile`` / ``healthcheck`` / ``bootstrap`` so
+        those preflights see the opt-in bundles in the resolved snapshot.
+        ``run_contract_suite`` is intentionally NOT threaded — optional
+        bundles are infra slots, not contract-surface changes.
+        """
 
         started_at = datetime.now(timezone.utc)
         run_id = _run_id(profile_id, started_at)
@@ -130,6 +138,7 @@ class E2ERunner:
                 profiles_root=profiles_root,
                 bundles_root=bundles_root,
                 env=env,
+                extra_bundles=extra_bundles,
             )
             registry = load_all(registry_root)
             resolved_entries = resolve_for_profile(
@@ -269,6 +278,7 @@ class E2ERunner:
                 bundles_root=bundles_root,
                 registry_root=registry_root,
                 env=env,
+                extra_bundles=extra_bundles,
                 timeout_sec=timeout_sec,
             )
         except Exception as exc:
@@ -298,6 +308,7 @@ class E2ERunner:
                     bundle_root=bundles_root,
                     registry_path=Path(registry_root) / "module-registry.yaml",
                     env=env,
+                    extra_bundles=extra_bundles,
                 )
                 health_results = healthcheck(
                     profile_id,
@@ -305,6 +316,7 @@ class E2ERunner:
                     bundles_root=bundles_root,
                     registry_root=registry_root,
                     env=env,
+                    extra_bundles=extra_bundles,
                     timeout_sec=timeout_sec,
                 )
             except Exception as exc:
