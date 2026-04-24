@@ -12,11 +12,15 @@ Source of truth:
 - `CLAUDE.md` (project-specific guardrails — boundary rules, blocker
   triggers, KPI baselines)
 
-## Current state — Stage 5 closed + MinIO pilot landed
+## Current state — Stage 5 closed + MinIO pilot + frontend-api API-1 registered
 
-- 12 of 14 module slots are `integration_status: verified` per
+- 13 of 15 module slots are `integration_status: verified` per
   `module-registry.yaml`. The two frozen slots (`feature-store`,
   `stream-layer`) stay `not_started` per master plan §1.1.
+- `frontend-api` is registered with standard public entrypoints and
+  API-1 public smoke evidence, but is not folded into the existing
+  verified compatibility matrix rows until fresh contract/smoke/e2e
+  evidence exists for that matrix identity.
 - Compatibility matrix records 3 verified rows:
   - `lite-local` (default): `verified_at: 2026-04-24T05:24:14Z` (Stage
     5 re-verification after audit-eval pin sync 0.2.2 → 0.2.5;
@@ -26,13 +30,12 @@ Source of truth:
     the same 4-service Lite stack since both profiles resolve the
     same 3 core `enabled_service_bundles`).
   - `full-dev + extra_bundles=[minio]`: `verified_at:
-    2026-04-24T06:24:24Z` (**first optional bundle pilot** — proves
+    2026-04-24T06:51:23Z` (**first optional bundle pilot** — proves
     `run_min_cycle_e2e`'s new `extra_bundles` kwarg threads through
     render/healthcheck/bootstrap; the new `minio-ready`
     `SocketPortProbe` returned healthy against a MinIO container
     started in a separate compose project).
-- Test baseline: 291 passed, 1 skipped. Δ vs Stage 5 baseline = +1
-  (the new MinIO pilot e2e test).
+- Current full-suite baseline on this workspace: 316 passed, 4 skipped.
 
 ## Lite stack quickstart
 
@@ -69,7 +72,7 @@ into this venv so e2e and compat tests can drive real cross-repo
 public APIs.
 
 ```bash
-.venv-py312/bin/python -m pytest                         # full suite (291 + 1 skipped)
+.venv-py312/bin/python -m pytest                         # full suite (316 + 4 skipped)
 .venv-py312/bin/python -m pytest tests/registry/         # registry consistency
 .venv-py312/bin/python -m pytest tests/compat/           # cross-project compat audit
 .venv-py312/bin/python -m pytest tests/e2e/              # minimal-cycle e2e (Lite stack must be up)
@@ -91,6 +94,7 @@ public APIs.
 | subsystem-sdk | 0.1.2 | v0.1.3 | producer-side preflight |
 | orchestrator | 0.1.1 | v0.1.3 | Phase 0/1 + min-cycle CLI |
 | assembly | 0.1.0 | v0.0.0 | system integration (this module) |
+| frontend-api | 0.1.0 | v0.1.3 | read-only System/Assembly BFF |
 | subsystem-announcement | 0.1.1 | v0.1.3 | Ex-1/2/3 announcement domain |
 | subsystem-news | 0.1.1 | v0.1.3 | Ex-1/2/3 news domain |
 | feature-store | 0.0.0 | v0.0.0 | frozen slot |

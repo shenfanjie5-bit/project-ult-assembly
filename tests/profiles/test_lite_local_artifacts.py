@@ -109,15 +109,20 @@ def test_lite_local_modules_cover_registry_supported_modules() -> None:
         for entry in registry_entries
         if profile.profile_id in entry.supported_profiles
     }
-    #: Frozen slots per master plan §1.1 (P7 / P11 future enablement). They
-    #: stay declared as supported in both profiles but are not enabled in
-    #: this round's ``enabled_modules``.
-    frozen_slots = {"feature-store", "stream-layer"}
+    #: Slots declared in the registry but not enabled by the runtime profile
+    #: in this round:
+    #:
+    #: * feature-store / stream-layer are frozen future modules.
+    #: * frontend-api is registered with public smoke evidence, but it stays
+    #:   outside the existing verified compatibility rows until fresh
+    #:   contract/smoke/e2e evidence exists for a matrix identity that includes
+    #:   it.
+    registry_only_slots = {"feature-store", "stream-layer", "frontend-api"}
 
     assert set(profile.enabled_modules) <= registry_module_ids
     assert (
         set(profile.enabled_modules)
-        == lite_supported_module_ids - frozen_slots
+        == lite_supported_module_ids - registry_only_slots
     )
     assert len(profile.enabled_modules) == 12
 

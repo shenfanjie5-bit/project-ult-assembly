@@ -34,6 +34,7 @@ EXPECTED_MODULE_IDS = {
     "subsystem-sdk",
     "orchestrator",
     "assembly",
+    "frontend-api",
     "feature-store",
     "stream-layer",
     "subsystem-announcement",
@@ -97,6 +98,9 @@ STAGE_4_VERIFIED_MODULE_IDS = {
     # call). All 4 §4.3 gates met: profile resolve ✓ + public smoke
     # probes ✓ + contract suite ✓ + minimal-cycle e2e real PASS ✓.
     "assembly",
+    # API-1 read-only BFF registration: standard public entrypoints plus
+    # public smoke evidence for health/modules/profiles/compat.
+    "frontend-api",
 }
 STAGE_4_PARTIAL_MODULE_IDS: set[str] = set()
 STAGE_4_NOT_STARTED_MODULE_IDS = {"feature-store", "stream-layer"}
@@ -121,6 +125,7 @@ STAGE_4_MODULE_VERSIONS = {
     "subsystem-sdk": "0.1.2",
     "orchestrator": "0.1.1",
     "assembly": "0.1.0",
+    "frontend-api": "0.1.0",
     "feature-store": "0.0.0",
     "stream-layer": "0.0.0",
     "subsystem-announcement": "0.1.1",
@@ -155,6 +160,7 @@ STAGE_4_CONTRACT_VERSIONS = {
     "subsystem-sdk": "v0.1.3",
     "orchestrator": "v0.1.3",
     "assembly": "v0.0.0",
+    "frontend-api": "v0.1.3",
     "feature-store": "v0.0.0",
     "stream-layer": "v0.0.0",
     "subsystem-announcement": "v0.1.3",
@@ -162,18 +168,18 @@ STAGE_4_CONTRACT_VERSIONS = {
 }
 
 
-def test_registry_artifacts_cover_expected_fourteen_modules() -> None:
+def test_registry_artifacts_cover_expected_fifteen_modules() -> None:
     rows = parse_registry_md(REGISTRY_MD)
     entries = load_registry_yaml(REGISTRY_YAML)
 
-    assert len(rows) == 14
+    assert len(rows) == 15
     assert {entry.module_id for entry in entries} == EXPECTED_MODULE_IDS
     assert (
         STAGE_4_VERIFIED_MODULE_IDS
         | STAGE_4_PARTIAL_MODULE_IDS
         | STAGE_4_NOT_STARTED_MODULE_IDS
         == EXPECTED_MODULE_IDS
-    ), "Stage 4 §4.1 baseline groups must cover all 14 modules disjointly"
+    ), "Stage 4 §4.1 + frontend-api groups must cover all 15 modules disjointly"
 
     by_id = {entry.module_id: entry for entry in entries}
 
@@ -210,7 +216,7 @@ def test_registry_artifacts_cover_expected_fourteen_modules() -> None:
             f"{by_id[module_id].contract_version}"
         )
 
-    # All 14 modules expose the same canonical 5-entrypoint surface +
+    # All 15 modules expose the same canonical 5-entrypoint surface +
     # supported_profiles set; this part is invariant across Stage 0/4.
     for entry in entries:
         assert_phase_zero_public_entrypoints(entry)
@@ -339,15 +345,16 @@ def test_compatibility_matrix_verified_rows_keyed_by_profile_and_extra_bundles()
             f"matrix row {key} has no verified_at"
         )
 
-    # Stage 4 §4.1.5 frozen slots (feature-store, stream-layer) stay
-    # OUT of every matrix row's module_set, even when the row opts-in
-    # an extra bundle.
-    frozen_slots = {"feature-store", "stream-layer"}
+    # Frozen slots and frontend-api stay OUT of every verified matrix
+    # row's module_set. frontend-api has registry/public-smoke evidence,
+    # but the pre-existing verified rows keep their original evidence
+    # identity until fresh contract/smoke/e2e evidence is promoted.
+    matrix_excluded_slots = {"feature-store", "stream-layer", "frontend-api"}
     for key, entry in entries_by_key.items():
         module_ids = {module.module_id for module in entry.module_set}
-        assert module_ids == EXPECTED_MODULE_IDS - frozen_slots, (
+        assert module_ids == EXPECTED_MODULE_IDS - matrix_excluded_slots, (
             f"matrix row {key} module_set drifted from the Stage 4 §4.1.5 "
-            f"frozen-slot-excluded baseline"
+            f"verified evidence baseline"
         )
 
     # MinIO row specifically: same module_set as default full-dev (the

@@ -901,7 +901,7 @@ def test_export_registry_writes_runtime_artifacts(tmp_path: Path) -> None:
     assert (out / "MODULE_REGISTRY.md").exists()
     assert json.loads((out / "registry.json").read_text(encoding="utf-8"))
     assert json.loads((out / "matrix.json").read_text(encoding="utf-8"))
-    assert "modules=14" in result.output
+    assert "modules=15" in result.output
     # Stage 5 + MinIO pilot added a 3rd matrix row for
     # (profile=full-dev, extra_bundles=[minio]).
     assert "matrix=3" in result.output

@@ -28,7 +28,7 @@ def test_load_all_loads_real_project_registry() -> None:
     registry = load_all(PROJECT_ROOT)
 
     assert registry.root == PROJECT_ROOT
-    assert len(registry.modules) == 14
+    assert len(registry.modules) == 15
     # Stage 5 + MinIO pilot added a 3rd row for
     # (profile=full-dev, extra_bundles=[minio]).
     assert len(registry.compatibility_matrix) == 3

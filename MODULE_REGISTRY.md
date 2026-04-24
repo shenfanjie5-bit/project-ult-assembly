@@ -1,13 +1,18 @@
 # MODULE_REGISTRY
 
-Stage 5 promoted state (both lite-local + full-dev profiles). This file
-is the human-readable view of `module-registry.yaml`. All 12 active
-modules are `integration_status: verified`: the 11 active subsystem
-modules per Stage 3 cross-project compat audit
+Stage 5 promoted state (both lite-local + full-dev profiles) plus the
+frontend-api API-1 read-only BFF registration. This file is the
+human-readable view of `module-registry.yaml`. All 13 active modules
+are `integration_status: verified`: the 11 active subsystem modules per
+Stage 3 cross-project compat audit
 (`assembly/scripts/stage_3_compat_audit.py` — 11/11 pass
-`PublicApiBoundaryCheck`) and `assembly` itself per the §4.3 self-verify
-upgrade. `feature-store` and `stream-layer` remain `not_started`
-(frozen slots per master plan §1.1; not in scope this round).
+`PublicApiBoundaryCheck`), `assembly` itself per the §4.3 self-verify
+upgrade, and `frontend-api` after API-1 public smoke evidence.
+`frontend-api` is not folded into the existing verified compatibility
+matrix rows until fresh contract/smoke/e2e evidence exists for that
+matrix identity. `feature-store` and `stream-layer` remain
+`not_started` (frozen slots per master plan §1.1; not in scope this
+round).
 
 The compatibility matrix records BOTH profiles as `verified` at
 `verified_at: 2026-04-24T05:24:14Z`:
@@ -36,7 +41,8 @@ The compatibility matrix records BOTH profiles as `verified` at
 | audit-eval | 0.2.5 | v0.1.3 | unassigned |  |  | health:health_probe=audit_eval.public:health_probe; smoke:smoke_hook=audit_eval.public:smoke_hook; init:init_hook=audit_eval.public:init_hook; version:version_declaration=audit_eval.public:version_declaration; cli:cli=audit_eval.public:cli |  | lite-local, full-dev | verified | null | Stage 3 audit passed; milestone-test-baseline v0.2.5 (canonical_entity_id reconciled to runtime dot form + 2 phase-B tushare cases + historical_replay_pack T+1 tushare extension); codex-confirmed. |
 | subsystem-sdk | 0.1.2 | v0.1.3 | unassigned |  |  | health:health_probe=subsystem_sdk.public:health_probe; smoke:smoke_hook=subsystem_sdk.public:smoke_hook; init:init_hook=subsystem_sdk.public:init_hook; version:version_declaration=subsystem_sdk.public:version_declaration; cli:cli=subsystem_sdk.public:cli |  | lite-local, full-dev | verified | null | Stage 3 audit passed; milestone-test-baseline v0.1.2; Stage 4 §4.1.5 harmonized contract_version to v0.1.3 (SDK is a contracts-schema consumer; pinned to the contracts package version it's bound against). |
 | orchestrator | 0.1.1 | v0.1.3 | unassigned |  |  | health:health_probe=orchestrator.public:health_probe; smoke:smoke_hook=orchestrator.public:smoke_hook; init:init_hook=orchestrator.public:init_hook; version:version_declaration=orchestrator.public:version_declaration; cli:cli=orchestrator.public:cli |  | lite-local, full-dev | verified | null | Stage 3 audit passed; milestone-test-baseline v0.1.1 with observe-not-assert min-cycle CLI; codex-confirmed. |
-| assembly | 0.1.0 | v0.0.0 | assembly |  |  | health:health_probe=assembly.public:health_probe; smoke:smoke_hook=assembly.public:smoke_hook; init:init_hook=assembly.public:init_hook; version:version_declaration=assembly.public:version_declaration; cli:cli=assembly.public:cli |  | lite-local, full-dev | verified | null | Stage 4 §4.0 + §4.1 + §4.1.5 + §4.2 + §4.3 + Stage 5 done; both lite-local and full-dev profiles verified at 2026-04-24T05:24:14Z (full-dev parallel verification reuses the same 4-service Lite stack per docs/PROFILE_COMPARISON.md equivalence). |
+| assembly | 0.1.0 | v0.0.0 | assembly |  | frontend-api | health:health_probe=assembly.public:health_probe; smoke:smoke_hook=assembly.public:smoke_hook; init:init_hook=assembly.public:init_hook; version:version_declaration=assembly.public:version_declaration; cli:cli=assembly.public:cli |  | lite-local, full-dev | verified | null | Stage 4 §4.0 + §4.1 + §4.1.5 + §4.2 + §4.3 + Stage 5 done; both lite-local and full-dev profiles verified at 2026-04-24T05:24:14Z (full-dev parallel verification reuses the same 4-service Lite stack per docs/PROFILE_COMPARISON.md equivalence). |
+| frontend-api | 0.1.0 | v0.1.3 | frontend-api | assembly |  | health:health_probe=frontend_api.public:health_probe; smoke:smoke_hook=frontend_api.public:smoke_hook; init:init_hook=frontend_api.public:init_hook; version:version_declaration=frontend_api.public:version_declaration; cli:cli=frontend_api.public:cli | assembly | lite-local, full-dev | verified | reports/smoke/frontend-api-api1-public-smoke-20260425.md | API-1 read-only System/Assembly BFF registered after frontend-api public smoke passed for health/modules/profiles/compat; no command endpoints exposed. |
 | feature-store | 0.0.0 | v0.0.0 | unassigned |  |  | health:health_probe=feature_store.public:health_probe; smoke:smoke_hook=feature_store.public:smoke_hook; init:init_hook=feature_store.public:init_hook; version:version_declaration=feature_store.public:version_declaration; cli:cli=feature_store.public:cli |  | lite-local, full-dev | not_started | null | Stage 0 placeholder entrypoint declarations. |
 | stream-layer | 0.0.0 | v0.0.0 | unassigned |  |  | health:health_probe=stream_layer.public:health_probe; smoke:smoke_hook=stream_layer.public:smoke_hook; init:init_hook=stream_layer.public:init_hook; version:version_declaration=stream_layer.public:version_declaration; cli:cli=stream_layer.public:cli |  | lite-local, full-dev | not_started | null | Stage 0 placeholder entrypoint declarations. |
 | subsystem-announcement | 0.1.1 | v0.1.3 | unassigned |  |  | health:health_probe=subsystem_announcement.public:health_probe; smoke:smoke_hook=subsystem_announcement.public:smoke_hook; init:init_hook=subsystem_announcement.public:init_hook; version:version_declaration=subsystem_announcement.public:version_declaration; cli:cli=subsystem_announcement.public:cli |  | lite-local, full-dev | verified | null | Stage 3 audit passed; milestone-test-baseline v0.1.1 + canonical wire mapper; codex review #8 approved; Stage 4 §4.1.5 harmonized contract_version to v0.1.3 (Ex-1/2/3 producer; pinned to the contracts package version this subsystem is bound against). |
