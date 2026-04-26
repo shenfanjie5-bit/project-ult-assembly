@@ -30,25 +30,25 @@ Current repo snapshot:
 | `subsystem-sdk` | `aaa3b0654c35` | clean |
 | `subsystem-announcement` | `79d8ec5d141d` | clean |
 | `subsystem-news` | `e83363c1f5e3` | only local untracked `PROJECT_REPORT.md` |
-| `reasoner-runtime` | `66f4dc7cd1c7` | clean |
-| `audit-eval` | `837bab7eeacf` | local untracked report/build/dist/egg-info artifacts |
+| `reasoner-runtime` | `f5183f4765f4` | clean |
+| `audit-eval` | `2f41580078c0` | local untracked report/build/dist/egg-info artifacts |
 | `orchestrator` | `598259d234a2` | local untracked `.orchestrator/` and dbt runtime state |
 | `graph-engine` | `63bc514b53b3` | only local untracked `PROJECT_REPORT.md` |
 | `data-platform` | `1c362cfbd416` | only local untracked `.orchestrator/` |
 | `FrontEnd` | `ad4ada5fd6ab` | local modified `README.md`, `src/mocks/data/projectUltData.ts`; do not touch from backend stabilization |
-| `assembly` | `aac0c4e3c5bd` | local env/cache/tmp/report artifacts only |
+| `assembly` | `d4fd7ba30adc` | local env/cache/tmp/report artifacts only |
 
 ## Closed Or Fixed Pending Review
 
 | ID | Priority | Finding / risk | Owner | Repo / files | Status | Fix commit(s) | Required tests | Evidence file | Matrix eligibility |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| S1-01 | P2 | `contracts` CI/version/shared fixture pin drift | Backend Batch 1 | `contracts` | `fixed_pending_independent_review` | `e3eb0c4`, later `540f9e8feebd` | `PYTHON=.venv/bin/python bash scripts/ci.sh`; `.venv/bin/python -m pytest`; export + compat tests; `git diff --check` | This checklist until independent review report is added | No |
-| S1-02 | P2 | `entity-registry` monkey patched `contracts.schemas.ResolutionCase` instead of relying on official contract schema | Backend Batch 1 | `entity-registry` | `fixed_pending_independent_review` | `bbf13487e70c` | `make test`; `make contract`; boundary tests; sibling contracts `v0.1.3` roundtrip; `git diff --check` | This checklist until independent review report is added | No |
-| S1-03 | P2 | `main-core` contract pin drift and L8 report key mismatch | Backend Batch 1 | `main-core` | `fixed_pending_independent_review` | `53913da402b8` | `bash scripts/check_boundaries.sh`; full `pytest`; contract alignment tests; regression tests; assembly model validation; `git diff --check` | This checklist until independent review report is added | No |
-| S1-04 | P2 | `subsystem-announcement`, `subsystem-news`, `subsystem-sdk` smoke hooks returned non-assembly `SmokeResult` shape | Backend Batch 1 | `subsystem-sdk`, `subsystem-announcement`, `subsystem-news` | `fixed_pending_independent_review` | `aaa3b0654c35`, `f4f6232`, `79d8ec5d141d`, `e83363c1f5e3` | full `pytest` in each repo; public/smoke/runtime contract tests; assembly `HealthResult`/`SmokeResult`/`VersionInfo` validation; `git diff --check` | This checklist until independent review report is added | No |
-| S1-05 | P2 | Exported `ResolutionCase` JSON Schema did not encode `candidate_entities` invariant | Backend Batch 1 follow-up | `contracts/src/contracts/export/__init__.py`; `contracts/tests/test_export_json_schema_contract.py` | `closed` | `540f9e8feebd` | `PYTHON=.venv/bin/python bash scripts/ci.sh`; `.venv/bin/python -m pytest`; `git diff --check` | This checklist plus commit `540f9e8feebd` | No |
-| S1-06 | P2 | `0.1.0` contracts baseline was accidentally moved toward current schema | Backend Batch 1 follow-up | `contracts/src/contracts/baselines/0.1.0/json_schema/**`; `contracts/artifacts/baselines/0.1.0/json_schema/**` | `closed` | `540f9e8feebd` | `.venv/bin/python -m pytest`; explicit no-diff check for 0.1.0 baseline dirs | This checklist plus commit `540f9e8feebd` | No |
-| S1-07 | P2 | `ResolutionCase` compat allowlist ignored future `/allOf` changes too broadly | Backend Batch 1 follow-up | `contracts/src/contracts/compat/__init__.py`; `contracts/tests/test_compat_rules.py` | `closed` | `540f9e8feebd` | `PYTHON=.venv/bin/python bash scripts/ci.sh`; `.venv/bin/python -m pytest`; compat regression tests for extra/changed `allOf` rules | This checklist plus commit `540f9e8feebd` | No |
+| S1-01 | P2 | `contracts` CI/version/shared fixture pin drift | Backend Batch 1 | `contracts` | `closed` | `e3eb0c4`, later `540f9e8feebd` | `PYTHON=.venv/bin/python bash scripts/ci.sh`; `.venv/bin/python -m pytest`; export + compat tests; `git diff --check` | `reports/stabilization/batch1-independent-review-20260427.md` | No |
+| S1-02 | P2 | `entity-registry` monkey patched `contracts.schemas.ResolutionCase` instead of relying on official contract schema | Backend Batch 1 | `entity-registry` | `closed` | `bbf13487e70c` | `make test`; `make contract`; boundary tests; sibling contracts `v0.1.3` roundtrip; `git diff --check` | `reports/stabilization/batch1-independent-review-20260427.md` | No |
+| S1-03 | P2 | `main-core` contract pin drift and L8 report key mismatch | Backend Batch 1 | `main-core` | `closed` | `53913da402b8` | `bash scripts/check_boundaries.sh`; full `pytest`; contract alignment tests; regression tests; assembly model validation; `git diff --check` | `reports/stabilization/batch1-independent-review-20260427.md` | No |
+| S1-04 | P2 | `subsystem-announcement`, `subsystem-news`, `subsystem-sdk` smoke hooks returned non-assembly `SmokeResult` shape | Backend Batch 1 | `subsystem-sdk`, `subsystem-announcement`, `subsystem-news` | `closed` | `aaa3b0654c35`, `f4f6232`, `79d8ec5d141d`, `e83363c1f5e3` | full `pytest` in each repo; public/smoke/runtime contract tests; assembly `HealthResult`/`SmokeResult`/`VersionInfo` validation; `git diff --check` | `reports/stabilization/batch1-independent-review-20260427.md` | No |
+| S1-05 | P2 | Exported `ResolutionCase` JSON Schema did not encode `candidate_entities` invariant | Backend Batch 1 follow-up | `contracts/src/contracts/export/__init__.py`; `contracts/tests/test_export_json_schema_contract.py` | `closed` | `540f9e8feebd` | `PYTHON=.venv/bin/python bash scripts/ci.sh`; `.venv/bin/python -m pytest`; `git diff --check` | `reports/stabilization/batch1-independent-review-20260427.md` | No |
+| S1-06 | P2 | `0.1.0` contracts baseline was accidentally moved toward current schema | Backend Batch 1 follow-up | `contracts/src/contracts/baselines/0.1.0/json_schema/**`; `contracts/artifacts/baselines/0.1.0/json_schema/**` | `closed` | `540f9e8feebd` | `.venv/bin/python -m pytest`; explicit no-diff check for 0.1.0 baseline dirs | `reports/stabilization/batch1-independent-review-20260427.md` | No |
+| S1-07 | P2 | `ResolutionCase` compat allowlist ignored future `/allOf` changes too broadly | Backend Batch 1 follow-up | `contracts/src/contracts/compat/__init__.py`; `contracts/tests/test_compat_rules.py` | `closed` | `540f9e8feebd` | `PYTHON=.venv/bin/python bash scripts/ci.sh`; `.venv/bin/python -m pytest`; compat regression tests for extra/changed `allOf` rules | `reports/stabilization/batch1-independent-review-20260427.md` | No |
 | S1-08 | P2 | Three-backend provider example was not loadable by public reasoner-runtime loader | LLM setup follow-up | `reasoner-runtime/config/providers.three-backends.example.yaml`; reasoner-runtime config loader tests | `closed` | `66f4dc7cd1c7` | `PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/contracts/src .venv/bin/python -m pytest tests/unit/test_config.py tests/unit/test_codex_auth.py tests/unit/test_codex_client.py tests/unit/test_claude_code_cli_client.py -q`; broad pytest excluding shared fixtures; `git diff --check` | `reports/smoke/llm-backend-setup-wiring-smoke-20260427.md` | No |
 | S1-09 | P2 | Assembly setup implied host Codex/Claude login would work inside compose containers | LLM setup follow-up | `assembly/.env.example`; `assembly/compose/*.yaml`; `assembly/src/assembly/cli/setup.py`; docs/tests | `closed` | `da2861fb659d`, evidence `aac0c4e3c5bd` | `PYTHONDONTWRITEBYTECODE=1 .venv-py312/bin/python -m pytest -q -p no:cacheprovider tests/cli/test_setup.py tests/cli/test_main.py tests/bootstrap/test_plan.py`; docs/smoke/registry line; `git diff --check` | `reports/smoke/llm-backend-setup-wiring-smoke-20260427.md` | No |
 
@@ -56,7 +56,7 @@ Current repo snapshot:
 
 Owner: Free subagent / independent reviewer.
 
-Status: `open`.
+Status: `closed`.
 
 Goal:
 
@@ -95,20 +95,20 @@ cd /Users/fanjie/Desktop/Cowork/project-ult/subsystem-news
 git diff --check
 ```
 
-Expected evidence file:
+Evidence file:
 
 - `reports/stabilization/batch1-independent-review-20260427.md`
 
 ## Batch 2: LLM / Replay Chain
 
-Status: `open`.
+Status: `closed`.
 
 | ID | Priority | Finding / risk | Owner | Repo / files | Required fix | Required tests | Evidence file | Matrix eligibility |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| S2-01 | P2 | `reasoner-runtime` dependency hash lock drift, including known LiteLLM hash mismatch | Backend Batch 2 | `reasoner-runtime/requirements.txt`; dependency lock workflow | Reproduce hash mismatch in clean install lane, update lock/hash only if source package identity is verified, and document why this is separate from provider logic | clean dependency install with `--require-hashes`; reasoner-runtime unit tests; provider tests; `git diff --check` | `reports/stabilization/batch2-llm-replay-smoke-20260427.md` | No |
-| S2-02 | P2 | `ReplayBundle.to_contract` missing or not aligned with contracts replay envelope | Backend Batch 2 | `reasoner-runtime` replay/provider models | Add explicit contract conversion that preserves `sanitized_input`, `input_hash`, `raw_output`, `parsed_result`, `output_hash`; no business prompt leakage | replay unit tests; contracts model validation; regression covering all five fields; `git diff --check` | `reports/stabilization/batch2-llm-replay-smoke-20260427.md` | No |
-| S2-03 | P2 | `audit-eval` replay hash verification semantics incomplete | Backend Batch 2 | `audit-eval` replay/audit storage/query code | Verify replay hash against stored bundle and fail closed on mismatch | audit-eval replay tests; tamper regression; `git diff --check` | `reports/stabilization/batch2-llm-replay-smoke-20260427.md` | No |
-| S2-04 | P2 | `manifest_cycle_id` semantics ambiguous | Backend Batch 2 | `audit-eval`; contracts references if needed | Define and test whether `manifest_cycle_id` points to source manifest cycle, evaluated cycle, or replay target; update docs/tests accordingly | audit-eval tests; relevant contracts tests if schema text changes; `git diff --check` | `reports/stabilization/batch2-llm-replay-smoke-20260427.md` | No |
+| S2-01 | P2 | `reasoner-runtime` dependency hash lock drift, including known LiteLLM hash mismatch | Backend Batch 2 | `reasoner-runtime/requirements.txt`; dependency lock workflow | `closed`: updated LiteLLM wheel hash to verified PyPI hash | clean dependency hash download; reasoner-runtime unit/integration tests; dependency lock script; `git diff --check` | `reports/stabilization/batch2-llm-replay-smoke-20260427.md` | No |
+| S2-02 | P2 | `ReplayBundle.to_contract` missing or not aligned with contracts replay envelope | Backend Batch 2 | `reasoner-runtime` replay/provider models | `closed`: `ReplayBundle.to_contract()` now preserves `sanitized_input`, `input_hash`, `raw_output`, `parsed_result`, `output_hash` | replay unit/integration tests; contract-backed model validation; regression covering all five fields; `git diff --check` | `reports/stabilization/batch2-llm-replay-smoke-20260427.md` | No |
+| S2-03 | P2 | `audit-eval` replay hash verification semantics incomplete | Backend Batch 2 | `audit-eval` replay/audit storage/query code | `closed`: AuditRecord recomputes input/output hashes and fails closed on malformed or mismatched hashes | audit-eval replay/audit tests; tamper regression; full pytest; ruff target; `git diff --check` | `reports/stabilization/batch2-llm-replay-smoke-20260427.md` | No |
+| S2-04 | P2 | `manifest_cycle_id` semantics ambiguous | Backend Batch 2 | `audit-eval`; contracts references if needed | `closed`: execution `cycle_id` and published `manifest_cycle_id` semantics are separated and tested | audit-eval write bundle and replay query tests; full pytest; ruff target; `git diff --check` | `reports/stabilization/batch2-llm-replay-smoke-20260427.md` | No |
 
 Batch 2 hard constraints:
 
@@ -163,8 +163,7 @@ FrontEnd hard constraints:
 
 ## Final Gate Before Verified Matrix Promotion
 
-Status: `blocked` until Batch 1 independent review, Batch 2, Batch 3, and
-FrontEnd polish are closed.
+Status: `blocked` until Batch 3 and FrontEnd polish are closed.
 
 Owner: Stabilization lead.
 
