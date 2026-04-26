@@ -1,0 +1,197 @@
+# Project ULT Stabilization Master Checklist
+
+Recorded: 2026-04-26T19:11:06Z
+
+Scope:
+
+- Track Project ULT stabilization work until P1/P2 risks are closed.
+- This is a coordination checklist only.
+- Do not use this checklist as verified compatibility evidence by itself.
+- Do not update `compatibility-matrix.yaml`, `module-registry.yaml`,
+  `MODULE_REGISTRY.md`, or assembly `README.md` from this checklist.
+- Do not run release-freeze, command, run, compat-run, e2e-run, min-cycle, or
+  sidecar auto-start work from this checklist.
+
+Status model:
+
+- `closed`: implementation committed and pushed; required tests reported.
+- `fixed_pending_independent_review`: implementation committed and pushed, but
+  a separate reviewer still needs to confirm the risk is genuinely closed.
+- `open`: not implemented in this stabilization pass.
+- `blocked`: cannot proceed without a separate decision.
+
+Current repo snapshot:
+
+| Repo | HEAD | Status notes |
+| --- | --- | --- |
+| `contracts` | `540f9e8feebd` | clean |
+| `entity-registry` | `bbf13487e70c` | only local untracked `.orchestrator/` |
+| `main-core` | `53913da402b8` | only local untracked `.orchestrator/` |
+| `subsystem-sdk` | `aaa3b0654c35` | clean |
+| `subsystem-announcement` | `79d8ec5d141d` | clean |
+| `subsystem-news` | `e83363c1f5e3` | only local untracked `PROJECT_REPORT.md` |
+| `reasoner-runtime` | `66f4dc7cd1c7` | clean |
+| `audit-eval` | `837bab7eeacf` | local untracked report/build/dist/egg-info artifacts |
+| `orchestrator` | `598259d234a2` | local untracked `.orchestrator/` and dbt runtime state |
+| `graph-engine` | `63bc514b53b3` | only local untracked `PROJECT_REPORT.md` |
+| `data-platform` | `1c362cfbd416` | only local untracked `.orchestrator/` |
+| `FrontEnd` | `ad4ada5fd6ab` | local modified `README.md`, `src/mocks/data/projectUltData.ts`; do not touch from backend stabilization |
+| `assembly` | `aac0c4e3c5bd` | local env/cache/tmp/report artifacts only |
+
+## Closed Or Fixed Pending Review
+
+| ID | Priority | Finding / risk | Owner | Repo / files | Status | Fix commit(s) | Required tests | Evidence file | Matrix eligibility |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| S1-01 | P2 | `contracts` CI/version/shared fixture pin drift | Backend Batch 1 | `contracts` | `fixed_pending_independent_review` | `e3eb0c4`, later `540f9e8feebd` | `PYTHON=.venv/bin/python bash scripts/ci.sh`; `.venv/bin/python -m pytest`; export + compat tests; `git diff --check` | This checklist until independent review report is added | No |
+| S1-02 | P2 | `entity-registry` monkey patched `contracts.schemas.ResolutionCase` instead of relying on official contract schema | Backend Batch 1 | `entity-registry` | `fixed_pending_independent_review` | `bbf13487e70c` | `make test`; `make contract`; boundary tests; sibling contracts `v0.1.3` roundtrip; `git diff --check` | This checklist until independent review report is added | No |
+| S1-03 | P2 | `main-core` contract pin drift and L8 report key mismatch | Backend Batch 1 | `main-core` | `fixed_pending_independent_review` | `53913da402b8` | `bash scripts/check_boundaries.sh`; full `pytest`; contract alignment tests; regression tests; assembly model validation; `git diff --check` | This checklist until independent review report is added | No |
+| S1-04 | P2 | `subsystem-announcement`, `subsystem-news`, `subsystem-sdk` smoke hooks returned non-assembly `SmokeResult` shape | Backend Batch 1 | `subsystem-sdk`, `subsystem-announcement`, `subsystem-news` | `fixed_pending_independent_review` | `aaa3b0654c35`, `f4f6232`, `79d8ec5d141d`, `e83363c1f5e3` | full `pytest` in each repo; public/smoke/runtime contract tests; assembly `HealthResult`/`SmokeResult`/`VersionInfo` validation; `git diff --check` | This checklist until independent review report is added | No |
+| S1-05 | P2 | Exported `ResolutionCase` JSON Schema did not encode `candidate_entities` invariant | Backend Batch 1 follow-up | `contracts/src/contracts/export/__init__.py`; `contracts/tests/test_export_json_schema_contract.py` | `closed` | `540f9e8feebd` | `PYTHON=.venv/bin/python bash scripts/ci.sh`; `.venv/bin/python -m pytest`; `git diff --check` | This checklist plus commit `540f9e8feebd` | No |
+| S1-06 | P2 | `0.1.0` contracts baseline was accidentally moved toward current schema | Backend Batch 1 follow-up | `contracts/src/contracts/baselines/0.1.0/json_schema/**`; `contracts/artifacts/baselines/0.1.0/json_schema/**` | `closed` | `540f9e8feebd` | `.venv/bin/python -m pytest`; explicit no-diff check for 0.1.0 baseline dirs | This checklist plus commit `540f9e8feebd` | No |
+| S1-07 | P2 | `ResolutionCase` compat allowlist ignored future `/allOf` changes too broadly | Backend Batch 1 follow-up | `contracts/src/contracts/compat/__init__.py`; `contracts/tests/test_compat_rules.py` | `closed` | `540f9e8feebd` | `PYTHON=.venv/bin/python bash scripts/ci.sh`; `.venv/bin/python -m pytest`; compat regression tests for extra/changed `allOf` rules | This checklist plus commit `540f9e8feebd` | No |
+| S1-08 | P2 | Three-backend provider example was not loadable by public reasoner-runtime loader | LLM setup follow-up | `reasoner-runtime/config/providers.three-backends.example.yaml`; reasoner-runtime config loader tests | `closed` | `66f4dc7cd1c7` | `PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/contracts/src .venv/bin/python -m pytest tests/unit/test_config.py tests/unit/test_codex_auth.py tests/unit/test_codex_client.py tests/unit/test_claude_code_cli_client.py -q`; broad pytest excluding shared fixtures; `git diff --check` | `reports/smoke/llm-backend-setup-wiring-smoke-20260427.md` | No |
+| S1-09 | P2 | Assembly setup implied host Codex/Claude login would work inside compose containers | LLM setup follow-up | `assembly/.env.example`; `assembly/compose/*.yaml`; `assembly/src/assembly/cli/setup.py`; docs/tests | `closed` | `da2861fb659d`, evidence `aac0c4e3c5bd` | `PYTHONDONTWRITEBYTECODE=1 .venv-py312/bin/python -m pytest -q -p no:cacheprovider tests/cli/test_setup.py tests/cli/test_main.py tests/bootstrap/test_plan.py`; docs/smoke/registry line; `git diff --check` | `reports/smoke/llm-backend-setup-wiring-smoke-20260427.md` | No |
+
+## Batch 1 Independent Review Gate
+
+Owner: Free subagent / independent reviewer.
+
+Status: `open`.
+
+Goal:
+
+- Confirm S1-01 through S1-04 are real risk closures, not only test rewrites.
+- Confirm S1-05 through S1-09 remain closed on current `main`.
+- Do not implement new behavior during this review.
+
+Required review commands:
+
+```bash
+cd /Users/fanjie/Desktop/Cowork/project-ult/contracts
+PYTHON=.venv/bin/python bash scripts/ci.sh
+.venv/bin/python -m pytest
+git diff --check
+
+cd /Users/fanjie/Desktop/Cowork/project-ult/entity-registry
+make test
+make contract
+git diff --check
+
+cd /Users/fanjie/Desktop/Cowork/project-ult/main-core
+bash scripts/check_boundaries.sh
+.venv/bin/python -m pytest
+git diff --check
+
+cd /Users/fanjie/Desktop/Cowork/project-ult/subsystem-sdk
+.venv/bin/python -m pytest
+git diff --check
+
+cd /Users/fanjie/Desktop/Cowork/project-ult/subsystem-announcement
+.venv/bin/python -m pytest
+git diff --check
+
+cd /Users/fanjie/Desktop/Cowork/project-ult/subsystem-news
+.venv/bin/python -m pytest
+git diff --check
+```
+
+Expected evidence file:
+
+- `reports/stabilization/batch1-independent-review-20260427.md`
+
+## Batch 2: LLM / Replay Chain
+
+Status: `open`.
+
+| ID | Priority | Finding / risk | Owner | Repo / files | Required fix | Required tests | Evidence file | Matrix eligibility |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| S2-01 | P2 | `reasoner-runtime` dependency hash lock drift, including known LiteLLM hash mismatch | Backend Batch 2 | `reasoner-runtime/requirements.txt`; dependency lock workflow | Reproduce hash mismatch in clean install lane, update lock/hash only if source package identity is verified, and document why this is separate from provider logic | clean dependency install with `--require-hashes`; reasoner-runtime unit tests; provider tests; `git diff --check` | `reports/stabilization/batch2-llm-replay-smoke-20260427.md` | No |
+| S2-02 | P2 | `ReplayBundle.to_contract` missing or not aligned with contracts replay envelope | Backend Batch 2 | `reasoner-runtime` replay/provider models | Add explicit contract conversion that preserves `sanitized_input`, `input_hash`, `raw_output`, `parsed_result`, `output_hash`; no business prompt leakage | replay unit tests; contracts model validation; regression covering all five fields; `git diff --check` | `reports/stabilization/batch2-llm-replay-smoke-20260427.md` | No |
+| S2-03 | P2 | `audit-eval` replay hash verification semantics incomplete | Backend Batch 2 | `audit-eval` replay/audit storage/query code | Verify replay hash against stored bundle and fail closed on mismatch | audit-eval replay tests; tamper regression; `git diff --check` | `reports/stabilization/batch2-llm-replay-smoke-20260427.md` | No |
+| S2-04 | P2 | `manifest_cycle_id` semantics ambiguous | Backend Batch 2 | `audit-eval`; contracts references if needed | Define and test whether `manifest_cycle_id` points to source manifest cycle, evaluated cycle, or replay target; update docs/tests accordingly | audit-eval tests; relevant contracts tests if schema text changes; `git diff --check` | `reports/stabilization/batch2-llm-replay-smoke-20260427.md` | No |
+
+Batch 2 hard constraints:
+
+- Do not change Codex OAuth token handling logic.
+- Do not change Claude Code CLI subprocess invocation logic.
+- Do not add fallback from subscription-auth failure to API-key providers.
+- Do not add command/run/freeze/release-freeze endpoints.
+
+## Batch 3: Execution And Write Boundaries
+
+Status: `open`.
+
+| ID | Priority | Finding / risk | Owner | Repo / files | Required fix | Required tests | Evidence file | Matrix eligibility |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| S3-01 | P2 | `orchestrator` `required_artifacts` path traversal risk | Backend Batch 3 | `orchestrator` artifact/path validation code | Constrain artifact paths to allowed roots, reject traversal/symlink escape, preserve valid relative artifacts | orchestrator full tests; targeted traversal regressions; public entrypoint tests; `git diff --check` | `reports/stabilization/batch3-execution-boundaries-smoke-20260427.md` | No |
+| S3-02 | P2 | `graph-engine` timeout may leave background writes running | Backend Batch 3 | `graph-engine` timeout/execution code | Ensure timeout cancels or fences background writes; add deterministic cleanup/barrier | graph-engine full tests; timeout regression; no post-timeout write assertion; `git diff --check` | `reports/stabilization/batch3-execution-boundaries-smoke-20260427.md` | No |
+| S3-03 | P2 | `graph-engine` readonly simulation drop barrier insufficient | Backend Batch 3 | `graph-engine` simulation/read-only boundary | Add explicit drop barrier so readonly simulations cannot persist writes | graph-engine readonly/simulation tests; persistence regression; `git diff --check` | `reports/stabilization/batch3-execution-boundaries-smoke-20260427.md` | No |
+| S3-04 | P2 | `data-platform` artifact refs and manifest formal key validation incomplete | Backend Batch 3 | `data-platform` artifact/manifest code | Validate artifact refs and formal keys against expected manifest schema; fail with explicit errors | data-platform full or approved full-target tests; manifest formal key regressions; artifact ref regressions; `git diff --check` | `reports/stabilization/batch3-execution-boundaries-smoke-20260427.md` | No |
+
+Batch 3 hard constraints:
+
+- Do not relax write barriers to make tests pass.
+- Do not introduce hidden background write paths.
+- Do not stage `.orchestrator`, local dbt state, venv, cache, build, dist, or
+  report scratch files.
+
+## FrontEnd Read-Only Polish
+
+Status: `open`.
+
+Owner: FrontEnd role.
+
+Current snapshot:
+
+- `FrontEnd` HEAD: `ad4ada5fd6ab`
+- Current local state has modified `README.md` and
+  `src/mocks/data/projectUltData.ts`; backend stabilization must not touch or
+  revert these files.
+
+| ID | Priority | Finding / risk | Required fix | Required tests | Evidence file | Matrix eligibility |
+| --- | --- | --- | --- | --- | --- | --- |
+| FE-01 | P2 | `data_mode` query/store synchronization can drift | Keep query string, persistent store, and Project ULT route guards consistent without triggering unsupported legacy calls | `npm run check`; `npm run lint`; `npm run build`; browser smoke for refresh/deep-link/store transitions; forbidden write-call grep | `reports/stabilization/frontend-readonly-polish-smoke-20260427.md` | No |
+| FE-02 | P2 | API-3A limit clamp must not leak invalid backend queries | Clamp Data Explorer entity/canonical/raw limits to backend bounds before requests and URL sync | `npm run check`; `npm run lint`; `npm run build`; browser smoke with over-limit deep links; console no 422 | `reports/stabilization/frontend-readonly-polish-smoke-20260427.md` | No |
+| FE-03 | P2 | unknown route fallback can escape Project ULT read-only mode | Unknown/risky Project ULT-mode routes must land on `/project-ult/system` or explicit unavailable state, not legacy write/risk pages | route guard tests or browser smoke; no unsupported endpoint calls; no blank page | `reports/stabilization/frontend-readonly-polish-smoke-20260427.md` | No |
+
+FrontEnd hard constraints:
+
+- Do not add a new page in this polish batch.
+- Do not add POST/PUT/PATCH/DELETE Project ULT calls.
+- Do not add command/run/freeze/release-freeze/min-cycle/replay POST/graph
+  simulate calls.
+
+## Final Gate Before Verified Matrix Promotion
+
+Status: `blocked` until Batch 1 independent review, Batch 2, Batch 3, and
+FrontEnd polish are closed.
+
+Owner: Stabilization lead.
+
+Required final commands:
+
+```bash
+cd /Users/fanjie/Desktop/Cowork/project-ult/assembly
+PYTHONDONTWRITEBYTECODE=1 .venv-py312/bin/python -m pytest -q -p no:cacheprovider \
+  tests/release/test_docs.py \
+  tests/smoke \
+  tests/registry \
+  tests/compat
+git diff --check
+```
+
+Final gate requirements:
+
+- All P1/P2 checklist items are `closed`.
+- Each closed item has a commit, test command, and evidence file.
+- Independent review confirms risk closure for Batch 1/2/3 and FrontEnd polish.
+- No local env/cache/tmp/build/dist/egg-info/report scratch files are staged.
+- `frontend-api` remains outside old verified matrix rows unless a separate
+  promotion run produces fresh contract/smoke/e2e evidence for the new module
+  identity.
+
+Only after this gate:
+
+1. Decide whether to create a new verified matrix row including frontend-api.
+2. Run a real-data mini cycle.
+3. Start planning the P5 20 trading day shadow run.
