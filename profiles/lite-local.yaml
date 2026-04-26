@@ -32,6 +32,10 @@ required_env_keys:
 optional_env_keys:
   - ASSEMBLY_LOG_LEVEL
   - ASSEMBLY_SERVICE_TOKEN
+  - MINIMAX_API_KEY
+  - MINIMAX_API_BASE
+  - REASONER_RUNTIME_ENABLE_CODEX_OAUTH
+  - REASONER_RUNTIME_ENABLE_CLAUDE_CODE_CLI
 storage_backends:
   postgres:
     kind: postgres

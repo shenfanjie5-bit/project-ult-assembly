@@ -13,6 +13,7 @@ from assembly.bootstrap import BootstrapStageError, bootstrap as execute_bootstr
 from assembly.bootstrap.plan import BootstrapPlan, BootstrapPlanError, build_plan
 from assembly.bootstrap.runner import BootstrapResult, ComposeCommandError, Runner
 from assembly.cli.release import make_release_freeze_command
+from assembly.cli.setup import make_setup_command
 from assembly.compat import (
     CompatibilityError,
     CompatibilityReport,
@@ -515,6 +516,10 @@ def execute_release_freeze(
         extra_bundles=extra_bundles,
     )
 
+
+entrypoint.add_command(
+    make_setup_command()
+)
 
 entrypoint.add_command(
     make_release_freeze_command(

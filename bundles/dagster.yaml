@@ -27,6 +27,12 @@ services:
       DAGSTER_POSTGRES_DB: ${POSTGRES_DB}
       DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
       DAGSTER_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # LLM backend pass-through (one of the three is selected by
+      # ``assembly setup``; empty values are treated as "disabled").
+      MINIMAX_API_KEY: ${MINIMAX_API_KEY:-}
+      MINIMAX_API_BASE: ${MINIMAX_API_BASE:-}
+      REASONER_RUNTIME_ENABLE_CODEX_OAUTH: ${REASONER_RUNTIME_ENABLE_CODEX_OAUTH:-}
+      REASONER_RUNTIME_ENABLE_CLAUDE_CODE_CLI: ${REASONER_RUNTIME_ENABLE_CLAUDE_CODE_CLI:-}
   - name: dagster-webserver
     image_or_cmd: dagster-webserver
     image: project-ult/dagster-lite:1.7.16
@@ -48,6 +54,11 @@ services:
       DAGSTER_POSTGRES_DB: ${POSTGRES_DB}
       DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
       DAGSTER_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # LLM backend pass-through (see daemon block above).
+      MINIMAX_API_KEY: ${MINIMAX_API_KEY:-}
+      MINIMAX_API_BASE: ${MINIMAX_API_BASE:-}
+      REASONER_RUNTIME_ENABLE_CODEX_OAUTH: ${REASONER_RUNTIME_ENABLE_CODEX_OAUTH:-}
+      REASONER_RUNTIME_ENABLE_CLAUDE_CODE_CLI: ${REASONER_RUNTIME_ENABLE_CLAUDE_CODE_CLI:-}
 startup_order:
   - dagster-daemon
   - dagster-webserver

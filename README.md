@@ -58,6 +58,16 @@ containers): `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`,
 `DAGSTER_POSTGRES_USER`, `DAGSTER_POSTGRES_PASSWORD`,
 `DAGSTER_POSTGRES_DB`. The `.env` file is intentionally untracked.
 
+LLM backend setup is intentionally narrow. `assembly setup --backend
+minimax` writes API env values that are container-ready for compose.
+`assembly setup --backend codex` and `assembly setup --backend
+claude-code` only write host-managed/runtime-only gates after checking
+host auth or host CLI availability. Docker compose currently passes
+those gates through as env only; it does not auto-start Codex or Claude,
+install their CLIs in the Dagster image, mount host auth/keychain state,
+or package a sidecar. Codex/Claude container readiness requires a later
+sidecar/container packaging change.
+
 Assembly's compose drift detector
 (`src/assembly/compat/checks/service_bundle_drift.py`) literal-matches
 each service's `image_or_command` and `env` block against the

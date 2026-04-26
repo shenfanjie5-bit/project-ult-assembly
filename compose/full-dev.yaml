@@ -50,6 +50,13 @@ services:
       DAGSTER_POSTGRES_DB: ${POSTGRES_DB}
       DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
       DAGSTER_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # LLM backend pass-through. MiniMax is container-ready because it
+      # only needs API env; Codex/Claude gates are host-managed/runtime-only
+      # until sidecar/container packaging installs CLIs and mounts auth.
+      MINIMAX_API_KEY: ${MINIMAX_API_KEY:-}
+      MINIMAX_API_BASE: ${MINIMAX_API_BASE:-}
+      REASONER_RUNTIME_ENABLE_CODEX_OAUTH: ${REASONER_RUNTIME_ENABLE_CODEX_OAUTH:-}
+      REASONER_RUNTIME_ENABLE_CLAUDE_CODE_CLI: ${REASONER_RUNTIME_ENABLE_CLAUDE_CODE_CLI:-}
     command: ["dagster-daemon", "run"]
     depends_on:
       postgres:
@@ -77,6 +84,11 @@ services:
       DAGSTER_POSTGRES_DB: ${POSTGRES_DB}
       DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
       DAGSTER_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # LLM backend pass-through (see daemon block above).
+      MINIMAX_API_KEY: ${MINIMAX_API_KEY:-}
+      MINIMAX_API_BASE: ${MINIMAX_API_BASE:-}
+      REASONER_RUNTIME_ENABLE_CODEX_OAUTH: ${REASONER_RUNTIME_ENABLE_CODEX_OAUTH:-}
+      REASONER_RUNTIME_ENABLE_CLAUDE_CODE_CLI: ${REASONER_RUNTIME_ENABLE_CLAUDE_CODE_CLI:-}
     command:
       [
         "dagster-webserver",
