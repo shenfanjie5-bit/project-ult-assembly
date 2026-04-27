@@ -35,6 +35,19 @@ No recommendation data was generated. Existing fixture/historical/synthetic
 recommendations remain unusable as current-cycle formal output at this publish
 boundary.
 
+## Follow-up Fix
+
+After review, broader PG-backed focused tests exposed legitimate old
+`publish_manifest()` callers in manifest-chain, formal-serving, cycle metadata,
+and P1c smoke tests. Those callers now provide explicit provenance instead of
+weakening the production guardrail.
+
+The P1c smoke path still publishes a `recommendation_snapshot` table as a chain
+smoke artifact. Its provenance is technical smoke provenance used to exercise
+queue, cycle, manifest, and formal-serving mechanics. It is not meaningful P2
+recommendation provenance and must not be interpreted as a generated or formal
+P2 recommendation.
+
 ## Validation
 
 Commands run from `data-platform`:
@@ -45,6 +58,11 @@ Commands run from `data-platform`:
   - result: passed
 - `ruff check src/data_platform/cycle/manifest.py src/data_platform/cycle/recommendation_provenance.py src/data_platform/cycle/__init__.py tests/cycle/test_publish_manifest.py`
   - result: passed
+- `DP_PG_DSN` constructed in-process from `compose-postgres-1`, then
+  `PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin:$PATH /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest tests/spike/test_iceberg_publish_manifest_chain.py tests/serving/test_formal.py tests/serving/test_formal_manifest_consistency.py tests/cycle/test_cycle_metadata.py tests/integration/test_p1c_smoke.py -q -rs`
+  - result: `43 passed`
+  - warnings: six PyIceberg warnings that delete operations did not match any
+    records
 
 Note: a local `.venv/bin/python` also exists in `data-platform`, but it is Python
 3.14. The py312 command above is the canonical verification for this prerequisite.
