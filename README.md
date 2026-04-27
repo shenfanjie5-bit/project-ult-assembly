@@ -12,15 +12,23 @@ Source of truth:
 - `CLAUDE.md` (project-specific guardrails — boundary rules, blocker
   triggers, KPI baselines)
 
-## Current state — Stage 5 closed + MinIO pilot + frontend-api API-1 registered
+## Current state — stabilization gate passed + frontend-api promotion planned
 
 - 13 of 15 module slots are `integration_status: verified` per
   `module-registry.yaml`. The two frozen slots (`feature-store`,
   `stream-layer`) stay `not_started` per master plan §1.1.
 - `frontend-api` is registered with standard public entrypoints and
-  API-1 public smoke evidence, but is not folded into the existing
-  verified compatibility matrix rows until fresh contract/smoke/e2e
-  evidence exists for that matrix identity.
+  read-only API-1 through API-5C smoke/release-readiness evidence, but
+  is not folded into the existing verified compatibility matrix rows.
+- Stabilization final gate passed on 2026-04-27. Batch 1
+  contract/schema cleanup, Batch 2 LLM/replay hardening, Batch 3
+  execution/write-boundary hardening, and FrontEnd read-only polish are
+  closed in `reports/stabilization/stabilization-master-checklist-20260427.md`.
+- `frontend-api` matrix promotion is planned in
+  `reports/stabilization/frontend-api-matrix-promotion-plan-20260427.md`.
+  The plan keeps old verified rows intact and requires a fresh
+  frontend-api-inclusive matrix context with matching smoke/e2e/contract
+  evidence.
 - Compatibility matrix records 3 verified rows:
   - `lite-local` (default): `verified_at: 2026-04-24T05:24:14Z` (Stage
     5 re-verification after audit-eval pin sync 0.2.2 → 0.2.5;
@@ -35,7 +43,9 @@ Source of truth:
     render/healthcheck/bootstrap; the new `minio-ready`
     `SocketPortProbe` returned healthy against a MinIO container
     started in a separate compose project).
-- Current full-suite baseline on this workspace: 316 passed, 4 skipped.
+- Current stabilization gate on this workspace:
+  `tests/release/test_docs.py tests/smoke tests/registry tests/compat`
+  passed on 2026-04-27.
 
 ## Lite stack quickstart
 
@@ -90,7 +100,7 @@ public APIs.
 .venv-py312/bin/python -m pytest tests/release/          # release-freeze records
 ```
 
-## Verified module set (post-Stage 5)
+## Registered module set
 
 | module_id | module_version | contract_version | role |
 |---|---|---|---|
@@ -131,6 +141,13 @@ fails the test suite if MD ⇄ YAML drifts.
 
 ## Next steps
 
+- **frontend-api verified matrix promotion** — use the recorded plan in
+  `reports/stabilization/frontend-api-matrix-promotion-plan-20260427.md`.
+  Do not mutate old verified rows. Add an explicit read-only UI profile
+  variant and draft row, then produce fresh smoke/e2e/contract-suite
+  evidence for that exact matrix context.
+- **Real-data mini cycle** — only after the frontend-api promotion plan
+  is implemented cleanly or explicitly deferred.
 - **Remaining 5 optional bundles** (Grafana, Superset, Temporal, Feast,
   Kafka-Flink) — each follows the MinIO pilot template:
   1. Bring bundle service up in the `fulldev` compose project,
