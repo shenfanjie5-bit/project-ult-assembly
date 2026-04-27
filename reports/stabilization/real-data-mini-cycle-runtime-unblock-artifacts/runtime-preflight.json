@@ -1,0 +1,48 @@
+{
+  "base_dir": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-runtime-unblock-artifacts/runtime",
+  "catalog_name": "data_platform_real_mini_cycle_batch_a_20260427",
+  "created_dirs": [
+    "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-runtime-unblock-artifacts/runtime/batch_a_20260427/raw",
+    "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-runtime-unblock-artifacts/runtime/batch_a_20260427/warehouse",
+    "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-runtime-unblock-artifacts/runtime/batch_a_20260427/duckdb"
+  ],
+  "environment": {
+    "DATABASE_URL": "missing",
+    "DP_DUCKDB_PATH": "missing",
+    "DP_ICEBERG_CATALOG_NAME": "missing",
+    "DP_ICEBERG_WAREHOUSE_PATH": "missing",
+    "DP_PG_DSN": "missing",
+    "DP_RAW_ZONE_PATH": "missing",
+    "DP_TUSHARE_TOKEN": "missing",
+    "external_corpus_root": "present"
+  },
+  "generated_at": "2026-04-27T08:39:39+00:00",
+  "generated_env": {
+    "DP_DUCKDB_PATH": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-runtime-unblock-artifacts/runtime/batch_a_20260427/duckdb/data_platform.duckdb",
+    "DP_ENV": "test",
+    "DP_ICEBERG_CATALOG_NAME": "data_platform_real_mini_cycle_batch_a_20260427",
+    "DP_ICEBERG_WAREHOUSE_PATH": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-runtime-unblock-artifacts/runtime/batch_a_20260427/warehouse",
+    "DP_RAW_ZONE_PATH": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-runtime-unblock-artifacts/runtime/batch_a_20260427/raw"
+  },
+  "postgres": {
+    "admin_dsn": "missing",
+    "reason": "DP_PG_DSN missing and temporary PG creation not requested",
+    "source": "DATABASE_URL",
+    "status": "missing"
+  },
+  "profile_name": "batch_a_20260427",
+  "runtime_paths": {
+    "DP_DUCKDB_PATH": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-runtime-unblock-artifacts/runtime/batch_a_20260427/duckdb/data_platform.duckdb",
+    "DP_ICEBERG_WAREHOUSE_PATH": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-runtime-unblock-artifacts/runtime/batch_a_20260427/warehouse",
+    "DP_RAW_ZONE_PATH": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-runtime-unblock-artifacts/runtime/batch_a_20260427/raw"
+  },
+  "summary": {
+    "env_file_written": false,
+    "missing_after_bootstrap": [
+      "DP_PG_DSN",
+      "DP_TUSHARE_TOKEN"
+    ],
+    "runtime_profile_ready": false,
+    "secrets_printed": false
+  }
+}

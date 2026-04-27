@@ -1,0 +1,16 @@
+{
+  "artifacts": [
+    {
+      "dataset": "trade_cal",
+      "partition_date": "2026-03-31",
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-runtime-unblock-artifacts/raw/tushare/trade_cal/dt=20260331/d11cbab4-6722-40c1-9a63-a584476c000d.parquet",
+      "row_count": 1,
+      "run_id": "d11cbab4-6722-40c1-9a63-a584476c000d",
+      "source_id": "tushare",
+      "written_at": "2026-04-27T08:39:39.352379+00:00"
+    }
+  ],
+  "dataset": "trade_cal",
+  "partition_date": "2026-03-31",
+  "source_id": "tushare"
+}
