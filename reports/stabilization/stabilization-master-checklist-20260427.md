@@ -35,8 +35,8 @@ Current repo snapshot:
 | `orchestrator` | `c004ee326660` | local untracked `.orchestrator/` and dbt runtime state |
 | `graph-engine` | `bee527bc1380` | only local untracked `PROJECT_REPORT.md` |
 | `data-platform` | `7feebcb39d23` | only local untracked `.orchestrator/` |
-| `FrontEnd` | `ad4ada5fd6ab` | local modified `README.md`, `src/mocks/data/projectUltData.ts`; do not touch from backend stabilization |
-| `assembly` | `d4fd7ba30adc` | local env/cache/tmp/report artifacts only |
+| `FrontEnd` | `0c8e0523c72c` | local modified `README.md`, `src/mocks/data/projectUltData.ts` predate FrontEnd polish; do not touch from backend stabilization |
+| `assembly` | `4a3ea443e8b1` | local env/cache/tmp/report artifacts only |
 
 ## Closed Or Fixed Pending Review
 
@@ -137,22 +137,22 @@ Batch 3 hard constraints:
 
 ## FrontEnd Read-Only Polish
 
-Status: `open`.
+Status: `closed`.
 
 Owner: FrontEnd role.
 
 Current snapshot:
 
-- `FrontEnd` HEAD: `ad4ada5fd6ab`
+- `FrontEnd` HEAD: `0c8e0523c72c`
 - Current local state has modified `README.md` and
   `src/mocks/data/projectUltData.ts`; backend stabilization must not touch or
   revert these files.
 
 | ID | Priority | Finding / risk | Required fix | Required tests | Evidence file | Matrix eligibility |
 | --- | --- | --- | --- | --- | --- | --- |
-| FE-01 | P2 | `data_mode` query/store synchronization can drift | Keep query string, persistent store, and Project ULT route guards consistent without triggering unsupported legacy calls | `npm run check`; `npm run lint`; `npm run build`; browser smoke for refresh/deep-link/store transitions; forbidden write-call grep | `reports/stabilization/frontend-readonly-polish-smoke-20260427.md` | No |
-| FE-02 | P2 | API-3A limit clamp must not leak invalid backend queries | Clamp Data Explorer entity/canonical/raw limits to backend bounds before requests and URL sync | `npm run check`; `npm run lint`; `npm run build`; browser smoke with over-limit deep links; console no 422 | `reports/stabilization/frontend-readonly-polish-smoke-20260427.md` | No |
-| FE-03 | P2 | unknown route fallback can escape Project ULT read-only mode | Unknown/risky Project ULT-mode routes must land on `/project-ult/system` or explicit unavailable state, not legacy write/risk pages | route guard tests or browser smoke; no unsupported endpoint calls; no blank page | `reports/stabilization/frontend-readonly-polish-smoke-20260427.md` | No |
+| FE-01 | P2 | `data_mode` query/store synchronization can drift | `closed`: query string, persistent store, Project ULT route guards, and quick links preserve `data_mode=projectUlt` without triggering unsupported legacy calls | `npm run check`; `npm run lint`; `npm run build`; browser smoke for refresh/deep-link/store transitions; forbidden write-call grep | `reports/stabilization/frontend-readonly-polish-smoke-20260427.md` | No |
+| FE-02 | P2 | API-3A limit clamp must not leak invalid backend queries | `closed`: Data Explorer entity/canonical/raw limits are normalized and clamped to backend bounds before requests and URL sync | `npm run check`; `npm run lint`; `npm run build`; browser smoke with over-limit deep links; console no 422 | `reports/stabilization/frontend-readonly-polish-smoke-20260427.md` | No |
+| FE-03 | P2 | unknown route fallback can escape Project ULT read-only mode | `closed`: unknown and risky Project ULT-mode routes land on `/project-ult/system?data_mode=projectUlt`, not legacy write/risk pages | route guard smoke; no unsupported endpoint calls; no blank page | `reports/stabilization/frontend-readonly-polish-smoke-20260427.md` | No |
 
 FrontEnd hard constraints:
 
@@ -163,7 +163,8 @@ FrontEnd hard constraints:
 
 ## Final Gate Before Verified Matrix Promotion
 
-Status: `blocked` until FrontEnd polish is closed.
+Status: `open`; all batch and FrontEnd gates are closed, final assembly
+smoke/matrix decision is still pending.
 
 Owner: Stabilization lead.
 
