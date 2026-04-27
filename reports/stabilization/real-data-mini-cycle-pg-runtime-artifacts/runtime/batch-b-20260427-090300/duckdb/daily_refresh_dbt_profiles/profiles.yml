@@ -1,0 +1,7 @@
+data_platform:
+  target: daily_refresh
+  outputs:
+    daily_refresh:
+      type: duckdb
+      path: "{{ env_var('DP_DUCKDB_PATH') }}"
+      threads: 1

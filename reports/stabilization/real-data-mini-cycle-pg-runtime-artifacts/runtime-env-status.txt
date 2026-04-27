@@ -1,0 +1,6 @@
+profile=batch-b-20260427-090300
+db_name=dp_real_mini_cycle_batch_b_20260427_090300
+runtime_root=/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-pg-runtime-artifacts/runtime/batch-b-20260427-090300
+DP_PG_DSN=set source=process_env
+DP_TUSHARE_TOKEN=set source=assembly_env
+DATABASE_URL=set source=docker_env

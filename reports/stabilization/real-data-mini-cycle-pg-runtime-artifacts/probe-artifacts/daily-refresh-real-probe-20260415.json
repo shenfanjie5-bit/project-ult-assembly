@@ -1,0 +1,62 @@
+{
+  "ok": false,
+  "partition_date": "2026-04-15",
+  "steps": [
+    {
+      "duration_ms": 4199,
+      "metadata": {
+        "artifact_count": 2,
+        "artifacts": [
+          {
+            "dataset": "stock_basic",
+            "partition_date": "2026-04-15",
+            "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-pg-runtime-artifacts/runtime/batch-b-20260427-090300/raw/tushare/stock_basic/dt=20260415/6c84e34c-76f4-431f-870b-f193cddfa4c5.parquet",
+            "row_count": 5510,
+            "run_id": "6c84e34c-76f4-431f-870b-f193cddfa4c5",
+            "run_id_version": 4,
+            "source_id": "tushare",
+            "written_at": "2026-04-27T09:03:09.793491+00:00"
+          },
+          {
+            "dataset": "daily",
+            "partition_date": "2026-04-15",
+            "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-pg-runtime-artifacts/runtime/batch-b-20260427-090300/raw/tushare/daily/dt=20260415/111ed650-e6c6-475e-b57f-fc590d89b515.parquet",
+            "row_count": 5494,
+            "run_id": "111ed650-e6c6-475e-b57f-fc590d89b515",
+            "run_id_version": 4,
+            "source_id": "tushare",
+            "written_at": "2026-04-27T09:03:11.625116+00:00"
+          }
+        ],
+        "asset_specs_count": 68,
+        "mock": false
+      },
+      "name": "adapter",
+      "status": "ok"
+    },
+    {
+      "duration_ms": 187,
+      "metadata": {
+        "command": [
+          "/Users/fanjie/Desktop/Cowork/project-ult/data-platform/scripts/dbt.sh",
+          "run",
+          "--profiles-dir",
+          "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-pg-runtime-artifacts/runtime/batch-b-20260427-090300/duckdb/daily_refresh_dbt_profiles",
+          "--target-path",
+          "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-pg-runtime-artifacts/runtime/batch-b-20260427-090300/duckdb/daily_refresh_dbt_target/run_20260415",
+          "--select",
+          "stg_stock_basic",
+          "stg_daily"
+        ],
+        "dbt_executable": "/Users/fanjie/Desktop/Cowork/project-ult/data-platform/.venv/bin/dbt",
+        "error": "dbt command failed with exit code 1",
+        "error_type": "dbt_command_failed",
+        "returncode": 1,
+        "stderr_tail": "    from dbt_common.dataclass_schema import ValidationError\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/data-platform/.venv/lib/python3.14/site-packages/dbt_common/dataclass_schema.py\", line 15, in <module>\n    from mashumaro.jsonschema import build_json_schema\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/data-platform/.venv/lib/python3.14/site-packages/mashumaro/jsonschema/__init__.py\", line 1, in <module>\n    from .builder import JSONSchemaBuilder, build_json_schema\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/data-platform/.venv/lib/python3.14/site-packages/mashumaro/jsonschema/builder.py\", line 5, in <module>\n    from mashumaro.jsonschema.models import Context, JSONSchema\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/data-platform/.venv/lib/python3.14/site-packages/mashumaro/jsonschema/models.py\", line 178, in <module>\n    class JSONObjectSchema(JSONSchema):\n        type: Optional[JSONSchemaInstanceType] = JSONSchemaInstanceType.OBJECT\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/data-platform/.venv/lib/python3.14/site-packages/mashumaro/mixins/dict.py\", line 25, in __init_subclass__\n    compile_mixin_unpacker(cls, **builder_params[\"unpacker\"])\n    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/data-platform/.venv/lib/python3.14/site-packages/mashumaro/core/meta/mixin.py\", line 49, in compile_mixin_unpacker\n    builder.add_unpack_method()\n    ~~~~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/data-platform/.venv/lib/python3.14/site-packages/mashumaro/core/meta/code/builder.py\", line 586, in add_unpack_method\n    self._add_unpack_method_lines(method_name)\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/data-platform/.venv/lib/python3.14/site-packages/mashumaro/core/meta/code/builder.py\", line 491, in _add_unpack_method_lines\n    ).build(\n      ~~~~~^\n        fname=fname,\n        ^^^^^^^^^^^^\n    ...<2 lines>...\n        alias=alias,\n        ^^^^^^^^^^^^\n    )\n    ^\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/data-platform/.venv/lib/python3.14/site-packages/mashumaro/core/meta/code/builder.py\", line 1332, in build\n    unpacked_value = UnpackerRegistry.get(\n        ValueSpec(\n    ...<8 lines>...\n        )\n    )\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/data-platform/.venv/lib/python3.14/site-packages/mashumaro/core/meta/types/common.py\", line 241, in get\n    raise UnserializableField(\n        spec.field_ctx.name, spec.type, spec.builder.cls\n    )\nmashumaro.exceptions.UnserializableField: Field \"schema\" of type Optional[str] in JSONObjectSchema is not serializable",
+        "stdout_tail": ""
+      },
+      "name": "dbt_run",
+      "status": "failed"
+    }
+  ]
+}

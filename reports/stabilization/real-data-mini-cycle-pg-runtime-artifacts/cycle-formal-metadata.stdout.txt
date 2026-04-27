@@ -1,0 +1,3 @@
+cycle_formal_metadata_ok
+cycle_id=CYCLE_20260427
+formal_tables=4

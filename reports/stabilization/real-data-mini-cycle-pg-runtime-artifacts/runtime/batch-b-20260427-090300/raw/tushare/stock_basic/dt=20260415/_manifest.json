@@ -1,0 +1,16 @@
+{
+  "artifacts": [
+    {
+      "dataset": "stock_basic",
+      "partition_date": "2026-04-15",
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-pg-runtime-artifacts/runtime/batch-b-20260427-090300/raw/tushare/stock_basic/dt=20260415/6c84e34c-76f4-431f-870b-f193cddfa4c5.parquet",
+      "row_count": 5510,
+      "run_id": "6c84e34c-76f4-431f-870b-f193cddfa4c5",
+      "source_id": "tushare",
+      "written_at": "2026-04-27T09:03:09.793491+00:00"
+    }
+  ],
+  "dataset": "stock_basic",
+  "partition_date": "2026-04-15",
+  "source_id": "tushare"
+}

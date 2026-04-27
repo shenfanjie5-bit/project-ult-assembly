@@ -1,0 +1,25 @@
+{
+  "artifacts": [
+    {
+      "dataset": "daily",
+      "partition_date": "2026-04-15",
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-pg-runtime-artifacts/runtime/batch-b-20260427-090300/raw/tushare/daily/dt=20260415/0dedcdaa-9d90-4cd5-942e-4062af63f4d6.parquet",
+      "row_count": 5494,
+      "run_id": "0dedcdaa-9d90-4cd5-942e-4062af63f4d6",
+      "source_id": "tushare",
+      "written_at": "2026-04-27T09:03:06.873615+00:00"
+    },
+    {
+      "dataset": "daily",
+      "partition_date": "2026-04-15",
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-pg-runtime-artifacts/runtime/batch-b-20260427-090300/raw/tushare/daily/dt=20260415/111ed650-e6c6-475e-b57f-fc590d89b515.parquet",
+      "row_count": 5494,
+      "run_id": "111ed650-e6c6-475e-b57f-fc590d89b515",
+      "source_id": "tushare",
+      "written_at": "2026-04-27T09:03:11.625116+00:00"
+    }
+  ],
+  "dataset": "daily",
+  "partition_date": "2026-04-15",
+  "source_id": "tushare"
+}
