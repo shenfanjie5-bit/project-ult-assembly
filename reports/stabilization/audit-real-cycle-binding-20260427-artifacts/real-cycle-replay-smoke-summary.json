@@ -1,0 +1,21 @@
+{
+  "audit_record_count": 1,
+  "binding_source": "data-platform-published-cycle",
+  "cycle_id": "CYCLE_20260415",
+  "dagster_summary_source": "data-platform-published-cycle",
+  "fixture_replay_used": false,
+  "historical_objects": [
+    "alpha_result_snapshot",
+    "official_alpha_pool",
+    "recommendation_snapshot",
+    "world_state_snapshot"
+  ],
+  "manifest_snapshot_set": {
+    "alpha_result_snapshot": "data-platform://formal/alpha_result_snapshot/snapshots/424165751233285843",
+    "official_alpha_pool": "data-platform://formal/official_alpha_pool/snapshots/3767228895954008953",
+    "recommendation_snapshot": "data-platform://formal/recommendation_snapshot/snapshots/6320750134102262127",
+    "world_state_snapshot": "data-platform://formal/world_state_snapshot/snapshots/1145325163516225717"
+  },
+  "object_ref": "recommendation_snapshot",
+  "recommendation_generated": false
+}
