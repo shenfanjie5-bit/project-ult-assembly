@@ -1,0 +1,19 @@
+{
+  "kind": "cycle_summary",
+  "scenario_id": "minimal-daily-cycle-placeholder",
+  "profile_id": "lite-local",
+  "produced_by": "orchestrator.cli.min_cycle",
+  "real_phase_execution": true,
+  "assembled_job_names": [
+    "daily_cycle_job"
+  ],
+  "assembly_error": null,
+  "cycle_publish_manifest_id": "MAN_minimal_daily_cycle_placeholder_v0",
+  "phases_executed": [
+    "resolve-profile",
+    "load-fixture",
+    "execute-minimal-cycle",
+    "write-report"
+  ],
+  "published_at": "2026-04-27T06:04:21.899827+00:00"
+}

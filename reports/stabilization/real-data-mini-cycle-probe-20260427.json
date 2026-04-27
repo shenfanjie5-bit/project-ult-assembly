@@ -1,0 +1,138 @@
+{
+  "checks": [
+    {
+      "command": "external_tushare_corpus_smoke",
+      "name": "external_tushare_corpus_available",
+      "status": "ok"
+    },
+    {
+      "name": "tushare_token_raw_ingestion",
+      "reason": "DP_TUSHARE_TOKEN is missing; no mock fallback used",
+      "status": "blocked"
+    },
+    {
+      "name": "daily_refresh_dbt_canonical_real_path",
+      "reason": "missing required DP environment: DP_PG_DSN, DP_TUSHARE_TOKEN, DP_RAW_ZONE_PATH, DP_ICEBERG_WAREHOUSE_PATH, DP_DUCKDB_PATH, DP_ICEBERG_CATALOG_NAME",
+      "status": "blocked"
+    },
+    {
+      "name": "cycle_metadata_candidate_freeze",
+      "reason": "requires real PostgreSQL/Iceberg daily refresh success first",
+      "status": "blocked"
+    },
+    {
+      "name": "formal_object_commit_publish_manifest",
+      "reason": "requires real PostgreSQL/Iceberg daily refresh success first",
+      "status": "blocked"
+    },
+    {
+      "name": "formal_serving_manifest_snapshot_read",
+      "reason": "requires real PostgreSQL/Iceberg daily refresh success first",
+      "status": "blocked"
+    },
+    {
+      "command": "audit_eval_fixture_replay_probe",
+      "name": "audit_eval_replay_entrypoint",
+      "real_cycle_binding": "fixture_only",
+      "reason": "audit-eval replay CLI is available, but this probe found no real cycle manifest gateway wired to data-platform formal snapshots",
+      "status": "ok"
+    }
+  ],
+  "commands": [
+    {
+      "command": [
+        "bash",
+        "scripts/external_smoke_tushare_corpus.sh"
+      ],
+      "cwd": "/Users/fanjie/Desktop/Cowork/project-ult/data-platform",
+      "name": "external_tushare_corpus_smoke",
+      "returncode": 0,
+      "stderr_tail": "",
+      "stdout_tail": "external smoke — Tushare corpus @ /Volumes/dockcase2tb/database_all\n────────────────────────────────────────────────────────────────────────\n  ✓ mount: mounted + readable at /Volumes/dockcase2tb/database_all\n  ✓ audit_csv_gate: all 12 required datasets are access=available + completeness=未见明显遗漏\n  ✓ dataset_presence: all 12 dataset_paths present on disk\n  ✓ ts_code_presence: all 7 Phase-B ts_codes resolve in their datasets\n  ✓ schema_alignment: all 5 schema-checked datasets aligned per per-dataset direction (strict / corpus_subset)\n  ✓ fixture_traceability: all 7 Phase-B fixtures' tushare_source blocks trace to the live corpus\n────────────────────────────────────────────────────────────────────────\n  6/6 checks passed\n"
+    },
+    {
+      "command": [
+        "/Users/fanjie/Desktop/Cowork/project-ult/data-platform/.venv/bin/python",
+        "-m",
+        "data_platform.adapters.tushare.adapter",
+        "--asset",
+        "tushare_daily",
+        "--date",
+        "20260415"
+      ],
+      "cwd": "/Users/fanjie/Desktop/Cowork/project-ult/data-platform",
+      "name": "tushare_token_raw_ingestion_probe",
+      "returncode": 1,
+      "stderr_tail": "{\"asset\": \"tushare_daily\", \"error\": \"DP_TUSHARE_TOKEN is required for the Tushare adapter\", \"error_type\": \"config_error\"}\n",
+      "stdout_tail": ""
+    },
+    {
+      "command": [
+        "bash",
+        "scripts/daily_refresh.sh",
+        "--date",
+        "20260415",
+        "--select",
+        "stock_basic,daily",
+        "--json-report",
+        "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-artifacts/daily-refresh-real-probe-20260415.json"
+      ],
+      "cwd": "/Users/fanjie/Desktop/Cowork/project-ult/data-platform",
+      "name": "daily_refresh_real_probe",
+      "returncode": 2,
+      "stderr_tail": "Daily refresh failed: DP_PG_DSN is required for the PostgreSQL-backed Iceberg catalog\n",
+      "stdout_tail": ""
+    },
+    {
+      "command": [
+        "/Users/fanjie/Desktop/Cowork/project-ult/data-platform/.venv/bin/python",
+        "scripts/spike_replay.py",
+        "--cycle-id",
+        "cycle_20260410",
+        "--object-ref",
+        "recommendation",
+        "--fixtures",
+        "tests/fixtures/spike"
+      ],
+      "cwd": "/Users/fanjie/Desktop/Cowork/project-ult/audit-eval",
+      "name": "audit_eval_fixture_replay_probe",
+      "returncode": 0,
+      "stderr_tail": "",
+      "stdout_tail": "-10T16:08:00Z\",\n      \"cycle_id\": \"cycle_20260410\",\n      \"degradation_flags\": {\n        \"degraded\": false\n      },\n      \"input_hash\": \"b442dd14d29e50918c02226ffe3e06c59ee6ddab4bb80adc19912bbae43a506c\",\n      \"layer\": \"L7\",\n      \"llm_cost\": {\n        \"cost_usd\": 0.0,\n        \"input_tokens\": 180,\n        \"latency_ms\": 18,\n        \"output_tokens\": 90\n      },\n      \"llm_lineage\": {\n        \"called\": true,\n        \"fallback_path\": null,\n        \"model\": \"offline-spike-model\",\n        \"provider\": \"fixture\",\n        \"retry_count\": 0\n      },\n      \"object_ref\": \"recommendation\",\n      \"output_hash\": \"a11fcb411879b870473e7cc431db2fc7c5bbfffa9d91d92062ab8095cb6d15e1\",\n      \"params_snapshot\": {\n        \"as_of\": \"2026-04-10\",\n        \"portfolio_id\": \"sample_portfolio\"\n      },\n      \"parsed_result\": {\n        \"action\": \"reduce_beta\",\n        \"confidence\": 0.72\n      },\n      \"raw_output\": \"{\\\"action\\\":\\\"reduce_beta\\\",\\\"confidence\\\":0.72}\",\n      \"record_id\": \"audit-cycle_20260410-L7-recommendation\",\n      \"sanitized_input\": \"Use the published world_state snapshot for allocation guidance.\"\n    }\n  ],\n  \"cycle_id\": \"cycle_20260410\",\n  \"dagster_run_summary\": {\n    \"asset_keys\": [\n      \"audit_record\",\n      \"replay_record\",\n      \"cycle_publish_manifest\"\n    ],\n    \"cycle_id\": \"cycle_20260410\",\n    \"finished_at\": \"2026-04-10T16:10:30Z\",\n    \"run_id\": \"dagster-fixture-run-20260410\",\n    \"started_at\": \"2026-04-10T16:04:30Z\",\n    \"status\": \"success\"\n  },\n  \"graph_snapshot\": {\n    \"cycle_id\": \"cycle_20260410\",\n    \"edge_refs\": [\n      {\n        \"from\": \"world_state\",\n        \"relationship\": \"feeds\",\n        \"to\": \"recommendation\"\n      }\n    ],\n    \"graph_snapshot_ref\": \"graph://cycle_20260410/portfolio_graph\",\n    \"node_refs\": [\n      \"world_state\",\n      \"recommendation\"\n    ],\n    \"status\": \"published\"\n  },\n  \"graph_snapshot_ref\": \"graph://cycle_20260410/portfolio_graph\",\n  \"graph_snapshot_summary\": {\n    \"cycle_id\": \"cycle_20260410\",\n    \"edge_refs\": [\n      {\n        \"from\": \"world_state\",\n        \"relationship\": \"feeds\",\n        \"to\": \"recommendation\"\n      }\n    ],\n    \"graph_snapshot_ref\": \"graph://cycle_20260410/portfolio_graph\",\n    \"node_refs\": [\n      \"world_state\",\n      \"recommendation\"\n    ],\n    \"status\": \"published\"\n  },\n  \"historical_formal_objects\": {\n    \"recommendation\": {\n      \"data\": {\n        \"as_of\": \"2026-04-10\",\n        \"object_ref\": \"recommendation\",\n        \"recommendation\": {\n          \"action\": \"reduce_beta\",\n          \"confidence\": 0.72,\n          \"source_world_state_ref\": \"snapshot://cycle_20260410/world_state\"\n        },\n        \"snapshot_ref\": \"snapshot://cycle_20260410/recommendation\"\n      },\n      \"source_ref\": \"snapshot://cycle_20260410/recommendation\"\n    },\n    \"world_state\": {\n      \"data\": {\n        \"as_of\": \"2026-04-10\",\n        \"object_ref\": \"world_state\",\n        \"snapshot_ref\": \"snapshot://cycle_20260410/world_state\",\n        \"state\": {\n          \"risk_level\": \"medium\",\n          \"trend\": \"risk_off\",\n          \"volatility_regime\": \"elevated\"\n        }\n      },\n      \"source_ref\": \"snapshot://cycle_20260410/world_state\"\n    }\n  },\n  \"manifest_snapshot_set\": {\n    \"recommendation\": \"snapshot://cycle_20260410/recommendation\",\n    \"world_state\": \"snapshot://cycle_20260410/world_state\"\n  },\n  \"object_ref\": \"recommendation\",\n  \"replay_record\": {\n    \"audit_record_ids\": [\n      \"audit-cycle_20260410-L4-world_state\",\n      \"audit-cycle_20260410-L7-recommendation\"\n    ],\n    \"created_at\": \"2026-04-10T16:09:00Z\",\n    \"cycle_id\": \"cycle_20260410\",\n    \"dagster_run_id\": \"dagster-fixture-run-20260410\",\n    \"formal_snapshot_refs\": {\n      \"recommendation\": \"snapshot://cycle_20260410/recommendation\",\n      \"world_state\": \"snapshot://cycle_20260410/world_state\"\n    },\n    \"graph_snapshot_ref\": \"graph://cycle_20260410/portfolio_graph\",\n    \"manifest_cycle_id\": \"cycle_20260410\",\n    \"object_ref\": \"recommendation\",\n    \"replay_id\": \"replay-cycle_20260410-recommendation\",\n    \"replay_mode\": \"read_history\"\n  }\n}\n"
+    }
+  ],
+  "environment": {
+    "DATABASE_URL": "missing",
+    "DP_DUCKDB_PATH": "missing",
+    "DP_ICEBERG_CATALOG_NAME": "missing",
+    "DP_ICEBERG_WAREHOUSE_PATH": "missing",
+    "DP_PG_DSN": "missing",
+    "DP_RAW_ZONE_PATH": "missing",
+    "DP_TUSHARE_TOKEN": "missing",
+    "dbt_executable": "set",
+    "external_corpus_root": "present"
+  },
+  "generated_at": "2026-04-27T06:03:58+00:00",
+  "scope": {
+    "dates": [
+      "20260415"
+    ],
+    "symbols": [
+      "600519.SH",
+      "000001.SZ",
+      "000063.SZ"
+    ]
+  },
+  "summary": {
+    "allow_p2_real_l1_l8_dry_run": false,
+    "blockers": [
+      "tushare_token_raw_ingestion",
+      "daily_refresh_dbt_canonical_real_path",
+      "cycle_metadata_candidate_freeze",
+      "formal_object_commit_publish_manifest",
+      "formal_serving_manifest_snapshot_read"
+    ],
+    "mock_fallback_used": false,
+    "real_cycle_runnable": false
+  }
+}
