@@ -1,0 +1,44 @@
+{
+  "blocked": true,
+  "blockers": [
+    {
+      "priority": "P0",
+      "summary": "No checked-in real ORCHESTRATOR_MODULE_FACTORIES set proves orchestrator.definitions:defs production Phase 0-3 end-to-end."
+    },
+    {
+      "priority": "P0",
+      "summary": "P2 durable real-data closure injects fake Phase 0 and Phase 1 providers."
+    },
+    {
+      "priority": "P1",
+      "summary": "P3 graph functional slice is not closed."
+    },
+    {
+      "priority": "P1",
+      "summary": "Default shell skips PostgreSQL manifest/formal tests without DATABASE_URL or DP_PG_DSN."
+    }
+  ],
+  "commands": [
+    {
+      "name": "orchestrator_baseline",
+      "result": "23 passed",
+      "scope": "daily_cycle fake-provider assembly plus P2 handoff tests"
+    },
+    {
+      "name": "data_platform_manifest_formal_baseline",
+      "result": "passed with PostgreSQL-dependent skips",
+      "scope": "candidate freeze, publish manifest, formal serving tests"
+    }
+  ],
+  "existing_real_data_evidence": {
+    "cycle_id": "CYCLE_20260415",
+    "symbols": [
+      "600519.SH",
+      "000001.SZ"
+    ],
+    "trade_date": "2026-04-15",
+    "summary": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p2-durable-real-data-codex-dry-run-closure-20260427.md",
+    "json": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p2-durable-real-data-codex-dry-run-artifacts/20260427T113854Z/p2-durable-real-data-codex-dry-run.json"
+  },
+  "status": "blocked"
+}
