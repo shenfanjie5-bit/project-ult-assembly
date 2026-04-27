@@ -67,6 +67,7 @@ class SmokeResult(BaseModel):
     passed: bool
     duration_ms: float = Field(ge=0, allow_inf_nan=False)
     failure_reason: str | None = None
+    details: dict[str, Any] = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def require_failure_reason_for_failures(self) -> SmokeResult:

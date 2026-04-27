@@ -81,13 +81,13 @@
     - contract-suite
     - smoke
     - min-cycle-e2e
-  status: draft
-  # Draft row for the read-only UI/frontend-api-inclusive Lite profile
+  status: verified
+  # Verified row for the read-only UI/frontend-api-inclusive Lite profile
   # variant. This row intentionally does not alter the historical
-  # verified ``lite-local`` evidence identity and must be promoted only
-  # after fresh contract/smoke/e2e evidence is bound to this exact
-  # compatibility context.
-  verified_at: null
+  # verified ``lite-local`` evidence identity and was promoted only after
+  # fresh contract/smoke/e2e evidence was bound to this exact compatibility
+  # context.
+  verified_at: 2026-04-27T05:34:25.425611Z
 # Stage 5 status: BOTH `lite-local` and `full-dev` are now promoted to
 # `verified`. The full-dev evidence (per-profile evidence boundary,
 # codex review #10 strict call from Stage 4 §4.3) is the new

@@ -1,0 +1,424 @@
+{
+  "assertion_results": [
+    {
+      "assertion_name": "orchestrator_cli",
+      "details": {
+        "profile_id": "lite-local-readonly-ui",
+        "report_path": "reports/e2e/e2e-lite-local-readonly-ui-20260427T053406092429Z/orchestrator-report.json"
+      },
+      "message": "Orchestrator CLI returned zero",
+      "status": "passed"
+    },
+    {
+      "assertion_name": "orchestrator_report",
+      "details": {
+        "profile_id": "lite-local-readonly-ui",
+        "status": "success"
+      },
+      "message": "Orchestrator report terminal status is success",
+      "status": "passed"
+    },
+    {
+      "assertion_name": "phase_order",
+      "details": {
+        "expected": [
+          "resolve-profile",
+          "load-fixture",
+          "execute-minimal-cycle",
+          "write-report"
+        ],
+        "observed": [
+          "resolve-profile",
+          "load-fixture",
+          "execute-minimal-cycle",
+          "write-report"
+        ]
+      },
+      "message": "Observed phases match manifest-declared order",
+      "status": "passed"
+    },
+    {
+      "assertion_name": "required_artifact",
+      "details": {
+        "artifact_key": "cycle_summary",
+        "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/e2e/e2e-lite-local-readonly-ui-20260427T053406092429Z/cycle_summary.json",
+        "scenario_id": "minimal-daily-cycle-placeholder"
+      },
+      "message": "Required artifact exists",
+      "status": "passed"
+    },
+    {
+      "assertion_name": "artifact_payload_invariants",
+      "details": {
+        "artifact_kind": "cycle_summary",
+        "assembled_job_count": 1,
+        "cycle_publish_manifest_id": "MAN_minimal_daily_cycle_placeholder_v0",
+        "scenario_id": "minimal-daily-cycle-placeholder"
+      },
+      "message": "Required-artifact payload satisfies Stage 4 §4.2 invariants (real_phase_execution / assembled_job_names / assembly_error / cycle_publish_manifest_id)",
+      "status": "passed"
+    }
+  ],
+  "contract_report_path": "reports/contract/contract-lite-local-readonly-ui-20260427T053406120916Z.json",
+  "health_results": [
+    {
+      "details": {
+        "convergence_attempts": 1,
+        "convergence_deadline_sec": 30.0,
+        "convergence_elapsed_ms": 1.2911248486489058,
+        "deadline_exceeded": false,
+        "host": "localhost",
+        "port": "5432"
+      },
+      "latency_ms": 1.2911248486489058,
+      "message": "postgres port is reachable",
+      "module_id": "postgres",
+      "probe_name": "postgres-ready",
+      "status": "healthy"
+    },
+    {
+      "details": {
+        "convergence_attempts": 1,
+        "convergence_deadline_sec": 30.0,
+        "convergence_elapsed_ms": 0.33441605046391487,
+        "deadline_exceeded": false,
+        "host": "localhost",
+        "port": "7687"
+      },
+      "latency_ms": 0.33441605046391487,
+      "message": "neo4j port is reachable",
+      "module_id": "neo4j",
+      "probe_name": "neo4j-ready",
+      "status": "healthy"
+    },
+    {
+      "details": {
+        "convergence_attempts": 1,
+        "convergence_deadline_sec": 30.0,
+        "convergence_elapsed_ms": 44.539666967466474,
+        "deadline_exceeded": false,
+        "service": "dagster-daemon"
+      },
+      "latency_ms": 44.539666967466474,
+      "message": "dagster-daemon is running",
+      "module_id": "dagster-daemon",
+      "probe_name": "dagster-daemon-ready",
+      "status": "healthy"
+    },
+    {
+      "details": {
+        "convergence_attempts": 1,
+        "convergence_deadline_sec": 30.0,
+        "convergence_elapsed_ms": 6.161541910842061,
+        "deadline_exceeded": false,
+        "status_code": "200",
+        "url": "http://localhost:3000/server_info"
+      },
+      "latency_ms": 6.161541910842061,
+      "message": "dagster-webserver server_info returned HTTP 200",
+      "module_id": "dagster-webserver",
+      "probe_name": "dagster-webserver-ready",
+      "status": "healthy"
+    },
+    {
+      "details": {
+        "schema_namespace": "loaded",
+        "timeout_sec": 30.0
+      },
+      "latency_ms": 0.016292091459035873,
+      "message": "contracts package import healthy",
+      "module_id": "contracts",
+      "probe_name": "contracts.import",
+      "status": "healthy"
+    },
+    {
+      "details": {
+        "public_namespaces": [
+          "data_platform.serving.formal",
+          "data_platform.queue.api",
+          "data_platform.cycle.freeze",
+          "data_platform.raw"
+        ],
+        "timeout_sec": 30.0
+      },
+      "latency_ms": 34.38516682945192,
+      "message": "data-platform package import healthy",
+      "module_id": "data-platform",
+      "probe_name": "data-platform.import",
+      "status": "healthy"
+    },
+    {
+      "details": {
+        "public_apis": [
+          "entity_registry.resolve_mention",
+          "entity_registry.lookup_alias",
+          "entity_registry.batch_resolve"
+        ],
+        "timeout_sec": 30.0
+      },
+      "latency_ms": 0.0037921126931905746,
+      "message": "entity-registry package import healthy",
+      "module_id": "entity-registry",
+      "probe_name": "entity-registry.import",
+      "status": "healthy"
+    },
+    {
+      "details": {
+        "config_namespace": "loaded",
+        "timeout_sec": 30.0
+      },
+      "latency_ms": 0.005041016265749931,
+      "message": "reasoner-runtime package import healthy",
+      "module_id": "reasoner-runtime",
+      "probe_name": "reasoner-runtime.import",
+      "status": "healthy"
+    },
+    {
+      "details": {
+        "canonical_truth_layer": "iceberg",
+        "consumed_ex_types": [
+          "Ex-3"
+        ],
+        "contracts_re_exports": {
+          "available": true,
+          "re_exports_verified": [
+            "CandidateGraphDelta",
+            "GraphSnapshot",
+            "GraphImpactSnapshot"
+          ]
+        },
+        "neo4j_status_literal": {
+          "available": true,
+          "status_values": [
+            "failed",
+            "ready",
+            "rebuilding"
+          ]
+        },
+        "timeout_sec": 30.0
+      },
+      "latency_ms": 0.03645801916718483,
+      "message": "graph-engine contracts re-exports identity verified",
+      "module_id": "graph-engine",
+      "probe_name": "graph_engine.health",
+      "status": "healthy"
+    },
+    {
+      "details": {
+        "schema_namespace": "loaded",
+        "timeout_sec": 30.0
+      },
+      "latency_ms": 4.156542010605335,
+      "message": "main-core package import healthy",
+      "module_id": "main-core",
+      "probe_name": "main-core.import",
+      "status": "healthy"
+    },
+    {
+      "details": {
+        "forbidden_write_fields": [
+          "feature_weight_multiplier"
+        ],
+        "timeout_sec": 30.0
+      },
+      "latency_ms": 4.732667002826929,
+      "message": "audit-eval package import healthy",
+      "module_id": "audit-eval",
+      "probe_name": "audit-eval.import",
+      "status": "healthy"
+    },
+    {
+      "details": {
+        "backend_kinds": [
+          "lite_pg",
+          "full_kafka",
+          "mock"
+        ],
+        "contracts_schema_gateway": {
+          "available": true,
+          "ex_types_resolved": {
+            "Ex-0": "Ex0Metadata",
+            "Ex-1": "Ex1CandidateFact",
+            "Ex-2": "Ex2CandidateSignal",
+            "Ex-3": "Ex3CandidateGraphDelta"
+          }
+        },
+        "ex0_semantic": "metadata_or_heartbeat",
+        "ingest_metadata_guard": "ok",
+        "supported_ex_types": [
+          "Ex-0",
+          "Ex-1",
+          "Ex-2",
+          "Ex-3"
+        ],
+        "timeout_sec": 30.0
+      },
+      "latency_ms": 0.05087512545287609,
+      "message": "subsystem-sdk invariants verified (contracts gateway available)",
+      "module_id": "subsystem-sdk",
+      "probe_name": "subsystem_sdk.health",
+      "status": "healthy"
+    },
+    {
+      "details": {
+        "public_namespaces": [
+          "orchestrator.cli.main",
+          "orchestrator.cli.min_cycle",
+          "orchestrator.cli.diag"
+        ],
+        "timeout_sec": 30.0
+      },
+      "latency_ms": 8.269124897196889,
+      "message": "orchestrator package import healthy",
+      "module_id": "orchestrator",
+      "probe_name": "orchestrator.import",
+      "status": "healthy"
+    },
+    {
+      "details": {
+        "timeout_sec": "30.0"
+      },
+      "latency_ms": 0.0,
+      "message": "assembly public health entrypoint is available",
+      "module_id": "assembly",
+      "probe_name": "health",
+      "status": "healthy"
+    },
+    {
+      "details": {
+        "announcement_runtime": {
+          "available": true,
+          "candidate_models": {
+            "Ex-1": "AnnouncementFactCandidate",
+            "Ex-2": "AnnouncementSignalCandidate",
+            "Ex-3": "AnnouncementGraphDeltaCandidate"
+          }
+        },
+        "sdk_envelope_strip": {
+          "available": true,
+          "envelope_fields": [
+            "ex_type",
+            "produced_at",
+            "semantic"
+          ]
+        },
+        "supported_ex_types": [
+          "Ex-1",
+          "Ex-2",
+          "Ex-3"
+        ],
+        "timeout_sec": 30.0
+      },
+      "latency_ms": 14.752042014151812,
+      "message": "subsystem-announcement invariants verified (SDK envelope strip + announcement runtime imports both available)",
+      "module_id": "subsystem-announcement",
+      "probe_name": "subsystem_announcement.health",
+      "status": "healthy"
+    },
+    {
+      "details": {
+        "news_runtime": {
+          "available": true,
+          "candidate_models": {
+            "Ex-1": "NewsFactCandidate",
+            "Ex-2": "NewsSignalCandidate",
+            "Ex-3": "NewsGraphDeltaCandidate"
+          },
+          "canonical_mapper": "_normalize_for_sdk"
+        },
+        "sdk_envelope_strip": {
+          "available": true,
+          "envelope_fields": [
+            "ex_type",
+            "produced_at",
+            "semantic"
+          ]
+        },
+        "supported_ex_types": [
+          "Ex-1",
+          "Ex-2",
+          "Ex-3"
+        ],
+        "timeout_sec": 30.0
+      },
+      "latency_ms": 0.020832987502217293,
+      "message": "subsystem-news invariants verified (SDK envelope strip + news runtime + canonical mapper all available)",
+      "module_id": "subsystem-news",
+      "probe_name": "subsystem_news.health",
+      "status": "healthy"
+    },
+    {
+      "details": {
+        "active_profile": "lite-local",
+        "artifact_count": 3,
+        "compatibility_row_count": 4,
+        "module_count": 15,
+        "profile_count": 3,
+        "project_root": "/Users/fanjie/Desktop/Cowork/project-ult",
+        "timeout_sec": 30.0
+      },
+      "latency_ms": 19.06404085457325,
+      "message": "frontend-api system artifacts are readable",
+      "module_id": "frontend-api",
+      "probe_name": "frontend-api.system-artifacts",
+      "status": "healthy"
+    }
+  ],
+  "orchestrator_argv": [
+    "min-cycle",
+    "--profile",
+    "lite-local-readonly-ui",
+    "--fixture",
+    "src/assembly/tests/e2e/fixtures/minimal_cycle/manifest.yaml",
+    "--run-artifacts-dir",
+    "reports/e2e/e2e-lite-local-readonly-ui-20260427T053406092429Z",
+    "--report",
+    "reports/e2e/e2e-lite-local-readonly-ui-20260427T053406092429Z/orchestrator-report.json"
+  ],
+  "run_record": {
+    "artifacts": [
+      {
+        "kind": "e2e_report",
+        "path": "reports/e2e/e2e-lite-local-readonly-ui-20260427T053406092429Z.json"
+      },
+      {
+        "kind": "orchestrator_report",
+        "path": "reports/e2e/e2e-lite-local-readonly-ui-20260427T053406092429Z/orchestrator-report.json"
+      },
+      {
+        "kind": "fixture_manifest",
+        "path": "src/assembly/tests/e2e/fixtures/minimal_cycle/manifest.yaml"
+      },
+      {
+        "kind": "resolved_config_snapshot",
+        "path": "reports/e2e/e2e-lite-local-readonly-ui-20260427T053406092429Z/resolved-config-snapshot.json"
+      },
+      {
+        "kind": "assertion_results",
+        "path": "reports/e2e/e2e-lite-local-readonly-ui-20260427T053406092429Z/assertion-results.json"
+      },
+      {
+        "kind": "contract_report",
+        "path": "reports/contract/contract-lite-local-readonly-ui-20260427T053406120916Z.json"
+      },
+      {
+        "contract_version": "v0.1.3",
+        "extra_bundles": "",
+        "kind": "compatibility_context",
+        "matrix_digest": "44cb246986a99a43d38c3c3d1c8bd08e1579ffc99677a4d2d2eda4e879f776df",
+        "matrix_version": "0.1.0",
+        "module_set_digest": "e0c5a07e5efa60548db16118f0ac6bb11135285ef03f9ce2cbd552c4e93135af",
+        "profile_id": "lite-local-readonly-ui"
+      }
+    ],
+    "failing_modules": [],
+    "finished_at": "2026-04-27T05:34:07.014450Z",
+    "profile_id": "lite-local-readonly-ui",
+    "run_id": "e2e-lite-local-readonly-ui-20260427T053406092429Z",
+    "run_type": "e2e",
+    "started_at": "2026-04-27T05:34:06.092429Z",
+    "status": "success",
+    "summary": "E2E succeeded through orchestrator public CLI"
+  },
+  "scenario_id": "minimal-daily-cycle-placeholder"
+}

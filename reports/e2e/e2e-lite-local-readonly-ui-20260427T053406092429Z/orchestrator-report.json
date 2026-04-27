@@ -1,0 +1,14 @@
+{
+  "profile_id": "lite-local-readonly-ui",
+  "phases": [
+    "resolve-profile",
+    "load-fixture",
+    "execute-minimal-cycle",
+    "write-report"
+  ],
+  "artifacts": {
+    "cycle_summary": "cycle_summary.json"
+  },
+  "status": "success",
+  "failure_reason": null
+}

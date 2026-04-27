@@ -1,0 +1,402 @@
+{
+  "checks": [
+    {
+      "check_name": "contracts_version",
+      "details": {
+        "contract_version": "v0.1.3",
+        "module_version": "0.1.3",
+        "reference": "contracts.public:version_declaration"
+      },
+      "message": "contracts version declaration matches registry",
+      "module_id": "contracts",
+      "status": "success"
+    },
+    {
+      "check_name": "contracts_version",
+      "details": {
+        "contract_version": "v0.1.3",
+        "module_version": "0.1.1",
+        "reference": "data_platform.public:version_declaration"
+      },
+      "message": "data-platform version declaration matches registry",
+      "module_id": "data-platform",
+      "status": "success"
+    },
+    {
+      "check_name": "contracts_version",
+      "details": {
+        "contract_version": "v0.1.3",
+        "module_version": "0.1.1",
+        "reference": "entity_registry.public:version_declaration"
+      },
+      "message": "entity-registry version declaration matches registry",
+      "module_id": "entity-registry",
+      "status": "success"
+    },
+    {
+      "check_name": "contracts_version",
+      "details": {
+        "contract_version": "v0.1.3",
+        "module_version": "0.1.1",
+        "reference": "reasoner_runtime.public:version_declaration"
+      },
+      "message": "reasoner-runtime version declaration matches registry",
+      "module_id": "reasoner-runtime",
+      "status": "success"
+    },
+    {
+      "check_name": "contracts_version",
+      "details": {
+        "contract_version": "v0.1.3",
+        "module_version": "0.1.1",
+        "reference": "graph_engine.public:version_declaration"
+      },
+      "message": "graph-engine version declaration matches registry",
+      "module_id": "graph-engine",
+      "status": "success"
+    },
+    {
+      "check_name": "contracts_version",
+      "details": {
+        "contract_version": "v0.1.3",
+        "module_version": "0.1.1",
+        "reference": "main_core.public:version_declaration"
+      },
+      "message": "main-core version declaration matches registry",
+      "module_id": "main-core",
+      "status": "success"
+    },
+    {
+      "check_name": "contracts_version",
+      "details": {
+        "contract_version": "v0.1.3",
+        "module_version": "0.2.5",
+        "reference": "audit_eval.public:version_declaration"
+      },
+      "message": "audit-eval version declaration matches registry",
+      "module_id": "audit-eval",
+      "status": "success"
+    },
+    {
+      "check_name": "contracts_version",
+      "details": {
+        "contract_version": "v0.1.3",
+        "module_version": "0.1.2",
+        "reference": "subsystem_sdk.public:version_declaration"
+      },
+      "message": "subsystem-sdk version declaration matches registry",
+      "module_id": "subsystem-sdk",
+      "status": "success"
+    },
+    {
+      "check_name": "contracts_version",
+      "details": {
+        "contract_version": "v0.1.3",
+        "module_version": "0.1.1",
+        "reference": "orchestrator.public:version_declaration"
+      },
+      "message": "orchestrator version declaration matches registry",
+      "module_id": "orchestrator",
+      "status": "success"
+    },
+    {
+      "check_name": "contracts_version",
+      "details": {
+        "contract_version": "v0.0.0",
+        "module_version": "0.1.0",
+        "reference": "assembly.public:version_declaration"
+      },
+      "message": "assembly version declaration matches registry",
+      "module_id": "assembly",
+      "status": "success"
+    },
+    {
+      "check_name": "contracts_version",
+      "details": {
+        "contract_version": "v0.1.3",
+        "module_version": "0.1.1",
+        "reference": "subsystem_announcement.public:version_declaration"
+      },
+      "message": "subsystem-announcement version declaration matches registry",
+      "module_id": "subsystem-announcement",
+      "status": "success"
+    },
+    {
+      "check_name": "contracts_version",
+      "details": {
+        "contract_version": "v0.1.3",
+        "module_version": "0.1.1",
+        "reference": "subsystem_news.public:version_declaration"
+      },
+      "message": "subsystem-news version declaration matches registry",
+      "module_id": "subsystem-news",
+      "status": "success"
+    },
+    {
+      "check_name": "contracts_version",
+      "details": {
+        "contract_version": "v0.1.3",
+        "module_version": "0.1.0",
+        "reference": "frontend_api.public:version_declaration"
+      },
+      "message": "frontend-api version declaration matches registry",
+      "module_id": "frontend-api",
+      "status": "success"
+    },
+    {
+      "check_name": "sdk_boundary",
+      "details": {
+        "reference": "subsystem_sdk.public:version_declaration",
+        "registered_entrypoint_kinds": [
+          "cli",
+          "health_probe",
+          "init_hook",
+          "smoke_hook",
+          "version_declaration"
+        ]
+      },
+      "message": "subsystem-sdk public version boundary is compatible",
+      "module_id": "subsystem-sdk",
+      "status": "success"
+    },
+    {
+      "check_name": "orchestrator_loadability",
+      "details": {
+        "references": {
+          "cli": "orchestrator.public:cli",
+          "version_declaration": "orchestrator.public:version_declaration"
+        }
+      },
+      "message": "orchestrator public CLI and version entrypoints are loadable",
+      "module_id": "orchestrator",
+      "status": "success"
+    },
+    {
+      "check_name": "public_api_boundary",
+      "details": {
+        "references": {
+          "cli": "contracts.public:cli",
+          "health_probe": "contracts.public:health_probe",
+          "init_hook": "contracts.public:init_hook",
+          "smoke_hook": "contracts.public:smoke_hook",
+          "version_declaration": "contracts.public:version_declaration"
+        }
+      },
+      "message": "contracts public entrypoints satisfy protocols",
+      "module_id": "contracts",
+      "status": "success"
+    },
+    {
+      "check_name": "public_api_boundary",
+      "details": {
+        "references": {
+          "cli": "data_platform.public:cli",
+          "health_probe": "data_platform.public:health_probe",
+          "init_hook": "data_platform.public:init_hook",
+          "smoke_hook": "data_platform.public:smoke_hook",
+          "version_declaration": "data_platform.public:version_declaration"
+        }
+      },
+      "message": "data-platform public entrypoints satisfy protocols",
+      "module_id": "data-platform",
+      "status": "success"
+    },
+    {
+      "check_name": "public_api_boundary",
+      "details": {
+        "references": {
+          "cli": "entity_registry.public:cli",
+          "health_probe": "entity_registry.public:health_probe",
+          "init_hook": "entity_registry.public:init_hook",
+          "smoke_hook": "entity_registry.public:smoke_hook",
+          "version_declaration": "entity_registry.public:version_declaration"
+        }
+      },
+      "message": "entity-registry public entrypoints satisfy protocols",
+      "module_id": "entity-registry",
+      "status": "success"
+    },
+    {
+      "check_name": "public_api_boundary",
+      "details": {
+        "references": {
+          "cli": "reasoner_runtime.public:cli",
+          "health_probe": "reasoner_runtime.public:health_probe",
+          "init_hook": "reasoner_runtime.public:init_hook",
+          "smoke_hook": "reasoner_runtime.public:smoke_hook",
+          "version_declaration": "reasoner_runtime.public:version_declaration"
+        }
+      },
+      "message": "reasoner-runtime public entrypoints satisfy protocols",
+      "module_id": "reasoner-runtime",
+      "status": "success"
+    },
+    {
+      "check_name": "public_api_boundary",
+      "details": {
+        "references": {
+          "cli": "graph_engine.public:cli",
+          "health_probe": "graph_engine.public:health_probe",
+          "init_hook": "graph_engine.public:init_hook",
+          "smoke_hook": "graph_engine.public:smoke_hook",
+          "version_declaration": "graph_engine.public:version_declaration"
+        }
+      },
+      "message": "graph-engine public entrypoints satisfy protocols",
+      "module_id": "graph-engine",
+      "status": "success"
+    },
+    {
+      "check_name": "public_api_boundary",
+      "details": {
+        "references": {
+          "cli": "main_core.public:cli",
+          "health_probe": "main_core.public:health_probe",
+          "init_hook": "main_core.public:init_hook",
+          "smoke_hook": "main_core.public:smoke_hook",
+          "version_declaration": "main_core.public:version_declaration"
+        }
+      },
+      "message": "main-core public entrypoints satisfy protocols",
+      "module_id": "main-core",
+      "status": "success"
+    },
+    {
+      "check_name": "public_api_boundary",
+      "details": {
+        "references": {
+          "cli": "audit_eval.public:cli",
+          "health_probe": "audit_eval.public:health_probe",
+          "init_hook": "audit_eval.public:init_hook",
+          "smoke_hook": "audit_eval.public:smoke_hook",
+          "version_declaration": "audit_eval.public:version_declaration"
+        }
+      },
+      "message": "audit-eval public entrypoints satisfy protocols",
+      "module_id": "audit-eval",
+      "status": "success"
+    },
+    {
+      "check_name": "public_api_boundary",
+      "details": {
+        "references": {
+          "cli": "subsystem_sdk.public:cli",
+          "health_probe": "subsystem_sdk.public:health_probe",
+          "init_hook": "subsystem_sdk.public:init_hook",
+          "smoke_hook": "subsystem_sdk.public:smoke_hook",
+          "version_declaration": "subsystem_sdk.public:version_declaration"
+        }
+      },
+      "message": "subsystem-sdk public entrypoints satisfy protocols",
+      "module_id": "subsystem-sdk",
+      "status": "success"
+    },
+    {
+      "check_name": "public_api_boundary",
+      "details": {
+        "references": {
+          "cli": "orchestrator.public:cli",
+          "health_probe": "orchestrator.public:health_probe",
+          "init_hook": "orchestrator.public:init_hook",
+          "smoke_hook": "orchestrator.public:smoke_hook",
+          "version_declaration": "orchestrator.public:version_declaration"
+        }
+      },
+      "message": "orchestrator public entrypoints satisfy protocols",
+      "module_id": "orchestrator",
+      "status": "success"
+    },
+    {
+      "check_name": "public_api_boundary",
+      "details": {
+        "references": {
+          "cli": "assembly.public:cli",
+          "health_probe": "assembly.public:health_probe",
+          "init_hook": "assembly.public:init_hook",
+          "smoke_hook": "assembly.public:smoke_hook",
+          "version_declaration": "assembly.public:version_declaration"
+        }
+      },
+      "message": "assembly public entrypoints satisfy protocols",
+      "module_id": "assembly",
+      "status": "success"
+    },
+    {
+      "check_name": "public_api_boundary",
+      "details": {
+        "references": {
+          "cli": "subsystem_announcement.public:cli",
+          "health_probe": "subsystem_announcement.public:health_probe",
+          "init_hook": "subsystem_announcement.public:init_hook",
+          "smoke_hook": "subsystem_announcement.public:smoke_hook",
+          "version_declaration": "subsystem_announcement.public:version_declaration"
+        }
+      },
+      "message": "subsystem-announcement public entrypoints satisfy protocols",
+      "module_id": "subsystem-announcement",
+      "status": "success"
+    },
+    {
+      "check_name": "public_api_boundary",
+      "details": {
+        "references": {
+          "cli": "subsystem_news.public:cli",
+          "health_probe": "subsystem_news.public:health_probe",
+          "init_hook": "subsystem_news.public:init_hook",
+          "smoke_hook": "subsystem_news.public:smoke_hook",
+          "version_declaration": "subsystem_news.public:version_declaration"
+        }
+      },
+      "message": "subsystem-news public entrypoints satisfy protocols",
+      "module_id": "subsystem-news",
+      "status": "success"
+    },
+    {
+      "check_name": "public_api_boundary",
+      "details": {
+        "references": {
+          "cli": "frontend_api.public:cli",
+          "health_probe": "frontend_api.public:health_probe",
+          "init_hook": "frontend_api.public:init_hook",
+          "smoke_hook": "frontend_api.public:smoke_hook",
+          "version_declaration": "frontend_api.public:version_declaration"
+        }
+      },
+      "message": "frontend-api public entrypoints satisfy protocols",
+      "module_id": "frontend-api",
+      "status": "success"
+    }
+  ],
+  "matrix_version": "0.1.0",
+  "promoted": false,
+  "report_path": "reports/contract/contract-lite-local-readonly-ui-20260427T053406120916Z.json",
+  "run_record": {
+    "artifacts": [
+      {
+        "kind": "contract_report",
+        "path": "reports/contract/contract-lite-local-readonly-ui-20260427T053406120916Z.json"
+      },
+      {
+        "kind": "compatibility_matrix",
+        "version": "0.1.0"
+      },
+      {
+        "contract_version": "v0.1.3",
+        "extra_bundles": "",
+        "kind": "compatibility_context",
+        "matrix_digest": "44cb246986a99a43d38c3c3d1c8bd08e1579ffc99677a4d2d2eda4e879f776df",
+        "matrix_version": "0.1.0",
+        "module_set_digest": "e0c5a07e5efa60548db16118f0ac6bb11135285ef03f9ce2cbd552c4e93135af",
+        "profile_id": "lite-local-readonly-ui"
+      }
+    ],
+    "failing_modules": [],
+    "finished_at": "2026-04-27T05:34:06.544463Z",
+    "profile_id": "lite-local-readonly-ui",
+    "run_id": "contract-lite-local-readonly-ui-20260427T053406120916Z",
+    "run_type": "contract",
+    "started_at": "2026-04-27T05:34:06.120916Z",
+    "status": "success",
+    "summary": "Contract suite succeeded"
+  }
+}

@@ -378,8 +378,8 @@ def test_compatibility_matrix_verified_rows_keyed_by_profile_and_extra_bundles()
 
     readonly_ui = entries_by_key[readonly_ui_key]
     readonly_module_ids = {module.module_id for module in readonly_ui.module_set}
-    assert readonly_ui.status == "draft"
-    assert readonly_ui.verified_at is None
+    assert readonly_ui.status == "verified"
+    assert readonly_ui.verified_at is not None
     assert readonly_ui.required_tests == [
         "contract-suite",
         "smoke",

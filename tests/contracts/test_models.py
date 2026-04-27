@@ -89,10 +89,12 @@ def test_smoke_result_allows_success_without_failure_reason() -> None:
             "hook_name": "lite-smoke",
             "passed": True,
             "duration_ms": 3.25,
+            "details": {"profile_id": "lite-local"},
         }
     )
 
     assert result.failure_reason is None
+    assert result.details == {"profile_id": "lite-local"}
 
 
 @pytest.mark.parametrize("duration_ms", [-1.0, nan, inf])

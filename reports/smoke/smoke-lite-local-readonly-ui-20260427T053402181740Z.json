@@ -1,0 +1,222 @@
+{
+  "artifacts": [
+    {
+      "kind": "smoke_report",
+      "path": "reports/smoke/smoke-lite-local-readonly-ui-20260427T053402181740Z.json"
+    },
+    {
+      "contract_version": "v0.1.3",
+      "extra_bundles": "",
+      "kind": "compatibility_context",
+      "matrix_digest": "44cb246986a99a43d38c3c3d1c8bd08e1579ffc99677a4d2d2eda4e879f776df",
+      "matrix_version": "0.1.0",
+      "module_set_digest": "e0c5a07e5efa60548db16118f0ac6bb11135285ef03f9ce2cbd552c4e93135af",
+      "profile_id": "lite-local-readonly-ui"
+    },
+    {
+      "kind": "health_result",
+      "message": "postgres port is reachable",
+      "module_id": "postgres",
+      "probe_name": "postgres-ready",
+      "status": "healthy"
+    },
+    {
+      "kind": "health_result",
+      "message": "neo4j port is reachable",
+      "module_id": "neo4j",
+      "probe_name": "neo4j-ready",
+      "status": "healthy"
+    },
+    {
+      "kind": "health_result",
+      "message": "dagster-daemon is running",
+      "module_id": "dagster-daemon",
+      "probe_name": "dagster-daemon-ready",
+      "status": "healthy"
+    },
+    {
+      "kind": "health_result",
+      "message": "dagster-webserver server_info returned HTTP 200",
+      "module_id": "dagster-webserver",
+      "probe_name": "dagster-webserver-ready",
+      "status": "healthy"
+    },
+    {
+      "kind": "health_result",
+      "message": "contracts package import healthy",
+      "module_id": "contracts",
+      "probe_name": "contracts.import",
+      "status": "healthy"
+    },
+    {
+      "kind": "health_result",
+      "message": "data-platform package import healthy",
+      "module_id": "data-platform",
+      "probe_name": "data-platform.import",
+      "status": "healthy"
+    },
+    {
+      "kind": "health_result",
+      "message": "entity-registry package import healthy",
+      "module_id": "entity-registry",
+      "probe_name": "entity-registry.import",
+      "status": "healthy"
+    },
+    {
+      "kind": "health_result",
+      "message": "reasoner-runtime package import healthy",
+      "module_id": "reasoner-runtime",
+      "probe_name": "reasoner-runtime.import",
+      "status": "healthy"
+    },
+    {
+      "kind": "health_result",
+      "message": "graph-engine contracts re-exports identity verified",
+      "module_id": "graph-engine",
+      "probe_name": "graph_engine.health",
+      "status": "healthy"
+    },
+    {
+      "kind": "health_result",
+      "message": "main-core package import healthy",
+      "module_id": "main-core",
+      "probe_name": "main-core.import",
+      "status": "healthy"
+    },
+    {
+      "kind": "health_result",
+      "message": "audit-eval package import healthy",
+      "module_id": "audit-eval",
+      "probe_name": "audit-eval.import",
+      "status": "healthy"
+    },
+    {
+      "kind": "health_result",
+      "message": "subsystem-sdk invariants verified (contracts gateway available)",
+      "module_id": "subsystem-sdk",
+      "probe_name": "subsystem_sdk.health",
+      "status": "healthy"
+    },
+    {
+      "kind": "health_result",
+      "message": "orchestrator package import healthy",
+      "module_id": "orchestrator",
+      "probe_name": "orchestrator.import",
+      "status": "healthy"
+    },
+    {
+      "kind": "health_result",
+      "message": "assembly public health entrypoint is available",
+      "module_id": "assembly",
+      "probe_name": "health",
+      "status": "healthy"
+    },
+    {
+      "kind": "health_result",
+      "message": "subsystem-announcement invariants verified (SDK envelope strip + announcement runtime imports both available)",
+      "module_id": "subsystem-announcement",
+      "probe_name": "subsystem_announcement.health",
+      "status": "healthy"
+    },
+    {
+      "kind": "health_result",
+      "message": "subsystem-news invariants verified (SDK envelope strip + news runtime + canonical mapper all available)",
+      "module_id": "subsystem-news",
+      "probe_name": "subsystem_news.health",
+      "status": "healthy"
+    },
+    {
+      "kind": "health_result",
+      "message": "frontend-api system artifacts are readable",
+      "module_id": "frontend-api",
+      "probe_name": "frontend-api.system-artifacts",
+      "status": "healthy"
+    },
+    {
+      "hook_name": "contracts.ex-payload-smoke",
+      "kind": "smoke_result",
+      "module_id": "contracts",
+      "passed": "true"
+    },
+    {
+      "hook_name": "data-platform.public-api-smoke",
+      "kind": "smoke_result",
+      "module_id": "data-platform",
+      "passed": "true"
+    },
+    {
+      "hook_name": "entity-registry.public-api-smoke",
+      "kind": "smoke_result",
+      "module_id": "entity-registry",
+      "passed": "true"
+    },
+    {
+      "hook_name": "reasoner-runtime.replay-bundle-smoke",
+      "kind": "smoke_result",
+      "module_id": "reasoner-runtime",
+      "passed": "true"
+    },
+    {
+      "hook_name": "smoke",
+      "kind": "smoke_result",
+      "module_id": "graph-engine",
+      "passed": "true"
+    },
+    {
+      "hook_name": "main-core.formal-object-smoke",
+      "kind": "smoke_result",
+      "module_id": "main-core",
+      "passed": "true"
+    },
+    {
+      "hook_name": "audit-eval.contract-smoke",
+      "kind": "smoke_result",
+      "module_id": "audit-eval",
+      "passed": "true"
+    },
+    {
+      "hook_name": "subsystem_sdk.smoke",
+      "kind": "smoke_result",
+      "module_id": "subsystem-sdk",
+      "passed": "true"
+    },
+    {
+      "hook_name": "orchestrator.cli-smoke",
+      "kind": "smoke_result",
+      "module_id": "orchestrator",
+      "passed": "true"
+    },
+    {
+      "hook_name": "smoke",
+      "kind": "smoke_result",
+      "module_id": "assembly",
+      "passed": "true"
+    },
+    {
+      "hook_name": "subsystem_announcement.smoke",
+      "kind": "smoke_result",
+      "module_id": "subsystem-announcement",
+      "passed": "true"
+    },
+    {
+      "hook_name": "subsystem_news.smoke",
+      "kind": "smoke_result",
+      "module_id": "subsystem-news",
+      "passed": "true"
+    },
+    {
+      "hook_name": "frontend-api.api1-readonly-smoke",
+      "kind": "smoke_result",
+      "module_id": "frontend-api",
+      "passed": "true"
+    }
+  ],
+  "failing_modules": [],
+  "finished_at": "2026-04-27T05:34:02.765922Z",
+  "profile_id": "lite-local-readonly-ui",
+  "run_id": "smoke-lite-local-readonly-ui-20260427T053402181740Z",
+  "run_type": "smoke",
+  "started_at": "2026-04-27T05:34:02.181740Z",
+  "status": "success",
+  "summary": "Smoke succeeded; skipped=0"
+}

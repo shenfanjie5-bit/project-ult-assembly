@@ -208,7 +208,7 @@ def test_invalid_failed_smoke_result_reason_is_not_swallowed(
         )
 
 
-def test_readonly_ui_draft_matrix_row_binds_compatibility_context(
+def test_readonly_ui_matrix_row_binds_compatibility_context(
     tmp_path: Path,
 ) -> None:
     registry = load_all(PROJECT_ROOT)
@@ -234,11 +234,70 @@ def test_readonly_ui_draft_matrix_row_binds_compatibility_context(
         for artifact in record.artifacts
         if artifact["kind"] == "compatibility_context"
     )
-    assert matrix_entry.status == "draft"
-    assert matrix_entry.verified_at is None
+    assert matrix_entry.status == "verified"
+    assert matrix_entry.verified_at is not None
     assert compatibility_context["profile_id"] == "lite-local-readonly-ui"
     assert compatibility_context == compatibility_context_artifact(matrix_entry)
     assert record.status == "success"
+
+
+def test_readonly_ui_smoke_retries_legacy_base_profile_hook(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    order: list[str] = []
+    module = types.ModuleType("fake_legacy_profile_public")
+
+    class Hook:
+        def run(self, *, profile_id: str) -> dict[str, object]:
+            order.append(f"smoke:{profile_id}")
+            if profile_id == "lite-local-readonly-ui":
+                return {
+                    "passed": False,
+                    "profile_id": profile_id,
+                    "failure_reason": (
+                        "unknown profile_id='lite-local-readonly-ui'; "
+                        "supported: ['full-dev', 'lite-local']"
+                    ),
+                }
+            return {
+                "passed": True,
+                "profile_id": profile_id,
+                "details": {"profile_id": profile_id},
+            }
+
+    module.smoke_hook = Hook()
+    monkeypatch.setitem(sys.modules, "fake_legacy_profile_public", module)
+
+    snapshot = _snapshot(["assembly"]).model_copy(
+        update={"profile_id": "lite-local-readonly-ui"}
+    )
+    registry = _registry(
+        [
+            _entry(
+                "assembly",
+                IntegrationStatus.verified,
+                "fake_legacy_profile_public:smoke_hook",
+            )
+        ]
+    )
+
+    record = SmokeSuite(
+        health_runner=FakeHealthRunner([_health("assembly")], order)
+    ).run(
+        snapshot,
+        registry,
+        reports_dir=tmp_path,
+    )
+
+    assert order == ["health", "smoke:lite-local-readonly-ui", "smoke:lite-local"]
+    assert record.status == "success"
+    assert record.artifacts[-1] == {
+        "kind": "smoke_result",
+        "module_id": "assembly",
+        "hook_name": "smoke",
+        "passed": "true",
+    }
 
 
 def _install_hook_module(

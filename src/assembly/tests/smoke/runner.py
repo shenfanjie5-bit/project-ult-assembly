@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from datetime import datetime, timezone
 from pathlib import Path
 from time import perf_counter
@@ -206,7 +207,12 @@ def _run_smoke_hook(
         )
 
     try:
-        return _invoke_smoke_hook(entrypoint, profile_id=profile_id)
+        return _invoke_smoke_hook(
+            entrypoint,
+            profile_id=profile_id,
+            module_id=entry.module_id,
+            hook_name=public_entrypoint.name,
+        )
     except ValidationError:
         raise
     except Exception as exc:
@@ -218,9 +224,42 @@ def _run_smoke_hook(
         )
 
 
-def _invoke_smoke_hook(entrypoint: Any, *, profile_id: str) -> SmokeResult:
+def _invoke_smoke_hook(
+    entrypoint: Any,
+    *,
+    profile_id: str,
+    module_id: str,
+    hook_name: str,
+) -> SmokeResult:
+    started_at = perf_counter()
+    raw_result = _call_smoke_hook(entrypoint, profile_id=profile_id)
+    result = SmokeResult.model_validate(
+        _normalize_smoke_payload(
+            raw_result,
+            module_id=module_id,
+            hook_name=hook_name,
+            started_at=started_at,
+        )
+    )
+    alias = _profile_alias_for_legacy_smoke(profile_id)
+    if alias is not None and _is_unknown_profile_result(result, profile_id):
+        alias_started_at = perf_counter()
+        raw_result = _call_smoke_hook(entrypoint, profile_id=alias)
+        result = SmokeResult.model_validate(
+            _normalize_smoke_payload(
+                raw_result,
+                module_id=module_id,
+                hook_name=hook_name,
+                started_at=alias_started_at,
+            )
+        )
+
+    return result
+
+
+def _call_smoke_hook(entrypoint: Any, *, profile_id: str) -> Any:
     if hasattr(entrypoint, "run"):
-        return SmokeResult.model_validate(entrypoint.run(profile_id=profile_id))
+        return entrypoint.run(profile_id=profile_id)
 
     if callable(entrypoint):
         try:
@@ -231,9 +270,50 @@ def _invoke_smoke_hook(entrypoint: Any, *, profile_id: str) -> SmokeResult:
         if hasattr(raw_result, "run"):
             raw_result = raw_result.run(profile_id=profile_id)
 
-        return SmokeResult.model_validate(raw_result)
+        return raw_result
 
     raise TypeError("smoke_hook entrypoint is not callable")
+
+
+def _normalize_smoke_payload(
+    raw_result: Any,
+    *,
+    module_id: str | None,
+    hook_name: str | None,
+    started_at: float,
+) -> Any:
+    if not isinstance(raw_result, Mapping):
+        return raw_result
+
+    payload = dict(raw_result)
+    raw_profile_id = payload.pop("profile_id", None)
+    if module_id is not None:
+        payload.setdefault("module_id", module_id)
+    if hook_name is not None:
+        payload.setdefault("hook_name", hook_name)
+    payload.setdefault("duration_ms", max((perf_counter() - started_at) * 1000, 0.0))
+    if payload.get("passed") is True:
+        payload.setdefault("failure_reason", None)
+    if isinstance(raw_profile_id, str):
+        details = payload.setdefault("details", {})
+        if isinstance(details, dict):
+            details.setdefault("profile_id", raw_profile_id)
+    return payload
+
+
+def _profile_alias_for_legacy_smoke(profile_id: str) -> str | None:
+    if profile_id.endswith("-readonly-ui"):
+        return profile_id.removesuffix("-readonly-ui")
+    return None
+
+
+def _is_unknown_profile_result(result: SmokeResult, profile_id: str) -> bool:
+    reason = result.failure_reason or ""
+    return (
+        not result.passed
+        and f"unknown profile_id={profile_id!r}" in reason
+        and "supported:" in reason
+    )
 
 
 def _failed_smoke_result(

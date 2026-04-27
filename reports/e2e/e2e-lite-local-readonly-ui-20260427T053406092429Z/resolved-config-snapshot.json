@@ -1,0 +1,205 @@
+{
+  "enabled_modules": [
+    "contracts",
+    "data-platform",
+    "entity-registry",
+    "reasoner-runtime",
+    "graph-engine",
+    "main-core",
+    "audit-eval",
+    "subsystem-sdk",
+    "orchestrator",
+    "assembly",
+    "subsystem-announcement",
+    "subsystem-news",
+    "frontend-api"
+  ],
+  "enabled_service_bundles": [
+    "postgres",
+    "neo4j",
+    "dagster"
+  ],
+  "max_long_running_daemons": 4,
+  "mode": "lite",
+  "optional_env": {
+    "ASSEMBLY_LOG_LEVEL": "INFO",
+    "ASSEMBLY_SERVICE_TOKEN": "<redacted>",
+    "MINIMAX_API_BASE": null,
+    "MINIMAX_API_KEY": null,
+    "REASONER_RUNTIME_ENABLE_CLAUDE_CODE_CLI": null,
+    "REASONER_RUNTIME_ENABLE_CODEX_OAUTH": null
+  },
+  "profile_id": "lite-local-readonly-ui",
+  "required_env": {
+    "DAGSTER_HOME": "/opt/dagster/dagster_home",
+    "DAGSTER_HOST": "localhost",
+    "DAGSTER_PORT": "3000",
+    "NEO4J_PASSWORD": "<redacted>",
+    "NEO4J_URI": "bolt://localhost:7687",
+    "NEO4J_USER": "neo4j",
+    "POSTGRES_DB": "proj",
+    "POSTGRES_HOST": "localhost",
+    "POSTGRES_PASSWORD": "<redacted>",
+    "POSTGRES_PORT": "5432",
+    "POSTGRES_USER": "postgres"
+  },
+  "resolved_at": "2026-04-27T05:34:06.098445Z",
+  "resource_expectation": {
+    "cpu_cores": 2.0,
+    "disk_gb": 20.0,
+    "memory_gb": 4.0
+  },
+  "service_bundles": [
+    {
+      "bundle_name": "postgres",
+      "health_checks": [
+        "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"
+      ],
+      "optional": false,
+      "required_profiles": [
+        "lite-local",
+        "lite-local-readonly-ui",
+        "full-dev"
+      ],
+      "services": [
+        {
+          "command": null,
+          "env": {
+            "POSTGRES_DB": "${POSTGRES_DB}",
+            "POSTGRES_PASSWORD": "<redacted>",
+            "POSTGRES_USER": "${POSTGRES_USER}"
+          },
+          "health_probe": "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}",
+          "image": "postgres:16",
+          "image_or_cmd": "postgres:16",
+          "name": "postgres"
+        }
+      ],
+      "shutdown_order": [
+        "postgres"
+      ],
+      "startup_order": [
+        "postgres"
+      ]
+    },
+    {
+      "bundle_name": "neo4j",
+      "health_checks": [
+        "cypher-shell -u ${NEO4J_USER} -p ${NEO4J_PASSWORD} 'RETURN 1'"
+      ],
+      "optional": false,
+      "required_profiles": [
+        "lite-local",
+        "lite-local-readonly-ui",
+        "full-dev"
+      ],
+      "services": [
+        {
+          "command": null,
+          "env": {
+            "NEO4J_AUTH": "${NEO4J_USER}/${NEO4J_PASSWORD}"
+          },
+          "health_probe": "cypher-shell -u ${NEO4J_USER} -p ${NEO4J_PASSWORD} 'RETURN 1'",
+          "image": "neo4j:5",
+          "image_or_cmd": "neo4j:5",
+          "name": "neo4j"
+        }
+      ],
+      "shutdown_order": [
+        "neo4j"
+      ],
+      "startup_order": [
+        "neo4j"
+      ]
+    },
+    {
+      "bundle_name": "dagster",
+      "health_checks": [
+        "dagster-daemon liveness-check",
+        "python -c \"import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:%s' % os.environ.get('DAGSTER_PORT', '3000'), timeout=2)\""
+      ],
+      "optional": false,
+      "required_profiles": [
+        "lite-local",
+        "lite-local-readonly-ui",
+        "full-dev"
+      ],
+      "services": [
+        {
+          "command": "dagster-daemon run",
+          "env": {
+            "DAGSTER_HOME": "${DAGSTER_HOME}",
+            "DAGSTER_POSTGRES_DB": "${POSTGRES_DB}",
+            "DAGSTER_POSTGRES_HOST": "postgres",
+            "DAGSTER_POSTGRES_PASSWORD": "<redacted>",
+            "DAGSTER_POSTGRES_PORT": "${POSTGRES_PORT}",
+            "DAGSTER_POSTGRES_USER": "${POSTGRES_USER}",
+            "MINIMAX_API_BASE": "${MINIMAX_API_BASE:-}",
+            "MINIMAX_API_KEY": "${MINIMAX_API_KEY:-}",
+            "REASONER_RUNTIME_ENABLE_CLAUDE_CODE_CLI": "${REASONER_RUNTIME_ENABLE_CLAUDE_CODE_CLI:-}",
+            "REASONER_RUNTIME_ENABLE_CODEX_OAUTH": "${REASONER_RUNTIME_ENABLE_CODEX_OAUTH:-}"
+          },
+          "health_probe": "dagster-daemon liveness-check",
+          "image": "project-ult/dagster-lite:1.7.16",
+          "image_or_cmd": "dagster-daemon",
+          "name": "dagster-daemon"
+        },
+        {
+          "command": "dagster-webserver -h 0.0.0.0 -p ${DAGSTER_PORT:-3000}",
+          "env": {
+            "DAGSTER_HOME": "${DAGSTER_HOME}",
+            "DAGSTER_HOST": "${DAGSTER_HOST:-127.0.0.1}",
+            "DAGSTER_PORT": "${DAGSTER_PORT}",
+            "DAGSTER_POSTGRES_DB": "${POSTGRES_DB}",
+            "DAGSTER_POSTGRES_HOST": "postgres",
+            "DAGSTER_POSTGRES_PASSWORD": "<redacted>",
+            "DAGSTER_POSTGRES_PORT": "${POSTGRES_PORT}",
+            "DAGSTER_POSTGRES_USER": "${POSTGRES_USER}",
+            "MINIMAX_API_BASE": "${MINIMAX_API_BASE:-}",
+            "MINIMAX_API_KEY": "${MINIMAX_API_KEY:-}",
+            "REASONER_RUNTIME_ENABLE_CLAUDE_CODE_CLI": "${REASONER_RUNTIME_ENABLE_CLAUDE_CODE_CLI:-}",
+            "REASONER_RUNTIME_ENABLE_CODEX_OAUTH": "${REASONER_RUNTIME_ENABLE_CODEX_OAUTH:-}"
+          },
+          "health_probe": "python -c \"import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:%s' % os.environ.get('DAGSTER_PORT', '3000'), timeout=2)\"",
+          "image": "project-ult/dagster-lite:1.7.16",
+          "image_or_cmd": "dagster-webserver",
+          "name": "dagster-webserver"
+        }
+      ],
+      "shutdown_order": [
+        "dagster-webserver",
+        "dagster-daemon"
+      ],
+      "startup_order": [
+        "dagster-daemon",
+        "dagster-webserver"
+      ]
+    }
+  ],
+  "storage_backends": {
+    "dagster_home": {
+      "connection": {
+        "path_env": "DAGSTER_HOME"
+      },
+      "kind": "local_fs"
+    },
+    "neo4j": {
+      "connection": {
+        "password_env": "<redacted>",
+        "uri_env": "NEO4J_URI",
+        "user_env": "NEO4J_USER"
+      },
+      "kind": "neo4j"
+    },
+    "postgres": {
+      "connection": {
+        "database_env": "POSTGRES_DB",
+        "host_env": "POSTGRES_HOST",
+        "password_env": "<redacted>",
+        "port_env": "POSTGRES_PORT",
+        "user_env": "POSTGRES_USER"
+      },
+      "kind": "postgres"
+    }
+  }
+}

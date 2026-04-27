@@ -1,0 +1,60 @@
+[
+  {
+    "assertion_name": "orchestrator_cli",
+    "details": {
+      "profile_id": "lite-local-readonly-ui",
+      "report_path": "reports/e2e/e2e-lite-local-readonly-ui-20260427T053406092429Z/orchestrator-report.json"
+    },
+    "message": "Orchestrator CLI returned zero",
+    "status": "passed"
+  },
+  {
+    "assertion_name": "orchestrator_report",
+    "details": {
+      "profile_id": "lite-local-readonly-ui",
+      "status": "success"
+    },
+    "message": "Orchestrator report terminal status is success",
+    "status": "passed"
+  },
+  {
+    "assertion_name": "phase_order",
+    "details": {
+      "expected": [
+        "resolve-profile",
+        "load-fixture",
+        "execute-minimal-cycle",
+        "write-report"
+      ],
+      "observed": [
+        "resolve-profile",
+        "load-fixture",
+        "execute-minimal-cycle",
+        "write-report"
+      ]
+    },
+    "message": "Observed phases match manifest-declared order",
+    "status": "passed"
+  },
+  {
+    "assertion_name": "required_artifact",
+    "details": {
+      "artifact_key": "cycle_summary",
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/e2e/e2e-lite-local-readonly-ui-20260427T053406092429Z/cycle_summary.json",
+      "scenario_id": "minimal-daily-cycle-placeholder"
+    },
+    "message": "Required artifact exists",
+    "status": "passed"
+  },
+  {
+    "assertion_name": "artifact_payload_invariants",
+    "details": {
+      "artifact_kind": "cycle_summary",
+      "assembled_job_count": 1,
+      "cycle_publish_manifest_id": "MAN_minimal_daily_cycle_placeholder_v0",
+      "scenario_id": "minimal-daily-cycle-placeholder"
+    },
+    "message": "Required-artifact payload satisfies Stage 4 §4.2 invariants (real_phase_execution / assembled_job_names / assembly_error / cycle_publish_manifest_id)",
+    "status": "passed"
+  }
+]
