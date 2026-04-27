@@ -99,6 +99,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             pg_dsn=pg_dsn,
             catalog_name=f"data_platform_p2_codex_{stamp.lower()}",
         )
+        report["secrets"] = _secret_status()
         report["postgres"] = {
             "database": temp_database,
             "dsn": "<redacted:set>",

@@ -1,0 +1,105 @@
+{
+  "status": "passed",
+  "recorded_at": "2026-04-27T12:05:48Z",
+  "scope": "P2 audit/replay retry-safety and Tushare provider regression follow-up",
+  "closed_findings": [
+    {
+      "id": "P2-AUDIT-REPLAY-RETRY-SAFETY",
+      "priority": "P1",
+      "result": "closed",
+      "evidence": [
+        "audit-eval persist_audit_write_bundle validates audit and replay before writing",
+        "ManagedDuckDBFormalAuditStorageAdapter writes audit/replay bundles in one transaction",
+        "Managed DuckDB inserts are idempotent for identical retry payloads and fail on conflicting payloads",
+        "orchestrator AuditEvalPersistencePort calls persist_audit_write_bundle once"
+      ]
+    },
+    {
+      "id": "P2-TUSHARE-PROVIDER-DIRECT-COVERAGE",
+      "priority": "P3",
+      "result": "closed",
+      "evidence": [
+        "DataPlatformTushareCurrentCycleInputProvider has direct current-cycle evidence coverage",
+        "_load_frozen_candidate_symbols rejects ENT_P2 synthetic ids",
+        "_load_tushare_staging_rows reads DuckDB staging rows and rejects ENT_P2 source markers"
+      ]
+    },
+    {
+      "id": "P2-EVIDENCE-HYGIENE",
+      "priority": "P3",
+      "result": "closed",
+      "evidence": [
+        "future P2 durable Codex dry-run artifacts refresh redacted env status after runtime normalization",
+        "assembly .DS_Store is removed from version control and ignored"
+      ]
+    }
+  ],
+  "negative_gates": [
+    {
+      "case_id": "bundle_writer_fail_closed_without_safe_adapter",
+      "repo": "audit-eval",
+      "test": "test_persist_audit_write_bundle_fails_closed_without_bundle_adapter",
+      "result": "passed"
+    },
+    {
+      "case_id": "bundle_writer_rolls_back_replay_failure",
+      "repo": "audit-eval",
+      "test": "test_managed_duckdb_bundle_persistence_rolls_back_replay_failure",
+      "result": "passed"
+    },
+    {
+      "case_id": "bundle_writer_rejects_conflicting_audit_payload",
+      "repo": "audit-eval",
+      "test": "test_managed_duckdb_bundle_persistence_rejects_conflicting_retry_payload",
+      "result": "passed"
+    },
+    {
+      "case_id": "bundle_writer_rejects_conflicting_replay_payload",
+      "repo": "audit-eval",
+      "test": "test_managed_duckdb_bundle_persistence_rejects_conflicting_replay_payload",
+      "result": "passed"
+    },
+    {
+      "case_id": "orchestrator_uses_bundle_writer",
+      "repo": "orchestrator",
+      "test": "test_audit_eval_persistence_port_uses_retry_safe_bundle_writer",
+      "result": "passed"
+    },
+    {
+      "case_id": "tushare_loader_rejects_ent_p2_candidate",
+      "repo": "orchestrator",
+      "test": "test_load_frozen_candidate_symbols_rejects_ent_p2_synthetic_candidates",
+      "result": "passed"
+    },
+    {
+      "case_id": "tushare_loader_rejects_ent_p2_staging_source",
+      "repo": "orchestrator",
+      "test": "test_load_tushare_staging_rows_reads_duckdb_and_rejects_synthetic_sources",
+      "result": "passed"
+    }
+  ],
+  "verification": [
+    {
+      "repo": "audit-eval",
+      "command": "PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/audit-eval/src PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin:$PATH /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest /Users/fanjie/Desktop/Cowork/project-ult/audit-eval/tests/test_audit_writer.py /Users/fanjie/Desktop/Cowork/project-ult/audit-eval/tests/test_replay_storage_integration.py -q",
+      "result": "36 passed"
+    },
+    {
+      "repo": "orchestrator",
+      "command": "PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/orchestrator/src:/Users/fanjie/Desktop/Cowork/project-ult/main-core/src:/Users/fanjie/Desktop/Cowork/project-ult/reasoner-runtime:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src:/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src:/Users/fanjie/Desktop/Cowork/project-ult/audit-eval/src PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin:$PATH /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest /Users/fanjie/Desktop/Cowork/project-ult/orchestrator/tests/integration/test_p2_dry_run_handoff.py -q -rs",
+      "result": "10 passed"
+    },
+    {
+      "repo": "assembly",
+      "command": "git diff --check && git diff --cached --check",
+      "result": "passed"
+    }
+  ],
+  "review": {
+    "code_retry_safety_reviewer": "P1/P2 cleared after re-review; remaining P3s addressed by bundle-capable protocol and replay conflict coverage",
+    "tushare_evidence_reviewer": "P0/P1/P2 none; conditional .DS_Store hygiene closed by same assembly commit"
+  },
+  "secrets": {
+    "exact_secret_scan": "passed; no Tushare token, DSN, API key, or bearer token values recorded"
+  }
+}
