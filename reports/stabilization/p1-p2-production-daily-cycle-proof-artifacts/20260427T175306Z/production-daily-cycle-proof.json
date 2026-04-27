@@ -1,0 +1,120 @@
+{
+  "schema_version": "project-ult.production-daily-cycle-proof.v1",
+  "generated_at_utc": "2026-04-27T17:53:06Z",
+  "evidence_date": "2026-04-28",
+  "verdict": "PARTIAL_PASS_BLOCKED",
+  "non_claims": [
+    "not_p5_shadow_run_readiness",
+    "not_production_daily_cycle_pass_certificate",
+    "not_fixed_cycle_20260415_replay"
+  ],
+  "commits": {
+    "data_platform": "912d099098122840c5c92d78f60cfd475aa6c0eb",
+    "graph_engine": "fc4e083e1328333f0320fa7c0afa96d0b0dd6b37",
+    "audit_eval": "a038ce172da711951500296f2c39862da1d53b6b",
+    "orchestrator": "08898f3e3e7fd93fcf06dd5f661b4a10de4155fc"
+  },
+  "runtime_environment": {
+    "DP_TUSHARE_TOKEN": "missing",
+    "DP_PG_DSN": "missing",
+    "DATABASE_URL": "missing",
+    "NEO4J_URI": "missing",
+    "NEO4J_USER": "missing",
+    "NEO4J_PASSWORD": "missing",
+    "P2_REASONER_PROVIDER": "missing",
+    "P2_REASONER_MODEL": "missing",
+    "OPENAI_API_KEY": "missing",
+    "AUDIT_EVAL_DUCKDB_PATH": "missing",
+    "ORCHESTRATOR_POLICY_PATH": "missing",
+    "ORCHESTRATOR_MODULE_FACTORIES": "missing"
+  },
+  "current_cycle_selection": {
+    "live_tushare_proof": "blocked",
+    "live_pg_freeze_proof": "blocked",
+    "cycle_id": null,
+    "trade_date": null,
+    "symbols": [],
+    "input_tables": [],
+    "artifact_refs": [],
+    "blocked_by": [
+      "DP_TUSHARE_TOKEN missing",
+      "DP_PG_DSN or DATABASE_URL missing"
+    ],
+    "archived_probe": {
+      "status": "ok",
+      "cycle_id": "CYCLE_20260331",
+      "trade_date": "2026-03-31",
+      "symbols": [
+        "600519.SH",
+        "000001.SZ"
+      ],
+      "input_refs": [
+        "trade_cal",
+        "daily",
+        "stock_basic"
+      ],
+      "artifact_rows": {
+        "trade_cal": 1,
+        "daily": 3,
+        "stock_basic": 3
+      }
+    }
+  },
+  "candidate_freeze": {
+    "live_pg_transaction_proof": "blocked",
+    "frozen_candidate_ids": [],
+    "cutoff_metadata": null,
+    "test_coverage": "data-platform tests/cycle/test_current_selection.py: 8 passed, 2 skipped because no DP_PG_DSN or DATABASE_URL"
+  },
+  "graph_phase1": {
+    "p3_live_gds_closure": "pass",
+    "neo4j_image": "neo4j:5.26.25",
+    "gds_version": "2.13.9",
+    "gds_procedure_count": 423,
+    "focused_live_suite": "6 passed, 0 skipped",
+    "graph_snapshot_id": "recorded in p3-graph-live-closure-20260428.md",
+    "impact_snapshot_id": "recorded in p3-graph-live-closure-20260428.md",
+    "cold_reload_proof": "ArtifactCanonicalReader backed proof passed",
+    "production_provider_runtime": "blocked until graph status and graph_phase1 runtime resources are configured in daily_cycle_job"
+  },
+  "phase2_l1_l8": {
+    "production_dagster_run": "not_run",
+    "reasoner_runtime": "blocked_missing_provider_env",
+    "l4_audit_ids": [],
+    "l6_audit_ids": [],
+    "l7_audit_ids": [],
+    "l8_audit_ids": [],
+    "replay_ids": [],
+    "isolated_current_cycle_closure_reuse": {
+      "status": "previously_passed",
+      "evidence": "assembly/reports/stabilization/p2-durable-real-data-codex-dry-run-closure-20260427.md"
+    }
+  },
+  "phase3_manifest": {
+    "production_dagster_run": "not_run",
+    "formal_snapshot_ids": {},
+    "cycle_publish_manifest_row": null,
+    "manifest_bound_serving_readback": "not_run"
+  },
+  "audit_eval": {
+    "hook_hardening": "pass",
+    "commit": "a038ce172da711951500296f2c39862da1d53b6b",
+    "production_daily_cycle_artifact": "not_produced",
+    "retrospective_status": "not_run"
+  },
+  "negative_gates": {
+    "no_llm": "covered by P2 closure regression, not rerun in production job",
+    "no_gds": "covered by graph-engine fail-closed paths and P3 live proof",
+    "no_audit_replay": "covered by audit-eval hook hardening",
+    "fake_smoke_fixture_historical_provenance": "covered by P2 and audit-eval regressions",
+    "missing_cycle_tag": "covered by orchestrator production provider regression"
+  },
+  "open_blockers": [
+    "live current-cycle Tushare/PG freeze proof needs DP_TUSHARE_TOKEN plus DP_PG_DSN or DATABASE_URL in execution shell",
+    "production daily_cycle_job needs configured graph status and graph Phase 1 runtime resources",
+    "production daily_cycle_job needs configured Codex/reasoner-runtime provider profile",
+    "production daily_cycle_job needs real current-cycle Phase 2 pool failure-rate event derived from the run, not fixture JSON",
+    "production daily_cycle_job needs AUDIT_EVAL_DUCKDB_PATH and durable manifest gateway access",
+    "production daily_cycle_job.execute_in_process(tags={cycle_id: selector.cycle_id}) has not been run successfully"
+  ]
+}

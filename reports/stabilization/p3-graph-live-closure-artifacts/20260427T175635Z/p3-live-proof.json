@@ -1,0 +1,53 @@
+{
+  "artifact_ref_basename": "graph-snapshot-p3evidence20260428-cycle-2-c1150a756965.json",
+  "artifact_ref_parent": "p3evidence20260428-cycle",
+  "canonical_write_delta_ids": [
+    [
+      "p3evidence20260428-edge"
+    ]
+  ],
+  "cold_reload_proof": {
+    "checksum": "c1150a7569651d72bb868eba16a98836b17bea63041dec18c6a1ab227023f38f",
+    "edge_count": 1,
+    "graph_generation_id": 2,
+    "key_label_counts": {
+      "Entity": 2
+    },
+    "node_count": 2,
+    "snapshot_id": "graph-snapshot-p3evidence20260428-cycle-2-c1150a756965",
+    "snapshot_ref_basename": "graph-snapshot-p3evidence20260428-cycle-2-c1150a756965.json"
+  },
+  "cycle_id": "p3evidence20260428-cycle",
+  "delta_ids": [
+    "p3evidence20260428-edge"
+  ],
+  "gds_procedure_count": 423,
+  "gds_version": "2.13.9",
+  "generated_at_utc": "2026-04-27T17:56:35.090647Z",
+  "graph_generation_id": 2,
+  "graph_snapshot_edge_count": 1,
+  "graph_snapshot_id": "graph-snapshot-p3evidence20260428-cycle-2-c1150a756965",
+  "graph_snapshot_node_count": 2,
+  "impact_evidence_refs": [
+    "p3evidence20260428-fact"
+  ],
+  "impact_snapshot_id": "graph-impact-p3evidence20260428-cycle-2447017aa563",
+  "neo4j_image": "neo4j:5.26.25",
+  "reload_plan": {
+    "edge_records": 1,
+    "expected_snapshot_id": "graph-snapshot-p3evidence20260428-cycle-2-c1150a756965",
+    "node_records": 2,
+    "projection_name": "graph_engine_live_reload_evidence_20260428"
+  },
+  "reloaded_status": {
+    "checksum": "c1150a7569651d72bb868eba16a98836b17bea63041dec18c6a1ab227023f38f",
+    "edge_count": 1,
+    "graph_generation_id": 2,
+    "graph_status": "ready",
+    "key_label_counts": {
+      "Entity": 2
+    },
+    "node_count": 2
+  },
+  "selection_ref": "cycle_candidate_selection:p3evidence20260428-cycle"
+}

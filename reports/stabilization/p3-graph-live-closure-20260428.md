@@ -87,6 +87,32 @@ result:
 6 passed, 0 skipped
 ```
 
+Concrete live proof values were captured in a follow-up evidence run after
+independent review requested more auditable identifiers:
+
+```text
+artifact:
+assembly/reports/stabilization/p3-graph-live-closure-artifacts/20260427T175635Z/p3-live-proof.json
+
+Neo4j image: neo4j:5.26.25
+GDS version: 2.13.9
+GDS procedures: 423
+cycle_id: p3evidence20260428-cycle
+selection_ref: cycle_candidate_selection:p3evidence20260428-cycle
+delta_ids: p3evidence20260428-edge
+graph_snapshot_id: graph-snapshot-p3evidence20260428-cycle-2-c1150a756965
+impact_snapshot_id: graph-impact-p3evidence20260428-cycle-2447017aa563
+artifact_ref_basename: graph-snapshot-p3evidence20260428-cycle-2-c1150a756965.json
+node_count: 2
+edge_count: 1
+key_label_counts: {"Entity": 2}
+checksum: c1150a7569651d72bb868eba16a98836b17bea63041dec18c6a1ab227023f38f
+cold_reload_status: ready
+cold_reload_projection: graph_engine_live_reload_evidence_20260428
+reload_plan_records: nodes=2, edges=1
+container_cleanup: p3-graph-live-evidence-20260428 removed
+```
+
 Focused unit/regression for changed graph-engine code:
 
 ```text
@@ -172,5 +198,8 @@ expanded in this task.
 - P0: none.
 - P1: none. The focused P3 live suite passed against GDS with zero skips.
 - P2: none for Backend-A live closure.
-- P3: non-gating query/status integration expectations listed above remain
-  outside this closure scope.
+- P3: independent review found the first evidence revision omitted concrete
+  snapshot/reload identifiers. The follow-up artifact above records
+  `graph_snapshot_id`, `impact_snapshot_id`, artifact basename, checksum, and
+  cold reload ready status. Non-gating query/status integration expectations
+  listed above remain outside this closure scope.
