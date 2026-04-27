@@ -163,8 +163,8 @@ FrontEnd hard constraints:
 
 ## Final Gate Before Verified Matrix Promotion
 
-Status: `open`; all batch and FrontEnd gates are closed, final assembly
-smoke/matrix decision is still pending.
+Status: `closed`; final assembly smoke/registry/compat gate passed and matrix
+promotion decision was recorded.
 
 Owner: Stabilization lead.
 
@@ -190,7 +190,11 @@ Final gate requirements:
   promotion run produces fresh contract/smoke/e2e evidence for the new module
   identity.
 
-Only after this gate:
+Evidence file:
+
+- `reports/stabilization/final-gate-readiness-20260427.md`
+
+After this gate:
 
 1. Decide whether to create a new verified matrix row including frontend-api.
 2. Run a real-data mini cycle.
