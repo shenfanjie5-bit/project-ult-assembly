@@ -175,6 +175,13 @@ result: pass, exit code 0
   non-existent `tests/unit/test_public_entrypoints.py` path. The command was
   corrected to existing public/contract paths and passed. This was a command
   path typo, not a code failure.
+- P3: independent review confirmed the Ex-3 unresolved-ref block path uses the
+  production/default live entity-registry lookup. Ex-2 unresolved-ref blocking
+  is covered through the same preflight path with an injected lookup, not a
+  separate default `LiveEntityRegistryLookup` test.
+- P3: independent review confirmed frontend-api, graph-engine, and
+  reasoner-runtime read-only artifact lanes pass separately, but this P4 slice
+  does not prove a live graph/reasoner/frontend end-to-end path.
 
 ## Residual Risk
 
@@ -182,3 +189,10 @@ result: pass, exit code 0
   boundary, not production external news, Polymarket, or model-backed parsing.
 - The Lite PG proof uses an injected recording connection factory rather than
   a live PostgreSQL instance, matching the current SDK adapter test pattern.
+- The next P4 hardening gate should add a direct Ex-2
+  default-live-entity-registry unresolved-ref block test and a live PostgreSQL
+  Layer B queue proof when a DSN is available.
+- The graph/reasoner/frontend-api read-only path remains artifact-backed
+  adjunct evidence. It should not be counted as live P4 end-to-end until a
+  downstream proof consumes this slice's Ex-3 output through graph-engine and
+  reasoner-runtime into frontend-api artifacts.
