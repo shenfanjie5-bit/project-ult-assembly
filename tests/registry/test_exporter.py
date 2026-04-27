@@ -17,16 +17,15 @@ def test_export_module_registry_writes_json_and_markdown(tmp_path: Path) -> None
     assert export.matrix_json == tmp_path / "matrix.json"
     assert export.registry_md == tmp_path / "MODULE_REGISTRY.md"
     assert export.module_count == 15
-    # Stage 5 + MinIO pilot: 3 = (full-dev default, lite-local default,
-    # full-dev + extra_bundles=[minio]). Future optional-bundle pilots
-    # add their own rows.
-    assert export.matrix_count == 3
+    # Stage 5 + MinIO pilot: 3 verified rows, plus the
+    # lite-local-readonly-ui draft row.
+    assert export.matrix_count == 4
 
     registry_payload = json.loads(export.registry_json.read_text(encoding="utf-8"))
     matrix_payload = json.loads(export.matrix_json.read_text(encoding="utf-8"))
 
     assert len(registry_payload) == 15
-    assert len(matrix_payload) == 3
+    assert len(matrix_payload) == 4
     assert export.registry_md.read_text(encoding="utf-8") == (
         PROJECT_ROOT / "MODULE_REGISTRY.md"
     ).read_text(encoding="utf-8")

@@ -10,6 +10,7 @@ from assembly.registry import CompatibilityMatrixEntry, load_registry_yaml
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 PROFILE_PATH = PROJECT_ROOT / "profiles" / "lite-local.yaml"
+READONLY_UI_PROFILE_PATH = PROJECT_ROOT / "profiles" / "lite-local-readonly-ui.yaml"
 BUNDLES_ROOT = PROJECT_ROOT / "bundles"
 ENV_EXAMPLE = PROJECT_ROOT / ".env.example"
 REGISTRY_YAML = PROJECT_ROOT / "module-registry.yaml"
@@ -46,6 +47,29 @@ def test_lite_local_profile_artifact_is_complete() -> None:
     assert FORBIDDEN_LITE_BUNDLES.isdisjoint(profile.enabled_service_bundles)
 
 
+def test_lite_local_readonly_ui_profile_only_adds_frontend_api() -> None:
+    base = load_profile(PROFILE_PATH)
+    readonly_ui = load_profile(READONLY_UI_PROFILE_PATH)
+
+    assert readonly_ui.profile_id == "lite-local-readonly-ui"
+    assert readonly_ui.mode == base.mode
+    assert readonly_ui.enabled_service_bundles == base.enabled_service_bundles
+    assert readonly_ui.required_env_keys == base.required_env_keys
+    assert readonly_ui.optional_env_keys == base.optional_env_keys
+    assert readonly_ui.storage_backends == base.storage_backends
+    assert readonly_ui.resource_expectation == base.resource_expectation
+    assert readonly_ui.max_long_running_daemons == base.max_long_running_daemons
+    assert set(readonly_ui.enabled_modules) == {
+        *base.enabled_modules,
+        "frontend-api",
+    }
+    assert len(readonly_ui.enabled_modules) == len(base.enabled_modules) + 1
+    assert {"feature-store", "stream-layer"}.isdisjoint(
+        readonly_ui.enabled_modules
+    )
+    assert "base lite-local unchanged" in readonly_ui.notes
+
+
 def test_lite_local_bundle_manifests_have_exact_four_services() -> None:
     bundles = [
         load_bundle(BUNDLES_ROOT / "postgres.yaml"),
@@ -76,6 +100,15 @@ def test_lite_local_profile_bundle_references_are_closed() -> None:
         assert profile.profile_id in bundle.required_profiles
 
 
+def test_lite_local_readonly_ui_profile_bundle_references_are_closed() -> None:
+    profile = load_profile(READONLY_UI_PROFILE_PATH)
+
+    for bundle_name in profile.enabled_service_bundles:
+        bundle = load_bundle(BUNDLES_ROOT / f"{bundle_name}.yaml")
+        assert bundle.bundle_name == bundle_name
+        assert profile.profile_id in bundle.required_profiles
+
+
 def test_optional_bundles_are_not_declared_for_lite_local() -> None:
     for bundle_name in OPTIONAL_FULL_BUNDLES:
         bundle = load_bundle(BUNDLES_ROOT / f"{bundle_name}.yaml")
@@ -83,6 +116,7 @@ def test_optional_bundles_are_not_declared_for_lite_local() -> None:
         assert bundle.optional is True
         assert bundle.required_profiles == ["full-dev"]
         assert "lite-local" not in bundle.required_profiles
+        assert "lite-local-readonly-ui" not in bundle.required_profiles
 
 
 def test_lite_local_modules_cover_registry_supported_modules() -> None:
@@ -142,11 +176,11 @@ def test_env_example_contains_lite_keys_and_empty_full_secret_placeholders() -> 
         "SUPERSET_SECRET_KEY",
     ]
 
-    assert [key for key, _ in entries[: len(lite_keys)]] == lite_keys
-    assert [key for key, _ in entries[len(lite_keys) :]] == (
-        full_secret_placeholders
-    )
-    assert all(value == "" for _, value in entries[len(lite_keys) :])
+    env_keys = [key for key, _ in entries]
+    assert env_keys[: len(profile.required_env_keys)] == profile.required_env_keys
+    assert set(lite_keys) <= set(env_keys)
+    assert all(key in env_keys for key in full_secret_placeholders)
+    assert all(value == "" for _, value in entries)
 
 
 def test_registry_and_matrix_profile_references_are_publicly_loadable() -> None:

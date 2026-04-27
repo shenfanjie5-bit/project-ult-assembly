@@ -47,6 +47,47 @@
   # T+1 tushare extension). Same test, same Lite stack — confirmed
   # pin sync did not regress the Stage 4 §4.3 evidence.
   verified_at: 2026-04-24T05:24:14Z
+- matrix_version: 0.1.0
+  profile_id: lite-local-readonly-ui
+  module_set:
+    - module_id: contracts
+      module_version: 0.1.3
+    - module_id: data-platform
+      module_version: 0.1.1
+    - module_id: entity-registry
+      module_version: 0.1.1
+    - module_id: reasoner-runtime
+      module_version: 0.1.1
+    - module_id: graph-engine
+      module_version: 0.1.1
+    - module_id: main-core
+      module_version: 0.1.1
+    - module_id: audit-eval
+      module_version: 0.2.5
+    - module_id: subsystem-sdk
+      module_version: 0.1.2
+    - module_id: orchestrator
+      module_version: 0.1.1
+    - module_id: assembly
+      module_version: 0.1.0
+    - module_id: subsystem-announcement
+      module_version: 0.1.1
+    - module_id: subsystem-news
+      module_version: 0.1.1
+    - module_id: frontend-api
+      module_version: 0.1.0
+  contract_version: v0.1.3
+  required_tests:
+    - contract-suite
+    - smoke
+    - min-cycle-e2e
+  status: draft
+  # Draft row for the read-only UI/frontend-api-inclusive Lite profile
+  # variant. This row intentionally does not alter the historical
+  # verified ``lite-local`` evidence identity and must be promoted only
+  # after fresh contract/smoke/e2e evidence is bound to this exact
+  # compatibility context.
+  verified_at: null
 # Stage 5 status: BOTH `lite-local` and `full-dev` are now promoted to
 # `verified`. The full-dev evidence (per-profile evidence boundary,
 # codex review #10 strict call from Stage 4 §4.3) is the new

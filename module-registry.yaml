@@ -23,6 +23,7 @@
   depends_on: []
   supported_profiles:
     - lite-local
+    - lite-local-readonly-ui
     - full-dev
   integration_status: verified
   last_smoke_result: null
@@ -52,6 +53,7 @@
   depends_on: []
   supported_profiles:
     - lite-local
+    - lite-local-readonly-ui
     - full-dev
   integration_status: verified
   last_smoke_result: null
@@ -81,6 +83,7 @@
   depends_on: []
   supported_profiles:
     - lite-local
+    - lite-local-readonly-ui
     - full-dev
   integration_status: verified
   last_smoke_result: null
@@ -110,6 +113,7 @@
   depends_on: []
   supported_profiles:
     - lite-local
+    - lite-local-readonly-ui
     - full-dev
   integration_status: verified
   last_smoke_result: null
@@ -139,6 +143,7 @@
   depends_on: []
   supported_profiles:
     - lite-local
+    - lite-local-readonly-ui
     - full-dev
   integration_status: verified
   last_smoke_result: null
@@ -168,6 +173,7 @@
   depends_on: []
   supported_profiles:
     - lite-local
+    - lite-local-readonly-ui
     - full-dev
   integration_status: verified
   last_smoke_result: null
@@ -197,6 +203,7 @@
   depends_on: []
   supported_profiles:
     - lite-local
+    - lite-local-readonly-ui
     - full-dev
   integration_status: verified
   last_smoke_result: null
@@ -226,6 +233,7 @@
   depends_on: []
   supported_profiles:
     - lite-local
+    - lite-local-readonly-ui
     - full-dev
   integration_status: verified
   last_smoke_result: null
@@ -255,6 +263,7 @@
   depends_on: []
   supported_profiles:
     - lite-local
+    - lite-local-readonly-ui
     - full-dev
   integration_status: verified
   last_smoke_result: null
@@ -285,6 +294,7 @@
   depends_on: []
   supported_profiles:
     - lite-local
+    - lite-local-readonly-ui
     - full-dev
   integration_status: verified
   last_smoke_result: null
@@ -316,6 +326,7 @@
     - assembly
   supported_profiles:
     - lite-local
+    - lite-local-readonly-ui
     - full-dev
   integration_status: verified
   last_smoke_result: reports/smoke/frontend-api-api1-public-smoke-20260425.md
@@ -403,6 +414,7 @@
   depends_on: []
   supported_profiles:
     - lite-local
+    - lite-local-readonly-ui
     - full-dev
   integration_status: verified
   last_smoke_result: null
@@ -432,6 +444,7 @@
   depends_on: []
   supported_profiles:
     - lite-local
+    - lite-local-readonly-ui
     - full-dev
   integration_status: verified
   last_smoke_result: null

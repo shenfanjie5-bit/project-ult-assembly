@@ -216,11 +216,24 @@ def test_registry_artifacts_cover_expected_fifteen_modules() -> None:
             f"{by_id[module_id].contract_version}"
         )
 
-    # All 15 modules expose the same canonical 5-entrypoint surface +
-    # supported_profiles set; this part is invariant across Stage 0/4.
+    readonly_ui_modules = STAGE_4_VERIFIED_MODULE_IDS
+    future_slots = {"feature-store", "stream-layer"}
+
+    # All 15 modules expose the same canonical 5-entrypoint surface.
+    # The readonly-ui profile is supported only by modules that are
+    # actually enabled by that profile; frozen future slots remain out.
     for entry in entries:
         assert_phase_zero_public_entrypoints(entry)
-        assert entry.supported_profiles == ["lite-local", "full-dev"]
+        if entry.module_id in readonly_ui_modules:
+            assert entry.supported_profiles == [
+                "lite-local",
+                "lite-local-readonly-ui",
+                "full-dev",
+            ]
+        elif entry.module_id in future_slots:
+            assert entry.supported_profiles == ["lite-local", "full-dev"]
+        else:
+            raise AssertionError(f"unexpected module_id {entry.module_id}")
 
 
 def test_markdown_status_drift_raises_inconsistent_error(tmp_path: Path) -> None:
@@ -326,36 +339,57 @@ def test_compatibility_matrix_verified_rows_keyed_by_profile_and_extra_bundles()
         f"(profile_id, extra_bundles) combinations in {MATRIX_YAML}"
     )
 
-    expected_keys = {
+    verified_keys = {
         ("lite-local", ()),
         ("full-dev", ()),
         ("full-dev", ("minio",)),
     }
+    readonly_ui_key = ("lite-local-readonly-ui", ())
+    expected_keys = {*verified_keys, readonly_ui_key}
     assert set(entries_by_key) == expected_keys, (
         f"unexpected matrix row keys: got {sorted(entries_by_key)}, "
         f"expected {sorted(expected_keys)}"
     )
 
-    # All 3 rows must be verified with a non-None timestamp.
-    for key, entry in entries_by_key.items():
+    # Historical rows must remain verified with their existing timestamps.
+    for key in verified_keys:
+        entry = entries_by_key[key]
         assert entry.status == "verified", (
             f"matrix row {key} is {entry.status!r} (expected 'verified')"
         )
         assert entry.verified_at is not None, (
             f"matrix row {key} has no verified_at"
         )
+        module_ids = {module.module_id for module in entry.module_set}
+        assert "frontend-api" not in module_ids
 
     # Frozen slots and frontend-api stay OUT of every verified matrix
     # row's module_set. frontend-api has registry/public-smoke evidence,
     # but the pre-existing verified rows keep their original evidence
     # identity until fresh contract/smoke/e2e evidence is promoted.
     matrix_excluded_slots = {"feature-store", "stream-layer", "frontend-api"}
-    for key, entry in entries_by_key.items():
+    for key in verified_keys:
+        entry = entries_by_key[key]
         module_ids = {module.module_id for module in entry.module_set}
         assert module_ids == EXPECTED_MODULE_IDS - matrix_excluded_slots, (
             f"matrix row {key} module_set drifted from the Stage 4 §4.1.5 "
             f"verified evidence baseline"
         )
+
+    readonly_ui = entries_by_key[readonly_ui_key]
+    readonly_module_ids = {module.module_id for module in readonly_ui.module_set}
+    assert readonly_ui.status == "draft"
+    assert readonly_ui.verified_at is None
+    assert readonly_ui.required_tests == [
+        "contract-suite",
+        "smoke",
+        "min-cycle-e2e",
+    ]
+    assert "frontend-api" in readonly_module_ids
+    assert {"feature-store", "stream-layer"}.isdisjoint(readonly_module_ids)
+    assert readonly_module_ids == (
+        EXPECTED_MODULE_IDS - {"feature-store", "stream-layer"}
+    )
 
     # MinIO row specifically: same module_set as default full-dev (the
     # documented equivalence — optional bundles are infra slots, not
@@ -387,6 +421,34 @@ def test_full_dev_supported_profiles_are_explicit_for_feature_and_stream() -> No
         "lite-local",
         "full-dev",
     ]
+
+
+def test_readonly_ui_supported_profiles_are_limited_to_enabled_modules() -> None:
+    entries_by_id = {
+        entry.module_id: entry for entry in load_registry_yaml(REGISTRY_YAML)
+    }
+    profile = next(
+        profile
+        for profile in list_profiles(PROFILES_DIR)
+        if profile.profile_id == "lite-local-readonly-ui"
+    )
+
+    for module_id in profile.enabled_modules:
+        assert (
+            "lite-local-readonly-ui"
+            in entries_by_id[module_id].supported_profiles
+        )
+
+    assert "feature-store" not in profile.enabled_modules
+    assert "stream-layer" not in profile.enabled_modules
+    assert (
+        "lite-local-readonly-ui"
+        not in entries_by_id["feature-store"].supported_profiles
+    )
+    assert (
+        "lite-local-readonly-ui"
+        not in entries_by_id["stream-layer"].supported_profiles
+    )
 
 
 def test_registry_and_matrix_profile_references_are_loadable() -> None:

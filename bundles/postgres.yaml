@@ -16,5 +16,6 @@ health_checks:
   - pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}
 required_profiles:
   - lite-local
+  - lite-local-readonly-ui
   - full-dev
 optional: false

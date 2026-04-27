@@ -9,9 +9,17 @@ import pytest
 from pydantic import ValidationError
 
 from assembly.contracts.models import HealthResult, HealthStatus, SmokeResult
+from assembly.contracts.reporting import compatibility_context_artifact
 from assembly.profiles.loader import load_profile
 from assembly.profiles.resolver import ResolvedConfigSnapshot, render_profile
-from assembly.registry import IntegrationStatus, ModuleRegistryEntry, Registry
+from assembly.registry import (
+    IntegrationStatus,
+    ModuleRegistryEntry,
+    Registry,
+    load_all,
+    resolve_for_profile,
+)
+from assembly.tests.smoke import _select_matrix_entry
 from assembly.tests.smoke.runner import SmokeSuite
 
 
@@ -198,6 +206,39 @@ def test_invalid_failed_smoke_result_reason_is_not_swallowed(
             registry,
             reports_dir=tmp_path,
         )
+
+
+def test_readonly_ui_draft_matrix_row_binds_compatibility_context(
+    tmp_path: Path,
+) -> None:
+    registry = load_all(PROJECT_ROOT)
+    resolved_entries = resolve_for_profile(registry, "lite-local-readonly-ui")
+    matrix_entry = _select_matrix_entry(
+        registry,
+        "lite-local-readonly-ui",
+        resolved_entries,
+    )
+    snapshot = _snapshot([]).model_copy(
+        update={"profile_id": "lite-local-readonly-ui"}
+    )
+
+    record = SmokeSuite(health_runner=FakeHealthRunner([], [])).run(
+        snapshot,
+        registry,
+        reports_dir=tmp_path,
+        matrix_entry=matrix_entry,
+    )
+
+    compatibility_context = next(
+        artifact
+        for artifact in record.artifacts
+        if artifact["kind"] == "compatibility_context"
+    )
+    assert matrix_entry.status == "draft"
+    assert matrix_entry.verified_at is None
+    assert compatibility_context["profile_id"] == "lite-local-readonly-ui"
+    assert compatibility_context == compatibility_context_artifact(matrix_entry)
+    assert record.status == "success"
 
 
 def _install_hook_module(

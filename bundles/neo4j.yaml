@@ -14,5 +14,6 @@ health_checks:
   - cypher-shell -u ${NEO4J_USER} -p ${NEO4J_PASSWORD} 'RETURN 1'
 required_profiles:
   - lite-local
+  - lite-local-readonly-ui
   - full-dev
 optional: false

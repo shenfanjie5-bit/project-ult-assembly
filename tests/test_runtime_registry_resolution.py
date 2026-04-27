@@ -29,6 +29,22 @@ def test_full_dev_runtime_registry_resolution_uses_declared_modules() -> None:
     assert [entry.module_id for entry in resolved_entries] == profile_modules
 
 
+def test_readonly_ui_runtime_registry_resolution_matches_profile_modules() -> None:
+    registry = load_all(PROJECT_ROOT)
+
+    resolved_entries = resolve_for_profile(registry, "lite-local-readonly-ui")
+    profile_modules = yaml.safe_load(
+        (PROJECT_ROOT / "profiles/lite-local-readonly-ui.yaml").read_text(
+            encoding="utf-8"
+        )
+    )["enabled_modules"]
+
+    assert [entry.module_id for entry in resolved_entries] == profile_modules
+    assert "frontend-api" in [entry.module_id for entry in resolved_entries]
+    assert "feature-store" not in [entry.module_id for entry in resolved_entries]
+    assert "stream-layer" not in [entry.module_id for entry in resolved_entries]
+
+
 def test_healthcheck_uses_registry_resolution_dependency_order(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

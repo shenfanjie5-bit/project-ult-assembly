@@ -55,6 +55,34 @@ def test_render_profile_loads_profile_by_public_id() -> None:
     assert snapshot.enabled_service_bundles == ["postgres", "neo4j", "dagster"]
 
 
+def test_render_readonly_ui_variant_uses_lite_bundles_and_modules() -> None:
+    base = load_profile(PROFILE_PATH)
+    readonly_ui = load_profile(PROFILES_ROOT / "lite-local-readonly-ui.yaml")
+    env = _required_env(readonly_ui.required_env_keys)
+
+    snapshot = render_profile(
+        "lite-local-readonly-ui",
+        profiles_root=PROFILES_ROOT,
+        bundles_root=BUNDLES_ROOT,
+        env=env,
+    )
+
+    assert snapshot.profile_id == "lite-local-readonly-ui"
+    assert snapshot.enabled_service_bundles == base.enabled_service_bundles
+    assert [bundle.bundle_name for bundle in snapshot.service_bundles] == [
+        "postgres",
+        "neo4j",
+        "dagster",
+    ]
+    assert set(snapshot.enabled_modules) == {
+        *base.enabled_modules,
+        "frontend-api",
+    }
+    assert {"feature-store", "stream-layer"}.isdisjoint(
+        snapshot.enabled_modules
+    )
+
+
 def test_render_profile_merges_full_extra_bundles_in_order() -> None:
     profile = load_profile(PROFILES_ROOT / "full-dev.yaml")
     env = _required_env(profile.required_env_keys)
@@ -191,6 +219,11 @@ def test_resolve_preserves_optional_env_values_when_present() -> None:
     assert snapshot.optional_env == {
         "ASSEMBLY_LOG_LEVEL": "debug",
         "ASSEMBLY_SERVICE_TOKEN": "service-token",
+        **{
+            key: None
+            for key in profile.optional_env_keys
+            if key not in {"ASSEMBLY_LOG_LEVEL", "ASSEMBLY_SERVICE_TOKEN"}
+        },
     }
 
 
