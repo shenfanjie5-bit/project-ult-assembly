@@ -8,6 +8,13 @@ The current repos can prove P1 data-platform hardening and P2 durable
 real-data Codex closure, but they still cannot honestly prove a production
 Dagster `daily_cycle_job` execution with real providers across Phase 0-3.
 
+Update after commit `0ebe82a975c2e33239e5d0fdda458a038ca437ea`: orchestrator
+now has an env-addressable
+`orchestrator_adapters.production_daily_cycle:production_daily_cycle_provider`
+entrypoint for the real supported P2/Phase 3/audit-persistence slice. It
+fails closed and records the missing production Phase 0, Phase 1, and
+audit-hook surfaces instead of synthesizing fake assets.
+
 ## What Passed
 
 Orchestrator baseline command:
@@ -64,9 +71,10 @@ Evidence:
 
 | Priority | Blocker | Evidence |
 | --- | --- | --- |
-| P0 | The real production `orchestrator.definitions:defs` path depends on `ORCHESTRATOR_MODULE_FACTORIES`, but no checked-in real provider factory set proves production Phase 0-3 end-to-end on the current-cycle Tushare data. | `/Users/fanjie/Desktop/Cowork/project-ult/orchestrator/src/orchestrator/definitions.py` |
+| P0 | Full production `daily_cycle_job` remains blocked because real Phase 0 data-platform candidate freeze/readiness assets, real Phase 1 graph promotion/snapshot assets, and real audit-eval retrospective hook assets are not yet checked in. | `/Users/fanjie/Desktop/Cowork/project-ult/orchestrator/src/orchestrator_adapters/production_daily_cycle.py` |
 | P0 | The P2 durable real-data closure executes `daily_cycle_job`, but it injects fake Phase 0 and fake Phase 1 providers. It must not be labeled full production daily-cycle proof. | `/Users/fanjie/Desktop/Cowork/project-ult/assembly/scripts/p2_durable_real_data_codex_dry_run.py` |
-| P1 | P3 graph functional slice is not closed: graph delta wire-shape normalization, post-promotion status refresh, and graph snapshot to cold-reload proof still need graph-engine work. | Independent P3 review, 2026-04-27 |
+| P1 | Production current-cycle binding now requires Dagster run tag `cycle_id`; a fixed `CYCLE_20260415` fallback is rejected for the production provider slice, but latest-cycle selection from Tushare `trade_cal` still needs the full production runner proof. | `/Users/fanjie/Desktop/Cowork/project-ult/orchestrator/src/orchestrator_adapters/p2_dry_run.py` |
+| P1 | P3 graph is improved but not fully closed: GDS is enabled in assembly and artifact-backed cold reload exists, but the graph-engine live suite still must pass against the GDS-enabled project Neo4j profile with zero GDS skips. | `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p3-graph-live-closure-20260427.md` |
 | P1 | Default test shell lacks `DATABASE_URL`/`DP_PG_DSN`, so PostgreSQL-dependent manifest/formal tests skip outside the temp-DB closure runner. | Data-platform command above |
 
 ## Non-Claims
@@ -80,13 +88,11 @@ Evidence:
 
 ## Next Required Backend Work
 
-1. Close P3 graph functional slice first: Ex-3 delta normalization,
-   promotion status refresh, graph snapshot persistence, and cold reload from
-   persisted snapshot evidence.
-2. Add or identify real production module factories for data-platform,
-   graph-engine, main-core/P2, Phase 3 publish, and audit-eval.
+1. Run graph-engine P3 live tests against the GDS-enabled project Neo4j
+   profile and require zero GDS skips.
+2. Add real production module factories/assets for data-platform Phase 0,
+   graph-engine Phase 1, and audit-eval retrospective hook.
 3. Re-run a bounded current-cycle `daily_cycle_job` through
    `orchestrator.definitions:defs` with those factories, then write the final
    proof artifact with cycle ID, dates, symbols, snapshot IDs, audit/replay
    IDs, and negative gates.
-
