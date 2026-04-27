@@ -7,8 +7,10 @@ Status: PASS for strengthened P4 preflight.
 This evidence extends the earlier P4 framework preflight with direct
 news/announcement Ex-2 and Ex-3 block-path coverage plus Lite PG queue
 suppression checks. It does not claim a bundled live entity-registry client;
-the SDK preflight boundary remains protocol-injected and fail-closed when a
-lookup is supplied.
+the SDK preflight boundary remains protocol-injected and blocks unresolved
+references when a working lookup returns them. Lookup absence, lookup
+exceptions, or invalid lookup response shapes still degrade to skip by current
+SDK policy and are not claimed as live-registry fail-closed behavior.
 
 ## Commits
 

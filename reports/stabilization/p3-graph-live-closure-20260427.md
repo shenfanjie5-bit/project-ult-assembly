@@ -21,6 +21,9 @@ against the GDS-enabled project Neo4j profile with zero GDS skips.
     graph artifacts.
   - Adds cold-reload artifact reader tests, including persisted artifact
     readback and invalid/missing artifact failures.
+- graph-engine follow-up: `41fed9e738dca25e323ee548cfa954508069d553`
+  - Validates direct `ColdReloadPlan` artifacts for node/edge count
+    consistency instead of accepting internally inconsistent plans.
 
 ## Validation
 
@@ -53,7 +56,7 @@ PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/contracts/src \
 python3 -m pytest tests/unit/test_reload_artifact_reader.py tests/unit/test_reload.py -q
 
 result:
-24 passed
+25 passed
 ```
 
 Subagent graph validation also ran:
@@ -73,8 +76,8 @@ passed, 1 skipped
   compatible GDS artifact.
 - A persisted graph artifact can now be converted into a concrete
   `ColdReloadPlan` through `ArtifactCanonicalReader`.
-- Invalid, missing, and impact-only artifacts fail closed instead of being
-  treated as reloadable graph snapshots.
+- Invalid, missing, impact-only, and internally inconsistent direct reload-plan
+  artifacts fail closed instead of being treated as reloadable graph snapshots.
 
 ## Remaining Blockers
 
