@@ -6,4 +6,5 @@ __pycache__/
 *.py[cod]
 PROJECT_REPORT.md
 tmp-*/
+tmp/
 src/project_ult_assembly.egg-info/

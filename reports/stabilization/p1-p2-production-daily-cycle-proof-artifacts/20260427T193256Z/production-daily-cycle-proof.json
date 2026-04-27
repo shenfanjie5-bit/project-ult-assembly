@@ -1,0 +1,471 @@
+{
+  "artifact_dir": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T193256Z",
+  "blockers": [
+    "full production daily_cycle_job Dagster proof has not passed",
+    "production provider runtime pending: configured_data_platform_current_cycle_runtime",
+    "production provider runtime pending: configured_graph_phase0_status_runtime",
+    "production provider runtime pending: configured_graph_phase1_runtime",
+    "production provider runtime pending: configured_reasoner_runtime",
+    "production provider runtime pending: configured_audit_eval_retrospective_hook_runtime",
+    "production provider runtime pending: production_current_cycle_dagster_run_evidence"
+  ],
+  "cleanup": {
+    "postgres": {
+      "database": "dp_prod_cycle_proof_20260427t193256z_8702e17b",
+      "status": "passed"
+    }
+  },
+  "clock_note": "Timestamps may come from Python, PostgreSQL, and file-system clocks; reviewers should use step status and IDs as ordering evidence.",
+  "env": {
+    "AUDIT_EVAL_DUCKDB_PATH": "set",
+    "DATABASE_URL": "set",
+    "DP_PG_DSN": "set",
+    "DP_TUSHARE_TOKEN": "set",
+    "NEO4J_PASSWORD": "set",
+    "NEO4J_URI": "set",
+    "NEO4J_USER": "set",
+    "OPENAI_API_KEY": "missing",
+    "ORCHESTRATOR_MODULE_FACTORIES": "set",
+    "ORCHESTRATOR_POLICY_PATH": "set",
+    "P2_REASONER_MODEL": "set",
+    "P2_REASONER_PROVIDER": "set",
+    "REASONER_RUNTIME_ENABLE_CODEX_OAUTH": "set"
+  },
+  "evidence_date": "2026-04-28",
+  "file_evidence_manifest": [
+    {
+      "committed_with_report": true,
+      "exists_at_write_time": true,
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T193256Z"
+    },
+    {
+      "committed_with_report": true,
+      "exists_at_write_time": true,
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T193256Z/daily-refresh.json",
+      "sha256": "6ccc7be71778ddb33838c22815dcb3cbcea3e4ebf25b019fda6bc83ddc867aed",
+      "size_bytes": 10552
+    },
+    {
+      "committed_with_report": true,
+      "exists_at_write_time": true,
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T193256Z/data-platform-current-selection-tests.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "committed_with_report": true,
+      "exists_at_write_time": true,
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T193256Z/data-platform-current-selection-tests.stdout.txt",
+      "sha256": "7040371af15613c02e821ec0eecc1d1330f691ace4cef93a41bfa358822c4103",
+      "size_bytes": 80
+    },
+    {
+      "committed_with_report": false,
+      "exists_at_write_time": true,
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z"
+    },
+    {
+      "committed_with_report": false,
+      "exists_at_write_time": true,
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z/audit/preflight_audit_eval.duckdb",
+      "sha256": "0c679e91e6c36b502dfa66abcff1db89266719077c10284affacb75071749742",
+      "size_bytes": 1323008
+    },
+    {
+      "committed_with_report": false,
+      "exists_at_write_time": true,
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z/raw"
+    },
+    {
+      "committed_with_report": false,
+      "exists_at_write_time": true,
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z/raw/tushare/daily/dt=20260415/6214a67a-5a0d-498c-a40c-54186f21bbf3.parquet",
+      "sha256": "e0b6d731721e7524f7bf4cb75c72b02daf6889aeda41975cfa9a372f1a0a14e9",
+      "size_bytes": 315178
+    },
+    {
+      "committed_with_report": false,
+      "exists_at_write_time": true,
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z/raw/tushare/stock_basic/dt=20260415/efee08a8-15d5-403c-b3ea-7e9d3def9c66.parquet",
+      "sha256": "d3c243c24e47372d01936ff11bec7a7ea666d4c935ebf7727e3cf43a2211c91c",
+      "size_bytes": 458215
+    },
+    {
+      "committed_with_report": false,
+      "exists_at_write_time": true,
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z/raw/tushare/trade_cal/dt=20260415/ec29465f-d50b-4bdb-aafd-5ee202b0a6f1.parquet",
+      "sha256": "79a5b4293058f12214ec23c986636097c36521aa972f66ce9ceae37a983a8525",
+      "size_bytes": 1198
+    }
+  ],
+  "finished_at_utc": "2026-04-27T19:33:10.445571+00:00",
+  "generated_at_utc": "2026-04-27T19:32:56.011486+00:00",
+  "inputs": {
+    "requested_partition_date": "2026-04-15",
+    "run_dagster": false,
+    "selected_assets": [
+      "trade_cal",
+      "stock_basic",
+      "daily"
+    ],
+    "symbols": [
+      "600519.SH",
+      "000001.SZ"
+    ],
+    "tushare_mode": "live"
+  },
+  "mode": "bounded_runner",
+  "non_claims": [
+    "not_p5_shadow_run_readiness",
+    "not_sidecar_or_frontend_write_api",
+    "not_api6_news_or_polymarket_flow",
+    "not_production_daily_cycle_pass_certificate_unless_dagster_passed"
+  ],
+  "preflight": {
+    "audit_duckdb_write_read": {
+      "audit_ids": [
+        "audit-runtime-preflight-L4"
+      ],
+      "duckdb_path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z/audit/preflight_audit_eval.duckdb",
+      "duration_ms": 14,
+      "replay_ids": [
+        "replay-runtime-preflight-runtime_preflight"
+      ],
+      "status": "passed"
+    },
+    "codex_reasoner_health": {
+      "all_critical_targets_available": true,
+      "duration_ms": 1390,
+      "model": "gpt-5.5",
+      "provider": "openai-codex",
+      "provider_statuses": [
+        {
+          "error": null,
+          "latency_ms": 1390,
+          "model": "gpt-5.5",
+          "provider": "openai-codex",
+          "quota_status": "ok",
+          "reachable": true
+        }
+      ],
+      "status": "passed",
+      "summary": "all 1 critical provider/model target(s) available"
+    },
+    "data_platform_current_selection_tests": {
+      "duration_ms": 962,
+      "returncode": 0,
+      "status": "passed",
+      "stderr": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T193256Z/data-platform-current-selection-tests.stderr.txt",
+      "stderr_tail": "",
+      "stdout": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T193256Z/data-platform-current-selection-tests.stdout.txt",
+      "stdout_tail": "..........                                                               [100%]\n"
+    },
+    "imports": {
+      "imported": [
+        "data_platform.cycle.current_selection",
+        "data_platform.daily_refresh",
+        "orchestrator_adapters.production_daily_cycle",
+        "audit_eval.audit",
+        "reasoner_runtime"
+      ],
+      "status": "passed"
+    },
+    "pg_connect": {
+      "dsn": "<redacted:set>",
+      "duration_ms": 54,
+      "result": 1,
+      "status": "passed"
+    }
+  },
+  "redaction": {
+    "dsn_values": "<redacted:set>",
+    "secret_values": "<redacted:set>"
+  },
+  "runner_exit_code": 2,
+  "runtime_root": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z",
+  "schema_version": "project-ult.production-daily-cycle-proof.v2",
+  "steps": {
+    "candidate_freeze": {
+      "cutoff_metadata": {
+        "candidate_count": 2,
+        "cutoff_ingest_seq": 2,
+        "cutoff_submitted_at": "2026-04-27T19:33:10.410448+00:00",
+        "cycle_created_at": "2026-04-27T19:33:10.379081+00:00",
+        "cycle_updated_at": "2026-04-27T19:33:10.499989+00:00",
+        "selection_frozen_at": "2026-04-27T19:33:10.499989+00:00",
+        "status": "phase0"
+      },
+      "cycle_id": "CYCLE_20260415",
+      "evidence": {
+        "cutoff_metadata": {
+          "candidate_count": 2,
+          "cutoff_ingest_seq": 2,
+          "cutoff_submitted_at": "2026-04-27T19:33:10.410448+00:00",
+          "cycle_created_at": "2026-04-27T19:33:10.379081+00:00",
+          "cycle_updated_at": "2026-04-27T19:33:10.499989+00:00",
+          "selection_frozen_at": "2026-04-27T19:33:10.499989+00:00",
+          "status": "phase0"
+        },
+        "cycle_id": "CYCLE_20260415",
+        "frozen_candidate_ids": [
+          1,
+          2
+        ],
+        "input_artifact_refs": {
+          "daily": [
+            {
+              "dataset": "daily",
+              "input_table": "main.stg_daily",
+              "partition_date": "2026-04-15",
+              "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z/raw/tushare/daily/dt=20260415/6214a67a-5a0d-498c-a40c-54186f21bbf3.parquet",
+              "row_count": 5494,
+              "run_id": "6214a67a-5a0d-498c-a40c-54186f21bbf3",
+              "source_id": "tushare",
+              "written_at": "2026-04-27T19:33:03.652964+00:00"
+            }
+          ],
+          "stock_basic": [
+            {
+              "dataset": "stock_basic",
+              "input_table": "main.stg_stock_basic",
+              "partition_date": "2026-04-15",
+              "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z/raw/tushare/stock_basic/dt=20260415/efee08a8-15d5-403c-b3ea-7e9d3def9c66.parquet",
+              "row_count": 5510,
+              "run_id": "efee08a8-15d5-403c-b3ea-7e9d3def9c66",
+              "source_id": "tushare",
+              "written_at": "2026-04-27T19:33:01.893692+00:00"
+            }
+          ],
+          "trade_cal": [
+            {
+              "dataset": "trade_cal",
+              "input_table": "main.stg_trade_cal",
+              "partition_date": "2026-04-15",
+              "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z/raw/tushare/trade_cal/dt=20260415/ec29465f-d50b-4bdb-aafd-5ee202b0a6f1.parquet",
+              "row_count": 1,
+              "run_id": "ec29465f-d50b-4bdb-aafd-5ee202b0a6f1",
+              "source_id": "tushare",
+              "written_at": "2026-04-27T19:33:00.134232+00:00"
+            }
+          ]
+        },
+        "input_tables": [
+          "main.stg_trade_cal",
+          "main.stg_daily",
+          "main.stg_stock_basic"
+        ],
+        "raw_zone_path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z/raw",
+        "scan_metadata": {
+          "daily_partition_date": "2026-04-15",
+          "source_id": "tushare",
+          "stock_basic_partition_mode": "static_latest",
+          "trade_cal_latest_partition_artifact_count": 1
+        },
+        "selected_trade_date": "2026-04-15",
+        "symbols": [
+          "600519.SH",
+          "000001.SZ"
+        ]
+      },
+      "frozen_candidate_ids": [
+        1,
+        2
+      ],
+      "status": "passed",
+      "trade_date": "2026-04-15"
+    },
+    "candidate_seed": {
+      "cycle_created": true,
+      "cycle_status": "pending",
+      "status": "passed",
+      "submitted_candidate_ids": [
+        1,
+        2
+      ],
+      "validation": {
+        "accepted": 2,
+        "duration_ms": 13,
+        "rejected": 0,
+        "scanned": 2
+      }
+    },
+    "current_cycle_selection": {
+      "cycle_id": "CYCLE_20260415",
+      "evidence": {
+        "cycle_id": "CYCLE_20260415",
+        "input_artifact_refs": {
+          "daily": [
+            {
+              "dataset": "daily",
+              "input_table": "main.stg_daily",
+              "partition_date": "2026-04-15",
+              "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z/raw/tushare/daily/dt=20260415/6214a67a-5a0d-498c-a40c-54186f21bbf3.parquet",
+              "row_count": 5494,
+              "run_id": "6214a67a-5a0d-498c-a40c-54186f21bbf3",
+              "source_id": "tushare",
+              "written_at": "2026-04-27T19:33:03.652964+00:00"
+            }
+          ],
+          "stock_basic": [
+            {
+              "dataset": "stock_basic",
+              "input_table": "main.stg_stock_basic",
+              "partition_date": "2026-04-15",
+              "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z/raw/tushare/stock_basic/dt=20260415/efee08a8-15d5-403c-b3ea-7e9d3def9c66.parquet",
+              "row_count": 5510,
+              "run_id": "efee08a8-15d5-403c-b3ea-7e9d3def9c66",
+              "source_id": "tushare",
+              "written_at": "2026-04-27T19:33:01.893692+00:00"
+            }
+          ],
+          "trade_cal": [
+            {
+              "dataset": "trade_cal",
+              "input_table": "main.stg_trade_cal",
+              "partition_date": "2026-04-15",
+              "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z/raw/tushare/trade_cal/dt=20260415/ec29465f-d50b-4bdb-aafd-5ee202b0a6f1.parquet",
+              "row_count": 1,
+              "run_id": "ec29465f-d50b-4bdb-aafd-5ee202b0a6f1",
+              "source_id": "tushare",
+              "written_at": "2026-04-27T19:33:00.134232+00:00"
+            }
+          ]
+        },
+        "input_tables": [
+          "main.stg_trade_cal",
+          "main.stg_daily",
+          "main.stg_stock_basic"
+        ],
+        "raw_zone_path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z/raw",
+        "scan_metadata": {
+          "daily_partition_date": "2026-04-15",
+          "source_id": "tushare",
+          "stock_basic_partition_mode": "static_latest",
+          "trade_cal_latest_partition_artifact_count": 1
+        },
+        "selected_trade_date": "2026-04-15",
+        "symbols": [
+          "600519.SH",
+          "000001.SZ"
+        ]
+      },
+      "input_tables": [
+        "main.stg_trade_cal",
+        "main.stg_daily",
+        "main.stg_stock_basic"
+      ],
+      "status": "passed",
+      "symbols": [
+        "600519.SH",
+        "000001.SZ"
+      ],
+      "trade_date": "2026-04-15"
+    },
+    "data_platform_migrations": {
+      "applied_versions": [
+        "0001",
+        "0002",
+        "0003",
+        "0004",
+        "0005"
+      ],
+      "dsn": "<redacted:set>",
+      "status": "passed"
+    },
+    "postgres_bootstrap": {
+      "database": "dp_prod_cycle_proof_20260427t193256z_8702e17b",
+      "dsn": "<redacted:set>",
+      "mode": "isolated_database",
+      "status": "passed"
+    },
+    "production_dagster": {
+      "reason": "pass --run-dagster only when production graph/audit/provider runtime wiring is configured",
+      "status": "not_run"
+    },
+    "production_provider_status": {
+      "blocked": true,
+      "blocker_code": "ORCH_PRODUCTION_DAILY_CYCLE_PROVIDER_BLOCKED",
+      "current_cycle_binding": "dagster_run_tag:cycle_id",
+      "factory": "orchestrator_adapters.production_daily_cycle:production_daily_cycle_provider",
+      "missing_surfaces": [],
+      "non_claims": [
+        "not_p5_shadow_run_readiness",
+        "not_live_pg_current_cycle_freeze_proof",
+        "not_production_daily_cycle_pass_certificate",
+        "not_fixed_cycle_20260415_replay"
+      ],
+      "runtime_blockers": [
+        "configured_data_platform_current_cycle_runtime",
+        "configured_graph_phase0_status_runtime",
+        "configured_graph_phase1_runtime",
+        "configured_reasoner_runtime",
+        "configured_audit_eval_retrospective_hook_runtime",
+        "production_current_cycle_dagster_run_evidence"
+      ],
+      "status": "passed",
+      "supported_surfaces": [
+        "phase0_current_cycle_selection",
+        "phase0_data_platform_candidate_freeze_asset",
+        "phase0_data_readiness_resource",
+        "phase0_graph_status_asset",
+        "phase0_neo4j_graph_consistency_check",
+        "phase1_graph_promotion_asset",
+        "phase1_graph_snapshot_asset",
+        "phase2_current_cycle_tushare_inputs",
+        "phase2_main_core_l1_l8",
+        "phase3_formal_objects_commit",
+        "phase3_cycle_publish_manifest",
+        "audit_eval_formal_audit_replay_persistence",
+        "audit_eval_retrospective_hook_asset"
+      ]
+    },
+    "tushare_refresh": {
+      "mock": false,
+      "raw_artifacts": [
+        {
+          "dataset": "trade_cal",
+          "partition_date": "2026-04-15",
+          "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z/raw/tushare/trade_cal/dt=20260415/ec29465f-d50b-4bdb-aafd-5ee202b0a6f1.parquet",
+          "row_count": 1
+        },
+        {
+          "dataset": "stock_basic",
+          "partition_date": "2026-04-15",
+          "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z/raw/tushare/stock_basic/dt=20260415/efee08a8-15d5-403c-b3ea-7e9d3def9c66.parquet",
+          "row_count": 5510
+        },
+        {
+          "dataset": "daily",
+          "partition_date": "2026-04-15",
+          "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z/raw/tushare/daily/dt=20260415/6214a67a-5a0d-498c-a40c-54186f21bbf3.parquet",
+          "row_count": 5494
+        }
+      ],
+      "report": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T193256Z/daily-refresh.json",
+      "status": "passed",
+      "steps": [
+        {
+          "name": "adapter",
+          "status": "ok"
+        },
+        {
+          "name": "dbt_run",
+          "status": "ok"
+        },
+        {
+          "name": "dbt_test",
+          "status": "ok"
+        },
+        {
+          "name": "canonical",
+          "status": "ok"
+        },
+        {
+          "name": "raw_health",
+          "status": "ok"
+        }
+      ]
+    }
+  },
+  "verdict": "PARTIAL_PASS_BLOCKED"
+}
