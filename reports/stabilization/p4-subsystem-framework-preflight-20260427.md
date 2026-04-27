@@ -12,11 +12,15 @@ Docling/LlamaIndex production chain.
 
 ## Scoped Repos And Commits
 
-- subsystem-sdk: `f7b667824fe5a0c9b4c8e6c2c81328b50b15b585`
+- subsystem-sdk:
+  - Initial commit: `f7b667824fe5a0c9b4c8e6c2c81328b50b15b585`
+  - Review follow-up commit: `a070f00b8f3bdd723104ab92f2c41c2a55abba1e`
   - Locked Lite PG candidate queue JSON payload insertion in
     `tests/backends/test_lite_pg_backend.py`.
   - Added Lite PG submit-client preflight block coverage proving unresolved
     entity refs do not open a PG connection or enqueue a row.
+  - Review follow-up extends SDK entity preflight scanning to canonical Ex-2
+    `affected_entities` and Ex-3 `source_node` / `target_node`.
 
 - subsystem-announcement: `d2f25eeebe4faa8af4c68d957dd3863a6fe261fb`
   - Fixed the real SDK heartbeat adapter boundary. The top-level SDK
@@ -37,8 +41,10 @@ Docling/LlamaIndex production chain.
   insert parameter and returns only the public transport-neutral receipt shape.
 - Lite PG heartbeat is routed through `SubmitBackendHeartbeatAdapter` and the
   SDK strips routing envelope fields before the backend queue row.
-- Entity preflight runs before backend dispatch and blocks unresolved Ex-1
-  entity refs in SDK, announcement adapter, and news adapter paths.
+- Entity preflight runs before backend dispatch and blocks unresolved Ex-1,
+  Ex-2, and Ex-3 entity refs in the SDK path. Announcement and news adapter
+  paths are covered for their current Ex-1 block-preflight contract-quality
+  samples.
 - The announcement heartbeat review note was validated against current SDK
   behavior. The current SDK top-level heartbeat API must receive status fields,
   not an adapter-built Ex-0 envelope; the fix maps announcement `ok` to SDK
@@ -60,6 +66,16 @@ Docling/LlamaIndex production chain.
   - Command:
     `cd /Users/fanjie/Desktop/Cowork/project-ult/subsystem-sdk && python3 -m pytest -q tests/backends/test_lite_pg_backend.py tests/backends/test_lite_pg_heartbeat_backend.py tests/submit/test_client_preflight.py`
   - Result: `12 passed / 1 skipped`.
+
+- Review follow-up SDK Ex-2/Ex-3 preflight suite:
+  - Command:
+    `cd /Users/fanjie/Desktop/Cowork/project-ult/subsystem-sdk && python3 -m pytest -q tests/validate/test_preflight.py tests/submit/test_client_preflight.py tests/backends/test_lite_pg_backend.py`
+  - Result: `32 passed`.
+
+- Review follow-up requested SDK suite:
+  - Command:
+    `cd /Users/fanjie/Desktop/Cowork/project-ult/subsystem-sdk && python3 -m pytest -q tests/contract tests/validate tests/submit tests/heartbeat tests/backends/test_lite_pg_backend.py tests/integration/test_reference_subsystem.py`
+  - Result: pass, exit code `0`.
 
 - Focused announcement real SDK adapter suite:
   - Command:
@@ -85,7 +101,10 @@ Docling/LlamaIndex production chain.
 - P0: none remaining.
 - P1: none remaining. The announcement heartbeat SDK boundary mismatch was
   fixed and covered by real SDK integration.
-- P2: none remaining.
+- P2: none remaining. Independent review found Ex-2/Ex-3 canonical refs were
+  skipped by the SDK entity preflight scanner; the follow-up commit added
+  `affected_entities`, `source_node`, and `target_node` scanning plus block
+  policy tests proving unresolved Ex-2/Ex-3 refs do not dispatch to backend.
 - P3: local shell does not provide a `python` binary; verification used
   `python3`. This is an environment alias issue, not a framework behavior
   failure.
@@ -95,6 +114,7 @@ Docling/LlamaIndex production chain.
 - Entity preflight coverage is adapter-level and local. It proves the SDK
   pre-dispatch behavior with injected lookup objects, not live entity-registry
   availability.
-- Ex-2 and Ex-3 adapter preflight coverage remains indirect through SDK
-  validation suites; the added adapter-level block tests target Ex-1 because
-  current canonical Ex-1 exposes the `entity_id` field scanned by SDK preflight.
+- Ex-2 and Ex-3 adapter-level preflight coverage remains indirect through SDK
+  validation and submit-client suites; the SDK scanner now covers their
+  canonical refs, but the existing announcement/news adapter block examples
+  still target Ex-1.
