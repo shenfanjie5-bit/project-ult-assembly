@@ -21,7 +21,7 @@ against the GDS-enabled project Neo4j profile with zero GDS skips.
     graph artifacts.
   - Adds cold-reload artifact reader tests, including persisted artifact
     readback and invalid/missing artifact failures.
-- graph-engine follow-up: `41fed9e738dca25e323ee548cfa954508069d553`
+- graph-engine follow-up: `41fed9e6db2da802dad9e0d2a53bb076effb5fa4`
   - Validates direct `ColdReloadPlan` artifacts for node/edge count
     consistency instead of accepting internally inconsistent plans.
 
