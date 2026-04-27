@@ -16,9 +16,10 @@ services:
       retries: 12
 
   neo4j:
-    image: neo4j:5
+    image: neo4j:5.26.25
     environment:
       NEO4J_AUTH: ${NEO4J_USER}/${NEO4J_PASSWORD}
+      NEO4J_PLUGINS: '["graph-data-science"]'
     ports:
       - "127.0.0.1:7474:7474"
       - "127.0.0.1:7687:7687"

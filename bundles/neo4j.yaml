@@ -1,11 +1,12 @@
 bundle_name: neo4j
 services:
   - name: neo4j
-    image_or_cmd: neo4j:5
-    image: neo4j:5
+    image_or_cmd: neo4j:5.26.25
+    image: neo4j:5.26.25
     health_probe: cypher-shell -u ${NEO4J_USER} -p ${NEO4J_PASSWORD} 'RETURN 1'
     env:
       NEO4J_AUTH: ${NEO4J_USER}/${NEO4J_PASSWORD}
+      NEO4J_PLUGINS: '["graph-data-science"]'
 startup_order:
   - neo4j
 shutdown_order:
