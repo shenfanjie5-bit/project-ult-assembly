@@ -32,9 +32,9 @@ Current repo snapshot:
 | `subsystem-news` | `e83363c1f5e3` | only local untracked `PROJECT_REPORT.md` |
 | `reasoner-runtime` | `f5183f4765f4` | clean |
 | `audit-eval` | `2f41580078c0` | local untracked report/build/dist/egg-info artifacts |
-| `orchestrator` | `598259d234a2` | local untracked `.orchestrator/` and dbt runtime state |
-| `graph-engine` | `63bc514b53b3` | only local untracked `PROJECT_REPORT.md` |
-| `data-platform` | `1c362cfbd416` | only local untracked `.orchestrator/` |
+| `orchestrator` | `c004ee326660` | local untracked `.orchestrator/` and dbt runtime state |
+| `graph-engine` | `bee527bc1380` | only local untracked `PROJECT_REPORT.md` |
+| `data-platform` | `7feebcb39d23` | only local untracked `.orchestrator/` |
 | `FrontEnd` | `ad4ada5fd6ab` | local modified `README.md`, `src/mocks/data/projectUltData.ts`; do not touch from backend stabilization |
 | `assembly` | `d4fd7ba30adc` | local env/cache/tmp/report artifacts only |
 
@@ -119,14 +119,14 @@ Batch 2 hard constraints:
 
 ## Batch 3: Execution And Write Boundaries
 
-Status: `open`.
+Status: `closed`.
 
 | ID | Priority | Finding / risk | Owner | Repo / files | Required fix | Required tests | Evidence file | Matrix eligibility |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| S3-01 | P2 | `orchestrator` `required_artifacts` path traversal risk | Backend Batch 3 | `orchestrator` artifact/path validation code | Constrain artifact paths to allowed roots, reject traversal/symlink escape, preserve valid relative artifacts | orchestrator full tests; targeted traversal regressions; public entrypoint tests; `git diff --check` | `reports/stabilization/batch3-execution-boundaries-smoke-20260427.md` | No |
-| S3-02 | P2 | `graph-engine` timeout may leave background writes running | Backend Batch 3 | `graph-engine` timeout/execution code | Ensure timeout cancels or fences background writes; add deterministic cleanup/barrier | graph-engine full tests; timeout regression; no post-timeout write assertion; `git diff --check` | `reports/stabilization/batch3-execution-boundaries-smoke-20260427.md` | No |
-| S3-03 | P2 | `graph-engine` readonly simulation drop barrier insufficient | Backend Batch 3 | `graph-engine` simulation/read-only boundary | Add explicit drop barrier so readonly simulations cannot persist writes | graph-engine readonly/simulation tests; persistence regression; `git diff --check` | `reports/stabilization/batch3-execution-boundaries-smoke-20260427.md` | No |
-| S3-04 | P2 | `data-platform` artifact refs and manifest formal key validation incomplete | Backend Batch 3 | `data-platform` artifact/manifest code | Validate artifact refs and formal keys against expected manifest schema; fail with explicit errors | data-platform full or approved full-target tests; manifest formal key regressions; artifact ref regressions; `git diff --check` | `reports/stabilization/batch3-execution-boundaries-smoke-20260427.md` | No |
+| S3-01 | P2 | `orchestrator` `required_artifacts` path traversal risk | Backend Batch 3 | `orchestrator` artifact/path validation code | `closed`: paths are constrained to artifact root and traversal/symlink escape/non-file targets are rejected | orchestrator full tests; targeted traversal regressions; public entrypoint tests; `git diff --check` | `reports/stabilization/batch3-independent-review-20260427.md` | No |
+| S3-02 | P2 | `graph-engine` timeout may leave background writes running | Backend Batch 3 | `graph-engine` timeout/execution code | `closed`: timeout expires a write barrier used by Neo4j write and status write proxies | graph-engine full tests; timeout regression; no post-timeout write assertion; `git diff --check` | `reports/stabilization/batch3-independent-review-20260427.md` | No |
+| S3-03 | P2 | `graph-engine` readonly simulation drop barrier insufficient | Backend Batch 3 | `graph-engine` simulation/read-only boundary | `closed`: readonly simulation only permits scoped owned GDS projection project/drop and rejects live mutation writes | graph-engine readonly/simulation tests; persistence regression; `git diff --check` | `reports/stabilization/batch3-independent-review-20260427.md` | No |
+| S3-04 | P2 | `data-platform` artifact refs and manifest formal key validation incomplete | Backend Batch 3 | `data-platform` artifact/manifest code | `closed`: artifact refs and formal manifest keys are validated explicitly against allowed roots/registry | data-platform full or approved full-target tests; manifest formal key regressions; artifact ref regressions; `git diff --check` | `reports/stabilization/batch3-independent-review-20260427.md` | No |
 
 Batch 3 hard constraints:
 
@@ -163,7 +163,7 @@ FrontEnd hard constraints:
 
 ## Final Gate Before Verified Matrix Promotion
 
-Status: `blocked` until Batch 3 and FrontEnd polish are closed.
+Status: `blocked` until FrontEnd polish is closed.
 
 Owner: Stabilization lead.
 
