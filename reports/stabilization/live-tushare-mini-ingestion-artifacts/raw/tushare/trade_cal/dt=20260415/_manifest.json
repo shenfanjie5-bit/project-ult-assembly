@@ -1,0 +1,16 @@
+{
+  "artifacts": [
+    {
+      "dataset": "trade_cal",
+      "partition_date": "2026-04-15",
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/live-tushare-mini-ingestion-artifacts/raw/tushare/trade_cal/dt=20260415/774c86fa-b70b-4157-b3ed-c40f80887cca.parquet",
+      "row_count": 1,
+      "run_id": "774c86fa-b70b-4157-b3ed-c40f80887cca",
+      "source_id": "tushare",
+      "written_at": "2026-04-27T09:03:41.820254+00:00"
+    }
+  ],
+  "dataset": "trade_cal",
+  "partition_date": "2026-04-15",
+  "source_id": "tushare"
+}
