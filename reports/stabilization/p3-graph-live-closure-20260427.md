@@ -9,6 +9,11 @@ artifact-backed Layer A cold-reload reader prerequisite. It does not yet close
 full P3 because the graph-engine live integration suite still has to be rerun
 against the GDS-enabled project Neo4j profile with zero GDS skips.
 
+Update after graph-engine commit `14c32f2fb092c57246789353eb45f9765e99b2e1`:
+Phase 1 provider assets and graph snapshot artifact writing are now checked in.
+The gate remains PARTIAL because local live GDS validation still skipped when
+the worker Neo4j runtime did not expose GDS procedures.
+
 ## Commits
 
 - assembly: `f15549840580b8d631c8577416cd060dd385f7be`
@@ -24,6 +29,12 @@ against the GDS-enabled project Neo4j profile with zero GDS skips.
 - graph-engine follow-up: `41fed9e6db2da802dad9e0d2a53bb076effb5fa4`
   - Validates direct `ColdReloadPlan` artifacts for node/edge count
     consistency instead of accepting internally inconsistent plans.
+- graph-engine provider-set follow-up: `14c32f2fb092c57246789353eb45f9765e99b2e1`
+  - Adds `graph_engine.providers.phase1` with `graph_promotion` and
+    `graph_snapshot` provider assets.
+  - Adds `graph_engine.snapshots.artifact_writer` for Layer A/formal-readable
+    graph snapshot artifacts.
+  - Keeps missing GDS/runtime boundaries fail-closed.
 
 ## Validation
 
@@ -59,6 +70,17 @@ result:
 25 passed
 ```
 
+Graph Phase 1 provider slice:
+
+```text
+cd /Users/fanjie/Desktop/Cowork/project-ult/graph-engine
+PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/contracts/src \
+python3 -m pytest tests/unit/test_phase1_provider.py -q
+
+result:
+5 passed
+```
+
 Subagent graph validation also ran:
 
 ```text
@@ -67,6 +89,15 @@ PYTHONPATH=../contracts/src python3 -m pytest \
 
 result:
 passed, 1 skipped
+```
+
+Live GDS suite status from the provider-set worker:
+
+```text
+graph-engine live GDS integration suite
+
+result:
+4 skipped because local Neo4j did not expose GDS procedures
 ```
 
 ## What This Proves
@@ -78,6 +109,8 @@ passed, 1 skipped
   `ColdReloadPlan` through `ArtifactCanonicalReader`.
 - Invalid, missing, impact-only, and internally inconsistent direct reload-plan
   artifacts fail closed instead of being treated as reloadable graph snapshots.
+- Phase 1 provider assets can be assembled and produce a persisted graph
+  snapshot artifact for downstream Layer A/cold-reload consumers.
 
 ## Remaining Blockers
 
@@ -90,7 +123,8 @@ passed, 1 skipped
 ## Findings
 
 - P0: none.
-- P1: none.
+- P1: live GDS closure remains open because the latest worker run still skipped
+  GDS tests when the local Neo4j runtime lacked GDS procedures.
 - P2: none.
 - P3: full P3 remains open until the live GDS suite and real Layer A cold
   reload proof pass without skips.

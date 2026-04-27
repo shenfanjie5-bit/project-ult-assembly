@@ -1,0 +1,87 @@
+{
+  "status": "partial_pass_blocked",
+  "not_a_pass_certificate": true,
+  "not_p5_readiness": true,
+  "generated_at_utc": "2026-04-27T15:44:44Z",
+  "commits": {
+    "data_platform": "587f9895660c5f347768b66402c793d024934415",
+    "graph_engine": "14c32f2fb092c57246789353eb45f9765e99b2e1",
+    "audit_eval": "fd6ac282c24337241c8addd76809c67deb41e11b",
+    "orchestrator": "89863e9b2f9bd1fb39d08da454670c76de314b7b"
+  },
+  "production_provider_surfaces": {
+    "phase0_current_cycle_selection": "checked_in",
+    "phase0_candidate_freeze": "checked_in_fail_closed",
+    "phase0_graph_status": "checked_in_default_runtime_fail_closed",
+    "phase1_graph_promotion": "checked_in",
+    "phase1_graph_snapshot": "checked_in",
+    "phase2_l1_l8": "checked_in_existing_p2_real_current_cycle_provider",
+    "phase3_formal_objects_commit": "checked_in",
+    "phase3_cycle_publish_manifest": "checked_in_enriched_manifest_handoff",
+    "audit_eval_retrospective_hook": "checked_in_env_backed_runtime"
+  },
+  "production_run_artifact": {
+    "cycle_id": null,
+    "trade_date": null,
+    "symbols": [],
+    "input_tables_or_artifacts": [],
+    "frozen_candidate_ids": [],
+    "cutoff_metadata": null,
+    "graph_promotion_result": null,
+    "graph_snapshot_id": null,
+    "impact_snapshot_id": null,
+    "cold_reload_proof": null,
+    "l4_l6_l7_l8_audit_record_ids": [],
+    "l4_l6_l7_l8_replay_record_ids": [],
+    "formal_snapshot_ids": [],
+    "cycle_publish_manifest_row": null,
+    "manifest_bound_serving_readback": null
+  },
+  "negative_gates": {
+    "missing_cycle_tag": "covered_by_orchestrator_tests",
+    "no_llm": "covered_by_existing_p2_tests",
+    "no_gds": "blocked_pending_live_gds_zero_skip_run",
+    "no_audit_replay": "covered_by_p2_and_audit_eval_tests",
+    "fake_smoke_fixture_historical_provenance": "covered_by_p2_and_audit_eval_tests"
+  },
+  "validation_commands": [
+    {
+      "repo": "data-platform",
+      "command": ".venv/bin/python -m pytest tests/cycle/test_current_selection.py -q",
+      "result": "8 passed"
+    },
+    {
+      "repo": "graph-engine",
+      "command": "PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/contracts/src python3 -m pytest tests/unit/test_phase1_provider.py -q",
+      "result": "5 passed"
+    },
+    {
+      "repo": "audit-eval",
+      "command": "uv run python -m pytest -q",
+      "result": "415 passed, 1 skipped"
+    },
+    {
+      "repo": "orchestrator",
+      "command": "PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin:$PATH PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/orchestrator/src:/Users/fanjie/Desktop/Cowork/project-ult/main-core/src:/Users/fanjie/Desktop/Cowork/project-ult/reasoner-runtime:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src:/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src:/Users/fanjie/Desktop/Cowork/project-ult/audit-eval/src:/Users/fanjie/Desktop/Cowork/project-ult/graph-engine /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest -q tests/integration/test_production_daily_cycle_provider.py tests/integration/test_p2_dry_run_handoff.py tests/integration/test_audit_eval_wiring.py tests/integration/test_phase1_graph_provider_wiring.py",
+      "result": "28 passed"
+    }
+  ],
+  "remaining_blockers": [
+    {
+      "priority": "P1",
+      "summary": "Graph-engine live suite still needs a GDS-enabled Neo4j runtime with zero GDS skips."
+    },
+    {
+      "priority": "P1",
+      "summary": "Production daily_cycle_job has not run with configured real graph status, graph Phase 1, audit-eval runtime, and selector-produced cycle_id in one Dagster execution."
+    },
+    {
+      "priority": "P1",
+      "summary": "Data-platform PG freeze integration was not proven in the worker shell because a PG test DSN was unavailable there."
+    },
+    {
+      "priority": "P2",
+      "summary": "Audit hook production artifact is checked in but not yet proven inside the production Dagster run."
+    }
+  ]
+}
