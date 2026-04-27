@@ -1,0 +1,191 @@
+{
+  "canonical": {
+    "canonical.stock_basic": {
+      "columns": [
+        "ts_code",
+        "symbol",
+        "name",
+        "area",
+        "industry",
+        "market",
+        "list_date",
+        "is_active",
+        "source_run_id",
+        "canonical_loaded_at"
+      ],
+      "row_count": 5510
+    }
+  },
+  "cycle": {
+    "accepted_unselected_after_freeze": 0,
+    "candidate_count": 0,
+    "cycle_date": "2026-04-15",
+    "cycle_id": "CYCLE_20260415",
+    "empty_candidate_semantics": true,
+    "selection_frozen_at_set": true,
+    "selection_row_count": 0,
+    "status": "published"
+  },
+  "daily_refresh": {
+    "ok": true,
+    "raw_artifacts": [
+      {
+        "dataset": "stock_basic",
+        "path": "/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tmp/real-data-mini-cycle-close-loop-20260427/20260427_batch_d_091540/raw/tushare/stock_basic/dt=20260415/79beabd7-5616-49f6-ab24-295f51503987.parquet",
+        "row_count": 5510
+      },
+      {
+        "dataset": "daily",
+        "path": "/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tmp/real-data-mini-cycle-close-loop-20260427/20260427_batch_d_091540/raw/tushare/daily/dt=20260415/2b984eac-128c-4aff-b67a-36ea622857ca.parquet",
+        "row_count": 5494
+      }
+    ],
+    "scope_note": "--select stock_basic,daily limits datasets only; no symbol filter was applied by daily_refresh.",
+    "steps": [
+      {
+        "duration_ms": 4110,
+        "name": "adapter",
+        "status": "ok"
+      },
+      {
+        "duration_ms": 3413,
+        "name": "dbt_run",
+        "status": "ok"
+      },
+      {
+        "duration_ms": 3091,
+        "name": "dbt_test",
+        "status": "ok"
+      },
+      {
+        "duration_ms": 373,
+        "name": "canonical",
+        "status": "ok"
+      },
+      {
+        "duration_ms": 2,
+        "name": "raw_health",
+        "status": "ok"
+      }
+    ]
+  },
+  "formal": {
+    "content_kind": "synthetic_minimal_formal_object",
+    "published_cycle_id": "CYCLE_20260415",
+    "snapshot_ids": {
+      "formal.alpha_result_snapshot": 424165751233285843,
+      "formal.official_alpha_pool": 3767228895954008953,
+      "formal.recommendation_snapshot": 6320750134102262127,
+      "formal.world_state_snapshot": 1145325163516225717
+    }
+  },
+  "metadata": {
+    "catalog_tables": [
+      {
+        "table_name": "canonical_entity",
+        "table_namespace": "canonical"
+      },
+      {
+        "table_name": "dim_index",
+        "table_namespace": "canonical"
+      },
+      {
+        "table_name": "dim_security",
+        "table_namespace": "canonical"
+      },
+      {
+        "table_name": "entity_alias",
+        "table_namespace": "canonical"
+      },
+      {
+        "table_name": "fact_event",
+        "table_namespace": "canonical"
+      },
+      {
+        "table_name": "fact_financial_indicator",
+        "table_namespace": "canonical"
+      },
+      {
+        "table_name": "fact_price_bar",
+        "table_namespace": "canonical"
+      },
+      {
+        "table_name": "stock_basic",
+        "table_namespace": "canonical"
+      },
+      {
+        "table_name": "alpha_result_snapshot",
+        "table_namespace": "formal"
+      },
+      {
+        "table_name": "official_alpha_pool",
+        "table_namespace": "formal"
+      },
+      {
+        "table_name": "recommendation_snapshot",
+        "table_namespace": "formal"
+      },
+      {
+        "table_name": "world_state_snapshot",
+        "table_namespace": "formal"
+      }
+    ],
+    "migrations": [
+      "0001",
+      "0002",
+      "0003",
+      "0004",
+      "0005"
+    ]
+  },
+  "serving": {
+    "by_id": {
+      "cycle_id": "CYCLE_20260415",
+      "object_type": "recommendation_snapshot",
+      "payload": [
+        {
+          "candidate_count": 0,
+          "content_kind": "synthetic_minimal_formal_object",
+          "cycle_id": "CYCLE_20260415",
+          "note": "minimal formal table snapshot for P1 mini-cycle close-loop proof",
+          "object_type": "recommendation_snapshot",
+          "source_trade_date": "20260415"
+        }
+      ],
+      "row_count": 1,
+      "snapshot_id": 6320750134102262127
+    },
+    "by_snapshot": {
+      "cycle_id": "CYCLE_20260415",
+      "object_type": "recommendation_snapshot",
+      "payload": [
+        {
+          "candidate_count": 0,
+          "content_kind": "synthetic_minimal_formal_object",
+          "cycle_id": "CYCLE_20260415",
+          "note": "minimal formal table snapshot for P1 mini-cycle close-loop proof",
+          "object_type": "recommendation_snapshot",
+          "source_trade_date": "20260415"
+        }
+      ],
+      "row_count": 1,
+      "snapshot_id": 6320750134102262127
+    },
+    "latest": {
+      "cycle_id": "CYCLE_20260415",
+      "object_type": "recommendation_snapshot",
+      "payload": [
+        {
+          "candidate_count": 0,
+          "content_kind": "synthetic_minimal_formal_object",
+          "cycle_id": "CYCLE_20260415",
+          "note": "minimal formal table snapshot for P1 mini-cycle close-loop proof",
+          "object_type": "recommendation_snapshot",
+          "source_trade_date": "20260415"
+        }
+      ],
+      "row_count": 1,
+      "snapshot_id": 6320750134102262127
+    }
+  }
+}

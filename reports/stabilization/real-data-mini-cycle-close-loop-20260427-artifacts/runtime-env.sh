@@ -1,0 +1,8 @@
+export DP_RAW_ZONE_PATH="/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tmp/real-data-mini-cycle-close-loop-20260427/20260427_batch_d_091540/raw"
+export DP_ICEBERG_WAREHOUSE_PATH="/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tmp/real-data-mini-cycle-close-loop-20260427/20260427_batch_d_091540/warehouse"
+export DP_DUCKDB_PATH="/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tmp/real-data-mini-cycle-close-loop-20260427/20260427_batch_d_091540/duckdb/data_platform.duckdb"
+export DP_ICEBERG_CATALOG_NAME="data_platform_real_mini_cycle_close_loop_20260427"
+export DP_PG_DSN="<redacted:set>"
+export DP_TUSHARE_TOKEN="<redacted:set>"
+export PYTHON="/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python"
+export DP_DBT_EXECUTABLE="/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/dbt"

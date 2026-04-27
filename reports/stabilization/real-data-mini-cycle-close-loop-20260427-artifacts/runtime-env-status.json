@@ -1,0 +1,19 @@
+{
+  "DP_DBT_EXECUTABLE": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/dbt",
+  "DP_DUCKDB_PATH": "/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tmp/real-data-mini-cycle-close-loop-20260427/20260427_batch_d_091540/duckdb/data_platform.duckdb",
+  "DP_ICEBERG_CATALOG_NAME": "data_platform_real_mini_cycle_close_loop_20260427",
+  "DP_ICEBERG_WAREHOUSE_PATH": "/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tmp/real-data-mini-cycle-close-loop-20260427/20260427_batch_d_091540/warehouse",
+  "DP_PG_DSN": "set",
+  "DP_RAW_ZONE_PATH": "/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tmp/real-data-mini-cycle-close-loop-20260427/20260427_batch_d_091540/raw",
+  "DP_TUSHARE_TOKEN": "set",
+  "PYTHON": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python",
+  "daily_refresh_symbol_scope": "not symbol-bounded; --select limits datasets only",
+  "date": "20260415",
+  "requested_symbols": [
+    "600519.SH",
+    "000001.SZ"
+  ],
+  "run_id": "20260427_batch_d_091540",
+  "runtime_root": "/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tmp/real-data-mini-cycle-close-loop-20260427/20260427_batch_d_091540",
+  "temporary_database": "dp_real_mini_cycle_20260427_batch_d_091540"
+}

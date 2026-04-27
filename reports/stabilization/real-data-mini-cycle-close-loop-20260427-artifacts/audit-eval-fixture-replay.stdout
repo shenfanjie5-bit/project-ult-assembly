@@ -1,0 +1,171 @@
+{
+  "audit_records": [
+    {
+      "created_at": "2026-04-10T16:05:00Z",
+      "cycle_id": "cycle_20260410",
+      "degradation_flags": {
+        "degraded": false
+      },
+      "input_hash": "5db1093527f74e2362df686c626e3ee2bfb0344451e5289f93f17c532101b6ea",
+      "layer": "L4",
+      "llm_cost": {
+        "cost_usd": 0.0,
+        "input_tokens": 120,
+        "latency_ms": 15,
+        "output_tokens": 80
+      },
+      "llm_lineage": {
+        "called": true,
+        "fallback_path": null,
+        "model": "offline-spike-model",
+        "provider": "fixture",
+        "retry_count": 0
+      },
+      "object_ref": "world_state",
+      "output_hash": "b9ec157c1f07a0313de87664f5b5abb50ba0285df1c4002036813a63c6b646fe",
+      "params_snapshot": {
+        "as_of": "2026-04-10",
+        "market": "US"
+      },
+      "parsed_result": {
+        "risk_level": "medium",
+        "trend": "risk_off"
+      },
+      "raw_output": "{\"trend\":\"risk_off\",\"risk_level\":\"medium\"}",
+      "record_id": "audit-cycle_20260410-L4-world_state",
+      "sanitized_input": "Summarize the 2026-04-10 market state without PII."
+    },
+    {
+      "created_at": "2026-04-10T16:08:00Z",
+      "cycle_id": "cycle_20260410",
+      "degradation_flags": {
+        "degraded": false
+      },
+      "input_hash": "b442dd14d29e50918c02226ffe3e06c59ee6ddab4bb80adc19912bbae43a506c",
+      "layer": "L7",
+      "llm_cost": {
+        "cost_usd": 0.0,
+        "input_tokens": 180,
+        "latency_ms": 18,
+        "output_tokens": 90
+      },
+      "llm_lineage": {
+        "called": true,
+        "fallback_path": null,
+        "model": "offline-spike-model",
+        "provider": "fixture",
+        "retry_count": 0
+      },
+      "object_ref": "recommendation",
+      "output_hash": "a11fcb411879b870473e7cc431db2fc7c5bbfffa9d91d92062ab8095cb6d15e1",
+      "params_snapshot": {
+        "as_of": "2026-04-10",
+        "portfolio_id": "sample_portfolio"
+      },
+      "parsed_result": {
+        "action": "reduce_beta",
+        "confidence": 0.72
+      },
+      "raw_output": "{\"action\":\"reduce_beta\",\"confidence\":0.72}",
+      "record_id": "audit-cycle_20260410-L7-recommendation",
+      "sanitized_input": "Use the published world_state snapshot for allocation guidance."
+    }
+  ],
+  "cycle_id": "cycle_20260410",
+  "dagster_run_summary": {
+    "asset_keys": [
+      "audit_record",
+      "replay_record",
+      "cycle_publish_manifest"
+    ],
+    "cycle_id": "cycle_20260410",
+    "finished_at": "2026-04-10T16:10:30Z",
+    "run_id": "dagster-fixture-run-20260410",
+    "started_at": "2026-04-10T16:04:30Z",
+    "status": "success"
+  },
+  "graph_snapshot": {
+    "cycle_id": "cycle_20260410",
+    "edge_refs": [
+      {
+        "from": "world_state",
+        "relationship": "feeds",
+        "to": "recommendation"
+      }
+    ],
+    "graph_snapshot_ref": "graph://cycle_20260410/portfolio_graph",
+    "node_refs": [
+      "world_state",
+      "recommendation"
+    ],
+    "status": "published"
+  },
+  "graph_snapshot_ref": "graph://cycle_20260410/portfolio_graph",
+  "graph_snapshot_summary": {
+    "cycle_id": "cycle_20260410",
+    "edge_refs": [
+      {
+        "from": "world_state",
+        "relationship": "feeds",
+        "to": "recommendation"
+      }
+    ],
+    "graph_snapshot_ref": "graph://cycle_20260410/portfolio_graph",
+    "node_refs": [
+      "world_state",
+      "recommendation"
+    ],
+    "status": "published"
+  },
+  "historical_formal_objects": {
+    "recommendation": {
+      "data": {
+        "as_of": "2026-04-10",
+        "object_ref": "recommendation",
+        "recommendation": {
+          "action": "reduce_beta",
+          "confidence": 0.72,
+          "source_world_state_ref": "snapshot://cycle_20260410/world_state"
+        },
+        "snapshot_ref": "snapshot://cycle_20260410/recommendation"
+      },
+      "source_ref": "snapshot://cycle_20260410/recommendation"
+    },
+    "world_state": {
+      "data": {
+        "as_of": "2026-04-10",
+        "object_ref": "world_state",
+        "snapshot_ref": "snapshot://cycle_20260410/world_state",
+        "state": {
+          "risk_level": "medium",
+          "trend": "risk_off",
+          "volatility_regime": "elevated"
+        }
+      },
+      "source_ref": "snapshot://cycle_20260410/world_state"
+    }
+  },
+  "manifest_snapshot_set": {
+    "recommendation": "snapshot://cycle_20260410/recommendation",
+    "world_state": "snapshot://cycle_20260410/world_state"
+  },
+  "object_ref": "recommendation",
+  "replay_record": {
+    "audit_record_ids": [
+      "audit-cycle_20260410-L4-world_state",
+      "audit-cycle_20260410-L7-recommendation"
+    ],
+    "created_at": "2026-04-10T16:09:00Z",
+    "cycle_id": "cycle_20260410",
+    "dagster_run_id": "dagster-fixture-run-20260410",
+    "formal_snapshot_refs": {
+      "recommendation": "snapshot://cycle_20260410/recommendation",
+      "world_state": "snapshot://cycle_20260410/world_state"
+    },
+    "graph_snapshot_ref": "graph://cycle_20260410/portfolio_graph",
+    "manifest_cycle_id": "cycle_20260410",
+    "object_ref": "recommendation",
+    "replay_id": "replay-cycle_20260410-recommendation",
+    "replay_mode": "read_history"
+  }
+}

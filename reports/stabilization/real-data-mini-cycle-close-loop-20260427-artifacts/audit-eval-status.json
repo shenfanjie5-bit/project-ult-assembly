@@ -1,0 +1,9 @@
+{
+  "command": "python audit-eval/scripts/spike_replay.py --cycle-id cycle_20260410 --object-ref recommendation --fixtures audit-eval/tests/fixtures/spike",
+  "exit_code": 0,
+  "gap": "No data-platform real cycle manifest/formal snapshot gateway found in audit-eval; spike_replay.py is fixture-backed via FixtureManifestGateway and FixtureFormalSnapshotGateway.",
+  "real_cycle_binding": "fixture_only",
+  "status": "ok",
+  "stderr_artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-close-loop-20260427-artifacts/audit-eval-fixture-replay.stderr",
+  "stdout_artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-close-loop-20260427-artifacts/audit-eval-fixture-replay.stdout"
+}
