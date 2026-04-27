@@ -17,7 +17,7 @@ cd /Users/fanjie/Desktop/Cowork/project-ult/assembly
 Result:
 
 ```text
-RUNTIME_PREFLIGHT_PASS /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T193251Z/production-daily-cycle-proof.json
+RUNTIME_PREFLIGHT_PASS /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T194812Z/production-daily-cycle-proof.json
 ```
 
 ## Redacted Environment
@@ -56,9 +56,9 @@ configured provider is `openai-codex` with Codex OAuth enabled.
 
 ## Artifact
 
-- `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T193251Z/production-daily-cycle-proof.json`
-- `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T193251Z/data-platform-current-selection-tests.stdout.txt`
-- `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T193251Z/data-platform-current-selection-tests.stderr.txt`
+- `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T194812Z/production-daily-cycle-proof.json`
+- `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T194812Z/data-platform-current-selection-tests.stdout.txt`
+- `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T194812Z/data-platform-current-selection-tests.stderr.txt`
 
 ## Non-Claims
 

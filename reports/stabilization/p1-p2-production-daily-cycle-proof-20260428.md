@@ -22,11 +22,11 @@ This 2026-04-28 update advances the state from the 2026-04-27 blocker evidence:
 ## Artifact
 
 - Bounded current-cycle proof artifact:
-  `assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T193256Z/production-daily-cycle-proof.json`
+  `assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T194817Z/production-daily-cycle-proof.json`
 - Runtime preflight JSON artifact:
-  `assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T193251Z/production-daily-cycle-proof.json`
+  `assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T194812Z/production-daily-cycle-proof.json`
 
-The 20260427T193256Z JSON is a bounded partial proof. It proves redacted
+The 20260427T194817Z JSON is a bounded partial proof. It proves redacted
 runtime readiness, live Tushare `trade_cal`/`stock_basic`/`daily` refresh,
 current-cycle selection for `CYCLE_20260415`, two accepted Ex-1 candidates,
 and PG-backed freeze. It intentionally records no formal snapshot IDs,
@@ -66,7 +66,7 @@ cd /Users/fanjie/Desktop/Cowork/project-ult/assembly
 Result:
 
 ```text
-RUNTIME_PREFLIGHT_PASS /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T193251Z/production-daily-cycle-proof.json
+RUNTIME_PREFLIGHT_PASS /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T194812Z/production-daily-cycle-proof.json
 ```
 
 Redacted runtime checks:
@@ -94,7 +94,7 @@ cd /Users/fanjie/Desktop/Cowork/project-ult/assembly
   --drop-isolated-pg
 
 result:
-PARTIAL_PASS_BLOCKED /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T193256Z/production-daily-cycle-proof.json
+PARTIAL_PASS_BLOCKED /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T194817Z/production-daily-cycle-proof.json
 exit code: 2, expected for a bounded partial/blocker proof
 ```
 

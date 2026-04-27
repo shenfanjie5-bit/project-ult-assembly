@@ -1,7 +1,8 @@
 {
-  "artifact_dir": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T193256Z",
+  "artifact_dir": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T194817Z",
   "blockers": [
     "full production daily_cycle_job Dagster proof has not passed",
+    "production provider status is blocked",
     "production provider runtime pending: configured_data_platform_current_cycle_runtime",
     "production provider runtime pending: configured_graph_phase0_status_runtime",
     "production provider runtime pending: configured_graph_phase1_runtime",
@@ -11,7 +12,7 @@
   ],
   "cleanup": {
     "postgres": {
-      "database": "dp_prod_cycle_proof_20260427t193256z_8702e17b",
+      "database": "dp_prod_cycle_proof_20260427t194817z_eb3983e7",
       "status": "passed"
     }
   },
@@ -34,72 +35,82 @@
   "evidence_date": "2026-04-28",
   "file_evidence_manifest": [
     {
-      "committed_with_report": true,
       "exists_at_write_time": true,
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T193256Z"
+      "git_tracked_at_write_time": false,
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T194817Z",
+      "under_report_artifact_dir": true
     },
     {
-      "committed_with_report": true,
       "exists_at_write_time": true,
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T193256Z/daily-refresh.json",
-      "sha256": "6ccc7be71778ddb33838c22815dcb3cbcea3e4ebf25b019fda6bc83ddc867aed",
-      "size_bytes": 10552
+      "git_tracked_at_write_time": false,
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T194817Z/daily-refresh.json",
+      "sha256": "109d9df3e2a3db2c2a3e808862c3a000fb626fba3f4f2f3cbe63cecdf18d8b9a",
+      "size_bytes": 10552,
+      "under_report_artifact_dir": true
     },
     {
-      "committed_with_report": true,
       "exists_at_write_time": true,
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T193256Z/data-platform-current-selection-tests.stderr.txt",
+      "git_tracked_at_write_time": false,
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T194817Z/data-platform-current-selection-tests.stderr.txt",
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "size_bytes": 0
+      "size_bytes": 0,
+      "under_report_artifact_dir": true
     },
     {
-      "committed_with_report": true,
       "exists_at_write_time": true,
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T193256Z/data-platform-current-selection-tests.stdout.txt",
+      "git_tracked_at_write_time": false,
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T194817Z/data-platform-current-selection-tests.stdout.txt",
       "sha256": "7040371af15613c02e821ec0eecc1d1330f691ace4cef93a41bfa358822c4103",
-      "size_bytes": 80
+      "size_bytes": 80,
+      "under_report_artifact_dir": true
     },
     {
-      "committed_with_report": false,
       "exists_at_write_time": true,
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z"
+      "git_tracked_at_write_time": false,
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T194817Z",
+      "under_report_artifact_dir": false
     },
     {
-      "committed_with_report": false,
       "exists_at_write_time": true,
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z/audit/preflight_audit_eval.duckdb",
-      "sha256": "0c679e91e6c36b502dfa66abcff1db89266719077c10284affacb75071749742",
-      "size_bytes": 1323008
+      "git_tracked_at_write_time": false,
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T194817Z/audit/preflight_audit_eval.duckdb",
+      "sha256": "4e826713384ef6e394ba62de5961b87de917dc85ccecb69ea7664138850d9cd3",
+      "size_bytes": 1323008,
+      "under_report_artifact_dir": false
     },
     {
-      "committed_with_report": false,
       "exists_at_write_time": true,
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z/raw"
+      "git_tracked_at_write_time": false,
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T194817Z/raw",
+      "under_report_artifact_dir": false
     },
     {
-      "committed_with_report": false,
       "exists_at_write_time": true,
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z/raw/tushare/daily/dt=20260415/6214a67a-5a0d-498c-a40c-54186f21bbf3.parquet",
+      "git_tracked_at_write_time": false,
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T194817Z/raw/tushare/daily/dt=20260415/b2e1e5e7-2324-41de-8bee-7f2a7feedf75.parquet",
       "sha256": "e0b6d731721e7524f7bf4cb75c72b02daf6889aeda41975cfa9a372f1a0a14e9",
-      "size_bytes": 315178
+      "size_bytes": 315178,
+      "under_report_artifact_dir": false
     },
     {
-      "committed_with_report": false,
       "exists_at_write_time": true,
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z/raw/tushare/stock_basic/dt=20260415/efee08a8-15d5-403c-b3ea-7e9d3def9c66.parquet",
+      "git_tracked_at_write_time": false,
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T194817Z/raw/tushare/stock_basic/dt=20260415/8a62df84-e28a-480e-9508-16697d391b44.parquet",
       "sha256": "d3c243c24e47372d01936ff11bec7a7ea666d4c935ebf7727e3cf43a2211c91c",
-      "size_bytes": 458215
+      "size_bytes": 458215,
+      "under_report_artifact_dir": false
     },
     {
-      "committed_with_report": false,
       "exists_at_write_time": true,
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z/raw/tushare/trade_cal/dt=20260415/ec29465f-d50b-4bdb-aafd-5ee202b0a6f1.parquet",
+      "git_tracked_at_write_time": false,
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T194817Z/raw/tushare/trade_cal/dt=20260415/a65cec12-da15-455d-92be-f83b13262977.parquet",
       "sha256": "79a5b4293058f12214ec23c986636097c36521aa972f66ce9ceae37a983a8525",
-      "size_bytes": 1198
+      "size_bytes": 1198,
+      "under_report_artifact_dir": false
     }
   ],
-  "finished_at_utc": "2026-04-27T19:33:10.445571+00:00",
-  "generated_at_utc": "2026-04-27T19:32:56.011486+00:00",
+  "finished_at_utc": "2026-04-27T19:48:33.004193+00:00",
+  "generated_at_utc": "2026-04-27T19:48:17.272900+00:00",
   "inputs": {
     "requested_partition_date": "2026-04-15",
     "run_dagster": false,
@@ -126,8 +137,8 @@
       "audit_ids": [
         "audit-runtime-preflight-L4"
       ],
-      "duckdb_path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z/audit/preflight_audit_eval.duckdb",
-      "duration_ms": 14,
+      "duckdb_path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T194817Z/audit/preflight_audit_eval.duckdb",
+      "duration_ms": 19,
       "replay_ids": [
         "replay-runtime-preflight-runtime_preflight"
       ],
@@ -135,13 +146,13 @@
     },
     "codex_reasoner_health": {
       "all_critical_targets_available": true,
-      "duration_ms": 1390,
+      "duration_ms": 2045,
       "model": "gpt-5.5",
       "provider": "openai-codex",
       "provider_statuses": [
         {
           "error": null,
-          "latency_ms": 1390,
+          "latency_ms": 2045,
           "model": "gpt-5.5",
           "provider": "openai-codex",
           "quota_status": "ok",
@@ -152,12 +163,12 @@
       "summary": "all 1 critical provider/model target(s) available"
     },
     "data_platform_current_selection_tests": {
-      "duration_ms": 962,
+      "duration_ms": 1062,
       "returncode": 0,
       "status": "passed",
-      "stderr": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T193256Z/data-platform-current-selection-tests.stderr.txt",
+      "stderr": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T194817Z/data-platform-current-selection-tests.stderr.txt",
       "stderr_tail": "",
-      "stdout": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T193256Z/data-platform-current-selection-tests.stdout.txt",
+      "stdout": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T194817Z/data-platform-current-selection-tests.stdout.txt",
       "stdout_tail": "..........                                                               [100%]\n"
     },
     "imports": {
@@ -172,7 +183,7 @@
     },
     "pg_connect": {
       "dsn": "<redacted:set>",
-      "duration_ms": 54,
+      "duration_ms": 52,
       "result": 1,
       "status": "passed"
     }
@@ -182,17 +193,17 @@
     "secret_values": "<redacted:set>"
   },
   "runner_exit_code": 2,
-  "runtime_root": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z",
+  "runtime_root": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T194817Z",
   "schema_version": "project-ult.production-daily-cycle-proof.v2",
   "steps": {
     "candidate_freeze": {
       "cutoff_metadata": {
         "candidate_count": 2,
         "cutoff_ingest_seq": 2,
-        "cutoff_submitted_at": "2026-04-27T19:33:10.410448+00:00",
-        "cycle_created_at": "2026-04-27T19:33:10.379081+00:00",
-        "cycle_updated_at": "2026-04-27T19:33:10.499989+00:00",
-        "selection_frozen_at": "2026-04-27T19:33:10.499989+00:00",
+        "cutoff_submitted_at": "2026-04-27T19:48:32.983539+00:00",
+        "cycle_created_at": "2026-04-27T19:48:32.948745+00:00",
+        "cycle_updated_at": "2026-04-27T19:48:33.076052+00:00",
+        "selection_frozen_at": "2026-04-27T19:48:33.076052+00:00",
         "status": "phase0"
       },
       "cycle_id": "CYCLE_20260415",
@@ -200,10 +211,10 @@
         "cutoff_metadata": {
           "candidate_count": 2,
           "cutoff_ingest_seq": 2,
-          "cutoff_submitted_at": "2026-04-27T19:33:10.410448+00:00",
-          "cycle_created_at": "2026-04-27T19:33:10.379081+00:00",
-          "cycle_updated_at": "2026-04-27T19:33:10.499989+00:00",
-          "selection_frozen_at": "2026-04-27T19:33:10.499989+00:00",
+          "cutoff_submitted_at": "2026-04-27T19:48:32.983539+00:00",
+          "cycle_created_at": "2026-04-27T19:48:32.948745+00:00",
+          "cycle_updated_at": "2026-04-27T19:48:33.076052+00:00",
+          "selection_frozen_at": "2026-04-27T19:48:33.076052+00:00",
           "status": "phase0"
         },
         "cycle_id": "CYCLE_20260415",
@@ -217,11 +228,11 @@
               "dataset": "daily",
               "input_table": "main.stg_daily",
               "partition_date": "2026-04-15",
-              "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z/raw/tushare/daily/dt=20260415/6214a67a-5a0d-498c-a40c-54186f21bbf3.parquet",
+              "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T194817Z/raw/tushare/daily/dt=20260415/b2e1e5e7-2324-41de-8bee-7f2a7feedf75.parquet",
               "row_count": 5494,
-              "run_id": "6214a67a-5a0d-498c-a40c-54186f21bbf3",
+              "run_id": "b2e1e5e7-2324-41de-8bee-7f2a7feedf75",
               "source_id": "tushare",
-              "written_at": "2026-04-27T19:33:03.652964+00:00"
+              "written_at": "2026-04-27T19:48:25.859188+00:00"
             }
           ],
           "stock_basic": [
@@ -229,11 +240,11 @@
               "dataset": "stock_basic",
               "input_table": "main.stg_stock_basic",
               "partition_date": "2026-04-15",
-              "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z/raw/tushare/stock_basic/dt=20260415/efee08a8-15d5-403c-b3ea-7e9d3def9c66.parquet",
+              "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T194817Z/raw/tushare/stock_basic/dt=20260415/8a62df84-e28a-480e-9508-16697d391b44.parquet",
               "row_count": 5510,
-              "run_id": "efee08a8-15d5-403c-b3ea-7e9d3def9c66",
+              "run_id": "8a62df84-e28a-480e-9508-16697d391b44",
               "source_id": "tushare",
-              "written_at": "2026-04-27T19:33:01.893692+00:00"
+              "written_at": "2026-04-27T19:48:24.202177+00:00"
             }
           ],
           "trade_cal": [
@@ -241,11 +252,11 @@
               "dataset": "trade_cal",
               "input_table": "main.stg_trade_cal",
               "partition_date": "2026-04-15",
-              "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z/raw/tushare/trade_cal/dt=20260415/ec29465f-d50b-4bdb-aafd-5ee202b0a6f1.parquet",
+              "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T194817Z/raw/tushare/trade_cal/dt=20260415/a65cec12-da15-455d-92be-f83b13262977.parquet",
               "row_count": 1,
-              "run_id": "ec29465f-d50b-4bdb-aafd-5ee202b0a6f1",
+              "run_id": "a65cec12-da15-455d-92be-f83b13262977",
               "source_id": "tushare",
-              "written_at": "2026-04-27T19:33:00.134232+00:00"
+              "written_at": "2026-04-27T19:48:22.209332+00:00"
             }
           ]
         },
@@ -254,7 +265,7 @@
           "main.stg_daily",
           "main.stg_stock_basic"
         ],
-        "raw_zone_path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z/raw",
+        "raw_zone_path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T194817Z/raw",
         "scan_metadata": {
           "daily_partition_date": "2026-04-15",
           "source_id": "tushare",
@@ -284,7 +295,7 @@
       ],
       "validation": {
         "accepted": 2,
-        "duration_ms": 13,
+        "duration_ms": 15,
         "rejected": 0,
         "scanned": 2
       }
@@ -299,11 +310,11 @@
               "dataset": "daily",
               "input_table": "main.stg_daily",
               "partition_date": "2026-04-15",
-              "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z/raw/tushare/daily/dt=20260415/6214a67a-5a0d-498c-a40c-54186f21bbf3.parquet",
+              "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T194817Z/raw/tushare/daily/dt=20260415/b2e1e5e7-2324-41de-8bee-7f2a7feedf75.parquet",
               "row_count": 5494,
-              "run_id": "6214a67a-5a0d-498c-a40c-54186f21bbf3",
+              "run_id": "b2e1e5e7-2324-41de-8bee-7f2a7feedf75",
               "source_id": "tushare",
-              "written_at": "2026-04-27T19:33:03.652964+00:00"
+              "written_at": "2026-04-27T19:48:25.859188+00:00"
             }
           ],
           "stock_basic": [
@@ -311,11 +322,11 @@
               "dataset": "stock_basic",
               "input_table": "main.stg_stock_basic",
               "partition_date": "2026-04-15",
-              "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z/raw/tushare/stock_basic/dt=20260415/efee08a8-15d5-403c-b3ea-7e9d3def9c66.parquet",
+              "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T194817Z/raw/tushare/stock_basic/dt=20260415/8a62df84-e28a-480e-9508-16697d391b44.parquet",
               "row_count": 5510,
-              "run_id": "efee08a8-15d5-403c-b3ea-7e9d3def9c66",
+              "run_id": "8a62df84-e28a-480e-9508-16697d391b44",
               "source_id": "tushare",
-              "written_at": "2026-04-27T19:33:01.893692+00:00"
+              "written_at": "2026-04-27T19:48:24.202177+00:00"
             }
           ],
           "trade_cal": [
@@ -323,11 +334,11 @@
               "dataset": "trade_cal",
               "input_table": "main.stg_trade_cal",
               "partition_date": "2026-04-15",
-              "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z/raw/tushare/trade_cal/dt=20260415/ec29465f-d50b-4bdb-aafd-5ee202b0a6f1.parquet",
+              "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T194817Z/raw/tushare/trade_cal/dt=20260415/a65cec12-da15-455d-92be-f83b13262977.parquet",
               "row_count": 1,
-              "run_id": "ec29465f-d50b-4bdb-aafd-5ee202b0a6f1",
+              "run_id": "a65cec12-da15-455d-92be-f83b13262977",
               "source_id": "tushare",
-              "written_at": "2026-04-27T19:33:00.134232+00:00"
+              "written_at": "2026-04-27T19:48:22.209332+00:00"
             }
           ]
         },
@@ -336,7 +347,7 @@
           "main.stg_daily",
           "main.stg_stock_basic"
         ],
-        "raw_zone_path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z/raw",
+        "raw_zone_path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T194817Z/raw",
         "scan_metadata": {
           "daily_partition_date": "2026-04-15",
           "source_id": "tushare",
@@ -373,7 +384,7 @@
       "status": "passed"
     },
     "postgres_bootstrap": {
-      "database": "dp_prod_cycle_proof_20260427t193256z_8702e17b",
+      "database": "dp_prod_cycle_proof_20260427t194817z_eb3983e7",
       "dsn": "<redacted:set>",
       "mode": "isolated_database",
       "status": "passed"
@@ -425,23 +436,23 @@
         {
           "dataset": "trade_cal",
           "partition_date": "2026-04-15",
-          "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z/raw/tushare/trade_cal/dt=20260415/ec29465f-d50b-4bdb-aafd-5ee202b0a6f1.parquet",
+          "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T194817Z/raw/tushare/trade_cal/dt=20260415/a65cec12-da15-455d-92be-f83b13262977.parquet",
           "row_count": 1
         },
         {
           "dataset": "stock_basic",
           "partition_date": "2026-04-15",
-          "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z/raw/tushare/stock_basic/dt=20260415/efee08a8-15d5-403c-b3ea-7e9d3def9c66.parquet",
+          "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T194817Z/raw/tushare/stock_basic/dt=20260415/8a62df84-e28a-480e-9508-16697d391b44.parquet",
           "row_count": 5510
         },
         {
           "dataset": "daily",
           "partition_date": "2026-04-15",
-          "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T193256Z/raw/tushare/daily/dt=20260415/6214a67a-5a0d-498c-a40c-54186f21bbf3.parquet",
+          "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T194817Z/raw/tushare/daily/dt=20260415/b2e1e5e7-2324-41de-8bee-7f2a7feedf75.parquet",
           "row_count": 5494
         }
       ],
-      "report": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T193256Z/daily-refresh.json",
+      "report": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T194817Z/daily-refresh.json",
       "status": "passed",
       "steps": [
         {

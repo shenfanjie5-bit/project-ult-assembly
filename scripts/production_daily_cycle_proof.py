@@ -194,12 +194,16 @@ def main(argv: Sequence[str] | None = None) -> int:
 
         report["steps"]["production_provider_status"] = _production_provider_status()
         dagster_step = report["steps"].get("production_dagster", {})
-        if isinstance(dagster_step, Mapping) and dagster_step.get("status") == "passed":
+        report["blockers"] = _open_blockers(report)
+        if (
+            isinstance(dagster_step, Mapping)
+            and dagster_step.get("status") == "passed"
+            and not report["blockers"]
+        ):
             report["verdict"] = "PRODUCTION_DAILY_CYCLE_PASS"
             exit_code = 0
         else:
             report["verdict"] = "PARTIAL_PASS_BLOCKED"
-            report["blockers"] = _open_blockers(report)
             exit_code = 2
         return exit_code
     except Exception as exc:  # noqa: BLE001 - artifact must preserve blockers
@@ -925,8 +929,16 @@ def _open_blockers(report: Mapping[str, Any]) -> list[str]:
         blockers.append("full production daily_cycle_job Dagster proof has not passed")
     provider_status = _mapping_get(report, "steps", "production_provider_status")
     if provider_status:
+        if provider_status.get("status") != "passed":
+            blockers.append("production provider status collection failed")
+        if provider_status.get("blocked") is True:
+            blockers.append("production provider status is blocked")
+        for surface in provider_status.get("missing_surfaces", []):
+            blockers.append(f"production provider surface missing: {surface}")
         for blocker in provider_status.get("runtime_blockers", []):
             blockers.append(f"production provider runtime pending: {blocker}")
+    else:
+        blockers.append("production provider status is missing")
     if report.get("verdict") == "BLOCKED" and report.get("error"):
         error = report["error"]
         if isinstance(error, Mapping):
@@ -950,7 +962,8 @@ def _file_evidence_manifest(
     for path in sorted(set(paths), key=lambda item: str(item)):
         entry: dict[str, Any] = {
             "path": str(path),
-            "committed_with_report": _is_relative_to(path, artifact_dir),
+            "under_report_artifact_dir": _is_relative_to(path, artifact_dir),
+            "git_tracked_at_write_time": _git_tracked(path),
             "exists_at_write_time": path.exists(),
         }
         if path.is_file():
@@ -998,6 +1011,23 @@ def _sha256_file(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _git_tracked(path: Path) -> bool:
+    try:
+        relative_path = path.resolve(strict=False).relative_to(ASSEMBLY_ROOT)
+    except ValueError:
+        return False
+    if path.is_dir():
+        return False
+    completed = subprocess.run(
+        ["git", "ls-files", "--error-unmatch", str(relative_path)],
+        cwd=ASSEMBLY_ROOT,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=False,
+    )
+    return completed.returncode == 0
 
 
 def _failed_probe_names(preflight: object) -> list[str]:
