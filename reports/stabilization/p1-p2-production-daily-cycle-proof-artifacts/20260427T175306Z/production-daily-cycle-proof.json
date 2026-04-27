@@ -12,7 +12,7 @@
     "data_platform": "912d099098122840c5c92d78f60cfd475aa6c0eb",
     "graph_engine": "fc4e083e1328333f0320fa7c0afa96d0b0dd6b37",
     "audit_eval": "a038ce172da711951500296f2c39862da1d53b6b",
-    "orchestrator": "08898f3e3e7fd93fcf06dd5f661b4a10de4155fc"
+    "orchestrator": "08898f38a54b0fa0166cbf6c87ecf075f368773a"
   },
   "runtime_environment": {
     "DP_TUSHARE_TOKEN": "missing",

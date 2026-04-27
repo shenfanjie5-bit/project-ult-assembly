@@ -39,7 +39,7 @@ must not be treated as a production `daily_cycle_job` pass.
 - audit-eval: `a038ce172da711951500296f2c39862da1d53b6b`
   - Retrospective hook validates full persisted replay/audit payload provenance
     and realized outcome provenance.
-- orchestrator: `08898f3e3e7fd93fcf06dd5f661b4a10de4155fc`
+- orchestrator: `08898f38a54b0fa0166cbf6c87ecf075f368773a`
   - Production status removes stale `live_gds_zero_skip_proof` blocker.
   - Production status keeps current-cycle/PG, graph runtime, reasoner runtime,
     pool failure-rate, audit hook, and full Dagster run blockers.
