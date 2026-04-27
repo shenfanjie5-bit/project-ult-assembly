@@ -83,6 +83,8 @@ Next allowed steps:
 
 1. Prepare a separate verified matrix promotion plan for a new row that includes
    `frontend-api`, if that is still desired.
+   Recorded in
+   `reports/stabilization/frontend-api-matrix-promotion-plan-20260427.md`.
 2. Run a real-data mini cycle after the promotion plan is explicit.
 3. Start planning the P5 20 trading day shadow run only after the real-data
    mini cycle evidence is clean.
