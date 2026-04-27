@@ -114,6 +114,6 @@ Result: pass.
 Do not enter P2.
 
 - P0: none introduced.
-- P1: live bounded Raw Zone ingestion for `daily` and `trade_cal` is proven; full PG/dbt/canonical mini-cycle remains blocked on `DP_PG_DSN`.
+- P1: live bounded Raw Zone ingestion for `daily` and `trade_cal` is proven. After the later PG/runtime batch, the remaining full mini-cycle blocker is the `daily_refresh` dbt/mashumaro runtime failure, not `DP_PG_DSN`.
 - P2: remains closed; no L1-L8 real dry-run approval from this evidence.
 - P3: `stock_basic` is supported by the probe but upstream symbol filtering is not available; use it only with explicit awareness of the active-list API call and post-fetch output bound.

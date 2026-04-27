@@ -50,6 +50,13 @@ Result: exit `0`.
   - `reports/stabilization/real-data-mini-cycle-pg-runtime-artifacts/runtime/batch_b_20260427_090300/warehouse`
   - `reports/stabilization/real-data-mini-cycle-pg-runtime-artifacts/runtime/batch_b_20260427_090300/duckdb/data_platform.duckdb`
 
+Path note: `mini_cycle_runtime_bootstrap.py` normalizes profile names to safe
+suffixes, so its preflight artifact records `batch_b_20260427_090300`. The
+subsequent `daily_refresh` probe used an explicit shell work directory named
+`batch-b-20260427-090300`. Both roots are evidence artifacts from the same
+Batch B run; reruns should prefer the generated env values in
+`runtime-preflight.json` unless intentionally overriding the runtime paths.
+
 ## PG-backed proof
 
 Commands:
