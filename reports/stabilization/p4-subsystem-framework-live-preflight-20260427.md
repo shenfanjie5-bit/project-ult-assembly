@@ -2,80 +2,115 @@
 
 ## Verdict
 
-Status: PASS for strengthened P4 preflight.
+Status: PASS for scoped P4 live-registry preflight.
 
-This evidence extends the earlier P4 framework preflight with direct
-news/announcement Ex-2 and Ex-3 block-path coverage plus Lite PG queue
-suppression checks. It does not claim a bundled live entity-registry client;
-the SDK preflight boundary remains protocol-injected and blocks unresolved
-references when a working lookup returns them. Lookup absence, lookup
-exceptions, or invalid lookup response shapes still degrade to skip by current
-SDK policy and are not claimed as live-registry fail-closed behavior.
+This evidence extends the earlier P4 framework preflight with bundled live
+entity-registry lookup wiring in `subsystem-sdk`. Production profile now fails
+closed when entity-registry lookup is absent/unavailable and blocks unresolved
+Ex-2/Ex-3 refs before submit. Dev profile preserves the existing offline-first
+unavailable/skip behavior.
+
+This is still a P4 preflight slice. It does not claim a production
+news/announcement/Polymarket ingestion chain, sidecar, frontend write
+interface, Docling/LlamaIndex model download, or P5 readiness.
 
 ## Commits
 
-- subsystem-sdk: `80dd6a32c988f5dbd36a02d964bff8150a6eff91`
+- subsystem-sdk framework strengthening: `80dd6a32c988f5dbd36a02d964bff8150a6eff91`
 - subsystem-news: `e1aada8fa310fbf9e92ac58f2a5ad601ff5e4e58`
 - subsystem-announcement: `8561fe0c53385d75ea7911d8120f19c65bf0494f`
+- subsystem-sdk live registry follow-up: `a02b4feaead45fe9580c0a6d907dadd721df857e`
+- entity-registry live lookup follow-up: `156a2d31a712ced9efdd0b155028bb2cfaef0dd5`
 
 ## What Changed
 
+- Entity-registry:
+  - Added read-only `lookup_entity_refs(refs)` backed by configured live
+    repositories.
+  - Verifies producer-supplied canonical entity refs; it does not infer or mint
+    new IDs.
 - SDK:
-  - Added explicit no-live-lookup preflight boundary coverage.
-  - Added Lite PG Ex-2/Ex-3 block-preflight coverage proving unresolved refs
-    do not enqueue rows or commit.
-- News:
-  - Added direct `DefaultSubsystemSdkClient` tests proving unresolved Ex-2
-    affected entities and Ex-3 endpoints are rejected before SDK submit.
-- Announcement:
-  - Added real `AnnouncementSubsystem.submit` adapter integration tests proving
-    Ex-2/Ex-3 block preflight prevents backend submission.
+  - Added `LiveEntityRegistryLookup` and `build_entity_preflight_wiring()`.
+  - Added `SubmitClient(entity_preflight_profile="dev" | "production")`.
+  - Production profile forces `preflight_policy="block"` and
+    `lookup_unavailable_policy="fail"`.
+  - Dev profile keeps existing offline-first skip/warn behavior.
+  - Ex-2 `affected_entities` and Ex-3 endpoint refs block submit when
+    unresolved in production profile.
+- News/announcement:
+  - Existing direct adapter block-path coverage remains valid for SDK
+    pre-dispatch validation.
 
 ## Validation
 
+Main-thread focused validation:
+
 ```text
 cd /Users/fanjie/Desktop/Cowork/project-ult/subsystem-sdk
-PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/subsystem-sdk:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src \
-python3 -m pytest -q \
+PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/contracts/src:/Users/fanjie/Desktop/Cowork/project-ult/entity-registry/src \
+/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest -q \
+  tests/validate/test_entity_registry_wiring.py \
   tests/validate/test_preflight.py \
-  tests/backends/test_lite_pg_backend.py \
-  tests/backends/test_lite_pg_heartbeat_backend.py
+  tests/submit/test_client_preflight.py \
+  tests/test_package_layout.py
 
 result:
-26 passed, 1 skipped
+48 passed
 ```
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/subsystem-news
-PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/subsystem-sdk \
-python3 -m pytest -q tests/runtime/test_submit.py
+cd /Users/fanjie/Desktop/Cowork/project-ult/entity-registry
+PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/entity-registry/src \
+/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest -q \
+  tests/test_lookup_entity_refs.py
 
 result:
-12 passed
+2 passed
 ```
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/subsystem-announcement
-PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/subsystem-sdk:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src \
-python3 -m pytest -q \
-  tests/test_runtime_submit.py \
-  tests/integration/test_sdk_wire_shape_integration.py
+cd /Users/fanjie/Desktop/Cowork/project-ult/subsystem-sdk
+/opt/homebrew/bin/ruff check \
+  subsystem_sdk/submit/client.py \
+  subsystem_sdk/validate/__init__.py \
+  subsystem_sdk/validate/engine.py \
+  subsystem_sdk/validate/entity_registry.py \
+  subsystem_sdk/validate/preflight.py \
+  tests/submit/test_client_preflight.py \
+  tests/test_package_layout.py \
+  tests/validate/test_entity_registry_wiring.py \
+  tests/validate/test_preflight.py
 
 result:
-21 passed
+All checks passed
 ```
+
+```text
+cd /Users/fanjie/Desktop/Cowork/project-ult/entity-registry
+/opt/homebrew/bin/ruff check src/entity_registry/__init__.py tests/test_lookup_entity_refs.py
+
+result:
+All checks passed
+```
+
+Backend-E handoff also reported:
+
+- subsystem-sdk full suite with assembly venv: passed.
+- entity-registry full suite with assembly venv: passed.
+- both repos pushed and clean.
 
 ## Residual Risk
 
-- Live entity-registry availability is still not bundled into subsystem-sdk.
-  This is now documented by test coverage rather than hidden by a false pass.
-- This remains a P4 framework/live-preflight slice, not a production
-  news/announcement/Polymarket ingestion chain.
+- This proves live registry lookup wiring and fail-closed SDK boundary, not a
+  production news/announcement/Polymarket ingestion flow.
+- Production environments must configure entity-registry repositories before
+  using the production SDK profile.
 
 ## Findings
 
 - P0: none.
 - P1: none.
 - P2: none.
-- P3: live entity-registry remains an explicit future integration, not a
-  completed claim.
+- P3: none. The previous live entity-registry residual risk is now closed for
+  scoped P4 preflight by commits `a02b4feaead45fe9580c0a6d907dadd721df857e`
+  and `156a2d31a712ced9efdd0b155028bb2cfaef0dd5`.

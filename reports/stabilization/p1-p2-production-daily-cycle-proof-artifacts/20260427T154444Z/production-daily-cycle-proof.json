@@ -5,9 +5,9 @@
   "generated_at_utc": "2026-04-27T15:44:44Z",
   "commits": {
     "data_platform": "587f9895660c5f347768b66402c793d024934415",
-    "graph_engine": "14c32f2fb092c57246789353eb45f9765e99b2e1",
-    "audit_eval": "fd6ac282c24337241c8addd76809c67deb41e11b",
-    "orchestrator": "89863e9b2f9bd1fb39d08da454670c76de314b7b"
+    "graph_engine": "78019a73cd83e32534829b3fcbf44468d7738c1e",
+    "audit_eval": "13cff871d9aacfed9772179c16a156a8b2e84da0",
+    "orchestrator": "f43e4cd50ab667442e0cd60e6637c7f5e92a4076"
   },
   "production_provider_surfaces": {
     "phase0_current_cycle_selection": "checked_in",
@@ -16,9 +16,10 @@
     "phase1_graph_promotion": "checked_in",
     "phase1_graph_snapshot": "checked_in",
     "phase2_l1_l8": "checked_in_existing_p2_real_current_cycle_provider",
+    "phase2_pool_failure_rate": "checked_in_env_backed_fail_closed_runtime",
     "phase3_formal_objects_commit": "checked_in",
     "phase3_cycle_publish_manifest": "checked_in_enriched_manifest_handoff",
-    "audit_eval_retrospective_hook": "checked_in_env_backed_runtime"
+    "audit_eval_retrospective_hook": "checked_in_env_backed_runtime_with_durable_manifest_lookup_required"
   },
   "production_run_artifact": {
     "cycle_id": null,
@@ -52,18 +53,18 @@
     },
     {
       "repo": "graph-engine",
-      "command": "PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/contracts/src python3 -m pytest tests/unit/test_phase1_provider.py -q",
-      "result": "5 passed"
+      "command": "PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/contracts/src python3 -m pytest -q tests/unit/test_phase1_provider.py tests/unit/test_reload_artifact_reader.py",
+      "result": "15 passed, 1 skipped"
     },
     {
       "repo": "audit-eval",
-      "command": "uv run python -m pytest -q",
-      "result": "415 passed, 1 skipped"
+      "command": "uv run python -m pytest tests/test_retro_hook.py tests/test_retro_compute.py tests/test_replay_storage_integration.py tests/test_real_cycle_binding.py -q",
+      "result": "31 passed"
     },
     {
       "repo": "orchestrator",
       "command": "PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin:$PATH PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/orchestrator/src:/Users/fanjie/Desktop/Cowork/project-ult/main-core/src:/Users/fanjie/Desktop/Cowork/project-ult/reasoner-runtime:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src:/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src:/Users/fanjie/Desktop/Cowork/project-ult/audit-eval/src:/Users/fanjie/Desktop/Cowork/project-ult/graph-engine /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest -q tests/integration/test_production_daily_cycle_provider.py tests/integration/test_p2_dry_run_handoff.py tests/integration/test_audit_eval_wiring.py tests/integration/test_phase1_graph_provider_wiring.py",
-      "result": "28 passed"
+      "result": "30 passed"
     }
   ],
   "remaining_blockers": [
@@ -77,11 +78,15 @@
     },
     {
       "priority": "P1",
+      "summary": "Production Phase 2 pool failure-rate runtime now fails closed until configured with a real current-cycle event."
+    },
+    {
+      "priority": "P1",
       "summary": "Data-platform PG freeze integration was not proven in the worker shell because a PG test DSN was unavailable there."
     },
     {
       "priority": "P2",
-      "summary": "Audit hook production artifact is checked in but not yet proven inside the production Dagster run."
+      "summary": "Audit hook durable manifest/audit/replay lookup is checked in but not yet proven inside the production Dagster run."
     }
   ]
 }

@@ -14,6 +14,11 @@ Phase 1 provider assets and graph snapshot artifact writing are now checked in.
 The gate remains PARTIAL because local live GDS validation still skipped when
 the worker Neo4j runtime did not expose GDS procedures.
 
+Follow-up commit `78019a73cd83e32534829b3fcbf44468d7738c1e` clears the
+independent review P3 findings around candidate-freeze ref synthesis and
+numeric checksum parsing. P3 still remains PARTIAL only because live GDS
+zero-skip proof is not yet available.
+
 ## Commits
 
 - assembly: `f15549840580b8d631c8577416cd060dd385f7be`
@@ -35,6 +40,10 @@ the worker Neo4j runtime did not expose GDS procedures.
   - Adds `graph_engine.snapshots.artifact_writer` for Layer A/formal-readable
     graph snapshot artifacts.
   - Keeps missing GDS/runtime boundaries fail-closed.
+- graph-engine review follow-up: `78019a73cd83e32534829b3fcbf44468d7738c1e`
+  - Requires explicit Phase 0 frozen candidate `selection_ref`.
+  - Prevents numeric checksum suffixes from being parsed as
+    `graph_generation_id` by artifact writer/reader.
 
 ## Validation
 
@@ -75,10 +84,10 @@ Graph Phase 1 provider slice:
 ```text
 cd /Users/fanjie/Desktop/Cowork/project-ult/graph-engine
 PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/contracts/src \
-python3 -m pytest tests/unit/test_phase1_provider.py -q
+python3 -m pytest -q tests/unit/test_phase1_provider.py tests/unit/test_reload_artifact_reader.py
 
 result:
-5 passed
+15 passed, 1 skipped
 ```
 
 Subagent graph validation also ran:
@@ -111,6 +120,10 @@ result:
   artifacts fail closed instead of being treated as reloadable graph snapshots.
 - Phase 1 provider assets can be assembled and produce a persisted graph
   snapshot artifact for downstream Layer A/cold-reload consumers.
+- Phase 1 no longer synthesizes frozen candidate refs when Phase 0 output is
+  malformed.
+- Artifact generation no longer mistakes an all-numeric checksum suffix for a
+  graph generation id.
 
 ## Remaining Blockers
 
@@ -126,5 +139,6 @@ result:
 - P1: live GDS closure remains open because the latest worker run still skipped
   GDS tests when the local Neo4j runtime lacked GDS procedures.
 - P2: none.
-- P3: full P3 remains open until the live GDS suite and real Layer A cold
-  reload proof pass without skips.
+- P3: independent review P3 findings were fixed in
+  `78019a73cd83e32534829b3fcbf44468d7738c1e`; full P3 remains open until the
+  live GDS suite and real Layer A cold reload proof pass without skips.
