@@ -1,0 +1,126 @@
+{
+  "ok": true,
+  "partition_date": "2026-04-15",
+  "steps": [
+    {
+      "duration_ms": 5052,
+      "metadata": {
+        "artifact_count": 2,
+        "artifacts": [
+          {
+            "dataset": "stock_basic",
+            "partition_date": "2026-04-15",
+            "path": "/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tmp/real-data-mini-cycle-runtime/dbt_runtime_20260427_53346/raw/tushare/stock_basic/dt=20260415/c4b75a62-e39d-4b86-abaa-e4cc7bbdf177.parquet",
+            "row_count": 5510,
+            "run_id": "c4b75a62-e39d-4b86-abaa-e4cc7bbdf177",
+            "run_id_version": 4,
+            "source_id": "tushare",
+            "written_at": "2026-04-27T09:10:09.859943+00:00"
+          },
+          {
+            "dataset": "daily",
+            "partition_date": "2026-04-15",
+            "path": "/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tmp/real-data-mini-cycle-runtime/dbt_runtime_20260427_53346/raw/tushare/daily/dt=20260415/dbb5b0d5-e619-4128-a71c-f51771bcc783.parquet",
+            "row_count": 5494,
+            "run_id": "dbb5b0d5-e619-4128-a71c-f51771bcc783",
+            "run_id_version": 4,
+            "source_id": "tushare",
+            "written_at": "2026-04-27T09:10:11.529083+00:00"
+          }
+        ],
+        "asset_specs_count": 68,
+        "mock": false
+      },
+      "name": "adapter",
+      "status": "ok"
+    },
+    {
+      "duration_ms": 3326,
+      "metadata": {
+        "command": [
+          "/Users/fanjie/Desktop/Cowork/project-ult/data-platform/scripts/dbt.sh",
+          "run",
+          "--profiles-dir",
+          "/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tmp/real-data-mini-cycle-runtime/dbt_runtime_20260427_53346/duckdb/daily_refresh_dbt_profiles",
+          "--target-path",
+          "/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tmp/real-data-mini-cycle-runtime/dbt_runtime_20260427_53346/duckdb/daily_refresh_dbt_target/run_20260415",
+          "--select",
+          "stg_stock_basic",
+          "stg_daily"
+        ],
+        "dbt_executable": "/Users/fanjie/Desktop/Cowork/project-ult/data-platform/../assembly/.venv-py312/bin/dbt",
+        "returncode": 0,
+        "stderr_tail": "",
+        "stdout_tail": "\u001b[0m09:10:12  Running with dbt=1.9.8\n\u001b[0m09:10:12  Registered adapter: duckdb=1.10.1\n\u001b[0m09:10:12  Unable to do partial parsing because saved manifest not found. Starting full parse.\n\u001b[0m09:10:13  Found 38 models, 319 data tests, 28 sources, 451 macros\n\u001b[0m09:10:13  \n\u001b[0m09:10:13  Concurrency: 1 threads (target='daily_refresh')\n\u001b[0m09:10:13  \n\u001b[0m09:10:13  1 of 2 START sql view model main.stg_daily ..................................... [RUN]\n\u001b[0m09:10:13  1 of 2 OK created sql view model main.stg_daily ................................ [\u001b[32mOK\u001b[0m in 0.03s]\n\u001b[0m09:10:13  2 of 2 START sql view model main.stg_stock_basic ............................... [RUN]\n\u001b[0m09:10:13  2 of 2 OK created sql view model main.stg_stock_basic .......................... [\u001b[32mOK\u001b[0m in 0.01s]\n\u001b[0m09:10:13  \n\u001b[0m09:10:13  Finished running 2 view models in 0 hours 0 minutes and 0.12 seconds (0.12s).\n\u001b[0m09:10:13  \n\u001b[0m09:10:13  \u001b[32mCompleted successfully\u001b[0m\n\u001b[0m09:10:13  \n\u001b[0m09:10:13  Done. PASS=2 WARN=0 ERROR=0 SKIP=0 TOTAL=2"
+      },
+      "name": "dbt_run",
+      "status": "ok"
+    },
+    {
+      "duration_ms": 3111,
+      "metadata": {
+        "command": [
+          "/Users/fanjie/Desktop/Cowork/project-ult/data-platform/scripts/dbt.sh",
+          "test",
+          "--profiles-dir",
+          "/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tmp/real-data-mini-cycle-runtime/dbt_runtime_20260427_53346/duckdb/daily_refresh_dbt_profiles",
+          "--target-path",
+          "/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tmp/real-data-mini-cycle-runtime/dbt_runtime_20260427_53346/duckdb/daily_refresh_dbt_target/test_20260415",
+          "--select",
+          "stg_stock_basic",
+          "stg_daily"
+        ],
+        "dbt_executable": "/Users/fanjie/Desktop/Cowork/project-ult/data-platform/../assembly/.venv-py312/bin/dbt",
+        "returncode": 0,
+        "stderr_tail": "",
+        "stdout_tail": "\u001b[0m09:10:16  Concurrency: 1 threads (target='daily_refresh')\n\u001b[0m09:10:16  \n\u001b[0m09:10:16  1 of 16 START test accepted_values_stg_stock_basic_is_active__False__True__False  [RUN]\n\u001b[0m09:10:16  1 of 16 PASS accepted_values_stg_stock_basic_is_active__False__True__False ..... [\u001b[32mPASS\u001b[0m in 0.03s]\n\u001b[0m09:10:16  2 of 16 START test accepted_values_stg_stock_basic_list_status__L__D__P ........ [RUN]\n\u001b[0m09:10:16  2 of 16 PASS accepted_values_stg_stock_basic_list_status__L__D__P .............. [\u001b[32mPASS\u001b[0m in 0.01s]\n\u001b[0m09:10:16  3 of 16 START test assert_latest_raw_artifact_unique ........................... [RUN]\n\u001b[0m09:10:16  3 of 16 PASS assert_latest_raw_artifact_unique ................................. [\u001b[32mPASS\u001b[0m in 0.01s]\n\u001b[0m09:10:16  4 of 16 START test assert_raw_manifest_fresh ................................... [RUN]\n\u001b[0m09:10:16  4 of 16 PASS assert_raw_manifest_fresh ......................................... [\u001b[32mPASS\u001b[0m in 0.01s]\n\u001b[0m09:10:16  5 of 16 START test not_null_stg_daily_raw_loaded_at ............................ [RUN]\n\u001b[0m09:10:16  5 of 16 PASS not_null_stg_daily_raw_loaded_at .................................. [\u001b[32mPASS\u001b[0m in 0.01s]\n\u001b[0m09:10:16  6 of 16 START test not_null_stg_daily_source_run_id ............................ [RUN]\n\u001b[0m09:10:16  6 of 16 PASS not_null_stg_daily_source_run_id .................................. [\u001b[32mPASS\u001b[0m in 0.01s]\n\u001b[0m09:10:16  7 of 16 START test not_null_stg_daily_trade_date ............................... [RUN]\n\u001b[0m09:10:16  7 of 16 PASS not_null_stg_daily_trade_date ..................................... [\u001b[32mPASS\u001b[0m in 0.01s]\n\u001b[0m09:10:16  8 of 16 START test not_null_stg_daily_ts_code .................................. [RUN]\n\u001b[0m09:10:16  8 of 16 PASS not_null_stg_daily_ts_code ........................................ [\u001b[32mPASS\u001b[0m in 0.01s]\n\u001b[0m09:10:16  9 of 16 START test not_null_stg_stock_basic_raw_loaded_at ...................... [RUN]\n\u001b[0m09:10:16  9 of 16 PASS not_null_stg_stock_basic_raw_loaded_at ............................ [\u001b[32mPASS\u001b[0m in 0.01s]\n\u001b[0m09:10:16  10 of 16 START test not_null_stg_stock_basic_source_run_id ..................... [RUN]\n\u001b[0m09:10:16  10 of 16 PASS not_null_stg_stock_basic_source_run_id ........................... [\u001b[32mPASS\u001b[0m in 0.01s]\n\u001b[0m09:10:16  11 of 16 START test not_null_stg_stock_basic_ts_code ........................... [RUN]\n\u001b[0m09:10:16  11 of 16 PASS not_null_stg_stock_basic_ts_code ................................. [\u001b[32mPASS\u001b[0m in 0.01s]\n\u001b[0m09:10:16  12 of 16 START test parsable_yyyymmdd_or_date_stg_daily_trade_date ............. [RUN]\n\u001b[0m09:10:16  12 of 16 PASS parsable_yyyymmdd_or_date_stg_daily_trade_date ................... [\u001b[32mPASS\u001b[0m in 0.01s]\n\u001b[0m09:10:16  13 of 16 START test parsable_yyyymmdd_or_date_stg_stock_basic_delist_date ...... [RUN]\n\u001b[0m09:10:16  13 of 16 PASS parsable_yyyymmdd_or_date_stg_stock_basic_delist_date ............ [\u001b[32mPASS\u001b[0m in 0.01s]\n\u001b[0m09:10:16  14 of 16 START test parsable_yyyymmdd_or_date_stg_stock_basic_list_date ........ [RUN]\n\u001b[0m09:10:16  14 of 16 PASS parsable_yyyymmdd_or_date_stg_stock_basic_list_date .............. [\u001b[32mPASS\u001b[0m in 0.01s]\n\u001b[0m09:10:16  15 of 16 START test unique_combination_of_columns_stg_daily_ts_code__trade_date  [RUN]\n\u001b[0m09:10:16  15 of 16 PASS unique_combination_of_columns_stg_daily_ts_code__trade_date ...... [\u001b[32mPASS\u001b[0m in 0.01s]\n\u001b[0m09:10:16  16 of 16 START test unique_stg_stock_basic_ts_code ............................. [RUN]\n\u001b[0m09:10:16  16 of 16 PASS unique_stg_stock_basic_ts_code ................................... [\u001b[32mPASS\u001b[0m in 0.01s]\n\u001b[0m09:10:16  \n\u001b[0m09:10:16  Finished running 16 data tests in 0 hours 0 minutes and 0.21 seconds (0.21s).\n\u001b[0m09:10:16  \n\u001b[0m09:10:16  \u001b[32mCompleted successfully\u001b[0m\n\u001b[0m09:10:16  \n\u001b[0m09:10:16  Done. PASS=16 WARN=0 ERROR=0 SKIP=0 TOTAL=16"
+      },
+      "name": "dbt_test",
+      "status": "ok"
+    },
+    {
+      "duration_ms": 429,
+      "metadata": {
+        "applied_migrations": [
+          "0001",
+          "0002",
+          "0003",
+          "0004",
+          "0005"
+        ],
+        "ensured_tables": [
+          "canonical.stock_basic",
+          "canonical.canonical_entity",
+          "canonical.entity_alias",
+          "canonical.dim_security",
+          "canonical.dim_index",
+          "canonical.fact_price_bar",
+          "canonical.fact_financial_indicator",
+          "canonical.fact_event"
+        ],
+        "skipped_writes": [
+          "canonical.canonical_marts"
+        ],
+        "write_results": [
+          {
+            "duration_ms": 55,
+            "row_count": 5510,
+            "snapshot_id": 1595326150517369116,
+            "table": "canonical.stock_basic"
+          }
+        ]
+      },
+      "name": "canonical",
+      "status": "ok"
+    },
+    {
+      "duration_ms": 3,
+      "metadata": {
+        "checked_artifacts": 2,
+        "issues": []
+      },
+      "name": "raw_health",
+      "status": "ok"
+    }
+  ]
+}
