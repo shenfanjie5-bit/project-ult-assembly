@@ -1,0 +1,79 @@
+..                                                                       [100%]
+=============================== warnings summary ===============================
+tests/integration/test_daily_cycle_four_phase.py::test_daily_cycle_schedule_triggers_four_phase_minimal_closure
+  /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/dbt_common/invocation.py:5: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    _INVOCATION_STARTED_AT = datetime.utcnow()
+
+tests/integration/test_daily_cycle_four_phase.py::test_daily_cycle_schedule_triggers_four_phase_minimal_closure
+  /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/sqlglotrs/__init__.py:3: DeprecationWarning: sqlglotrs is deprecated and no longer maintained. Please use sqlglotc instead for faster parsing: pip install sqlglotc
+    warnings.warn(
+
+tests/integration/test_daily_cycle_four_phase.py::test_daily_cycle_schedule_triggers_four_phase_minimal_closure
+  /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/sqlglot/tokens.py:20: UserWarning: sqlglot[rs] is deprecated and no longer compatible with sqlglot. Please use sqlglotc instead for faster parsing: pip install sqlglot[c]
+    warnings.warn(
+
+tests/integration/test_daily_cycle_four_phase.py::test_daily_cycle_schedule_triggers_four_phase_minimal_closure
+  /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/dagster_dbt/core/resource.py:262: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    @validator("project_dir", "profiles_dir", "dbt_executable", pre=True)
+
+tests/integration/test_daily_cycle_four_phase.py::test_daily_cycle_schedule_triggers_four_phase_minimal_closure
+  /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/dagster_dbt/core/resource.py:277: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    @validator("project_dir")
+
+tests/integration/test_daily_cycle_four_phase.py::test_daily_cycle_schedule_triggers_four_phase_minimal_closure
+  /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/dagster_dbt/core/resource.py:292: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    @validator("profiles_dir")
+
+tests/integration/test_daily_cycle_four_phase.py::test_daily_cycle_schedule_triggers_four_phase_minimal_closure
+  /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/dagster_dbt/core/resource.py:310: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    @validator("dbt_executable")
+
+tests/integration/test_daily_cycle_four_phase.py::test_daily_cycle_schedule_triggers_four_phase_minimal_closure
+  /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/dagster_dbt/core/resource.py:333: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    @validator("state_path")
+
+tests/integration/test_daily_cycle_four_phase.py: 48 warnings
+  /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/dagster/_model/pydantic_compat_layer.py:70: PydanticDeprecatedSince20: The `__fields__` attribute is deprecated, use the `model_fields` class property instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    fields = getattr(model, "__fields__")
+
+tests/integration/test_daily_cycle_four_phase.py: 94 warnings
+  /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/dagster/_model/pydantic_compat_layer.py:68: PydanticDeprecatedSince211: Accessing the 'model_fields' attribute on the instance is deprecated. Instead, you should access this attribute from the model class. Deprecated in Pydantic V2.11 to be removed in V3.0.
+    fields = getattr(model, "model_fields", None)
+
+tests/integration/test_daily_cycle_four_phase.py::test_daily_cycle_schedule_triggers_four_phase_minimal_closure
+tests/integration/test_daily_cycle_four_phase.py::test_daily_cycle_hard_stops_before_phase2_and_publish_when_llm_health_fails
+  /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/dagster_dbt/core/resource.py:641: DeprecationWarning: AssetExecutionContext.op is deprecated and will be removed in a future release. You have called the deprecated method op on AssetExecutionContext. Use context.op_execution_context.op instead.
+    select=context.op.tags.get(DAGSTER_DBT_SELECT_METADATA_KEY),
+
+tests/integration/test_daily_cycle_four_phase.py::test_daily_cycle_schedule_triggers_four_phase_minimal_closure
+tests/integration/test_daily_cycle_four_phase.py::test_daily_cycle_hard_stops_before_phase2_and_publish_when_llm_health_fails
+  /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/dagster_dbt/core/resource.py:642: DeprecationWarning: AssetExecutionContext.op is deprecated and will be removed in a future release. You have called the deprecated method op on AssetExecutionContext. Use context.op_execution_context.op instead.
+    exclude=context.op.tags.get(DAGSTER_DBT_EXCLUDE_METADATA_KEY),
+
+tests/integration/test_daily_cycle_four_phase.py::test_daily_cycle_schedule_triggers_four_phase_minimal_closure
+  /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/dbt/cli/options.py:6: DeprecationWarning: 'parser.OptionParser' is deprecated and will be removed in Click 9.0. The old parser is available in 'optparse'.
+    from click.parser import OptionParser, ParsingState
+
+tests/integration/test_daily_cycle_four_phase.py::test_daily_cycle_schedule_triggers_four_phase_minimal_closure
+  /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/dbt/cli/options.py:6: DeprecationWarning: 'parser.ParsingState' is deprecated and will be removed in Click 9.0. The old parser is available in 'optparse'.
+    from click.parser import OptionParser, ParsingState
+
+tests/integration/test_daily_cycle_four_phase.py::test_daily_cycle_schedule_triggers_four_phase_minimal_closure
+tests/integration/test_daily_cycle_four_phase.py::test_daily_cycle_schedule_triggers_four_phase_minimal_closure
+tests/integration/test_daily_cycle_four_phase.py::test_daily_cycle_schedule_triggers_four_phase_minimal_closure
+tests/integration/test_daily_cycle_four_phase.py::test_daily_cycle_hard_stops_before_phase2_and_publish_when_llm_health_fails
+tests/integration/test_daily_cycle_four_phase.py::test_daily_cycle_hard_stops_before_phase2_and_publish_when_llm_health_fails
+tests/integration/test_daily_cycle_four_phase.py::test_daily_cycle_hard_stops_before_phase2_and_publish_when_llm_health_fails
+  <string>:5: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+
+tests/integration/test_daily_cycle_four_phase.py::test_daily_cycle_schedule_triggers_four_phase_minimal_closure
+tests/integration/test_daily_cycle_four_phase.py::test_daily_cycle_hard_stops_before_phase2_and_publish_when_llm_health_fails
+  /Users/fanjie/Desktop/Cowork/project-ult/orchestrator/src/orchestrator/checks/dbt_events.py:741: DeprecationWarning: AssetExecutionContext.run_id is deprecated and will be removed in a future release. You have called the deprecated method run_id on AssetExecutionContext. Use context.run.run_id instead.
+    return _plain_metadata_value(getattr(value, name, None))
+
+tests/integration/test_daily_cycle_four_phase.py::test_daily_cycle_schedule_triggers_four_phase_minimal_closure
+tests/integration/test_daily_cycle_four_phase.py::test_daily_cycle_hard_stops_before_phase2_and_publish_when_llm_health_fails
+  /Users/fanjie/Desktop/Cowork/project-ult/orchestrator/src/orchestrator/checks/dbt_events.py:741: DeprecationWarning: AssetExecutionContext.run_tags is deprecated and will be removed in a future release. You have called the deprecated method run_tags on AssetExecutionContext. Use context.run.tags instead.
+    return _plain_metadata_value(getattr(value, name, None))
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
