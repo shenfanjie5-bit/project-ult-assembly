@@ -126,6 +126,21 @@ path because no DSN is configured.
 
 ## 40-API Target-List Decision
 
+2026-04-28 provider-neutral addendum:
+
+- `/Users/fanjie/Desktop/Cowork/tushare全部可用接口.csv` is now treated as
+  Tushare provider availability inventory, not as the Project ULT business API
+  contract.
+- The inventory contains 138 available provider interface rows. This does not
+  mean 138 business-layer datasets are promoted.
+- The old "approximately 40 Tushare APIs" blueprint target remains a P1/P5
+  planning signal, not a cap and not a reason to guess missing interfaces.
+- Promotion now requires a provider-neutral canonical dataset mapping before
+  an interface can enter curated marts, production daily-cycle, graph, reasoner,
+  frontend-api, or formal serving.
+- Detailed boundary evidence:
+  `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-provider-neutral-tushare-catalog-20260428.md`.
+
 Inventory command:
 
 ```bash
@@ -153,10 +168,15 @@ Result:
 
 Decision:
 
-- Blueprint target remains approximately 40 Tushare APIs.
+- Blueprint target remains approximately 40 Tushare APIs, but the available
+  provider inventory is larger and must be gated through canonical contracts.
 - Code-grounded state remains 28 declared assets and 28 staging models.
-- Remaining 12 APIs are still an authoritative target-list planning gap.
-- Do not implement or classify missing APIs by guesswork in this batch.
+- The previous "remaining 12 APIs" wording is superseded by provider-neutral
+  catalog gating: unpromoted inventory remains provider availability only until
+  the data/product owner approves canonical datasets, mappings, and promotion
+  scope.
+- Do not implement or classify additional business-consumed APIs by guesswork
+  in this batch.
 
 ## Verification Summary
 
@@ -180,5 +200,5 @@ Commands run:
 - P2: PARTIAL live Tushare proof because `DP_TUSHARE_TOKEN` is missing; archived
   Raw Zone artifact proof was used and incomplete archived roots were reported
   as blocked instead of faked.
-- P3: The 12 missing Tushare APIs remain a planning decision gap, not an
-  implementation task.
+- P3: Additional Tushare inventory exists, but unpromoted interfaces remain a
+  planning/canonical-mapping decision gap, not an implementation shortcut.

@@ -1,0 +1,64 @@
+{
+  "date": "2026-04-28",
+  "status": "PARTIAL_PASS_BOUNDARY_EVIDENCE",
+  "scope": "provider-neutral Tushare catalog expansion",
+  "source_inventory": {
+    "path": "/Users/fanjie/Desktop/Cowork/tushare全部可用接口.csv",
+    "provider": "tushare",
+    "available_interface_rows": 138,
+    "unique_doc_api_count": 137,
+    "known_duplicate_doc_api": ["trade_cal"],
+    "duplicate_resolution": "Committed provider catalog uses source_interface_id as the unique provider interface key and preserves the real doc_api value for lineage."
+  },
+  "committed_catalog": {
+    "path": "data-platform/src/data_platform/provider_catalog/tushare_available_interfaces.csv",
+    "provider_interface_count": 138,
+    "promoted_mapping_count": 28,
+    "promotion_candidate_count": 13,
+    "generic_unpromoted_count": 107,
+    "canonical_dataset_count": 17,
+    "future_provider_targets": ["choice", "internal", "wind"]
+  },
+  "legacy_typed_not_in_catalog": [
+    "adj_factor",
+    "index_daily",
+    "index_weight",
+    "index_member",
+    "anns",
+    "suspend_d",
+    "income",
+    "balancesheet",
+    "cashflow",
+    "fina_indicator"
+  ],
+  "promotion_candidates": [
+    "index_dailybasic",
+    "margin",
+    "margin_detail",
+    "pledge_stat",
+    "pledge_detail",
+    "repurchase",
+    "stk_holdertrade",
+    "limit_list_ths",
+    "limit_list_d",
+    "hm_detail",
+    "stk_surv",
+    "express",
+    "fina_mainbz"
+  ],
+  "provider_neutral_boundary": {
+    "source_specific_layers": ["Raw Zone", "stg_tushare_*", "provider adapter", "live/local corpus probe"],
+    "provider_neutral_layers": ["intermediate", "marts", "canonical writer", "formal serving input", "graph", "reasoner", "frontend-api"],
+    "business_contract_rule": "Tushare doc_api and raw field names are source adapter details and are not business-layer contracts."
+  },
+  "verification": {
+    "data_platform_tests": "12 passed",
+    "frontend_api_tests": "1 passed",
+    "data_platform_ruff": "All checks passed",
+    "frontend_api_ruff": "All checks passed"
+  },
+  "remaining_blockers": [
+    "Production daily-cycle still needs a full provider-neutral consumer refactor proof; this catalog boundary evidence does not complete P1/P2 production proof.",
+    "P5 remains blocked by production daily-cycle proof, P4 bridge hardening, and provider-neutral boundary gates."
+  ]
+}

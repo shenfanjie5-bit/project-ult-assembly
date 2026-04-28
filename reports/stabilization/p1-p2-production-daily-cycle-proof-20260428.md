@@ -203,7 +203,7 @@ py_compile passed
 | P1 | Production Phase 2 pool failure-rate can now derive from current-cycle L8 output or a persisted metric artifact, with stale-cycle and inline-artifact regressions covered, but no full production Dagster run has exercised that handoff yet. | `orchestrator/src/orchestrator_adapters/production_daily_cycle.py`; `orchestrator/src/orchestrator/checks/phase2.py` |
 | P1 | Full `daily_cycle_job.execute_in_process(tags={"cycle_id": selector.cycle_id})` has not run with real Phase 0/1/2/3/audit resources. Provider wiring and full Dagster proof remain pending unless that proof actually runs and passes. | JSON artifact |
 | P2 | Audit hook hardening is complete, but no production Dagster run has yet produced and consumed the final audit hook artifact. | `audit-eval/src/audit_eval/retro/hook.py` |
-| P3 | The 12 missing Tushare APIs remain an authoritative target-list planning gap, not an implementation task. | `p1-tushare-40-api-target-list-20260428.md` |
+| P3 | Additional Tushare inventory is now cataloged as provider availability, but unpromoted interfaces remain a canonical-mapping and promotion-scope decision gap, not a business-layer implementation shortcut. | `p1-provider-neutral-tushare-catalog-20260428.md` |
 
 ## Findings
 
@@ -211,5 +211,6 @@ py_compile passed
 - P1: production daily-cycle remains blocked by configured runtime/provider
   gaps and missing full Dagster proof, not by missing env or P3 GDS.
 - P2: audit hook production artifact remains unproven in a full Dagster run.
-- P3: 40-API target-list still requires data/product owner naming for the
-  remaining 12 APIs.
+- P3: Tushare provider inventory is larger than the original 40-API planning
+  target; production consumers must still wait for canonical mapping approval
+  before using additional interfaces.
