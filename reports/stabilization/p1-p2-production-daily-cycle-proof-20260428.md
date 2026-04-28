@@ -37,6 +37,11 @@ manifest row, serving readback, or production Dagster pass. The preflight-only
 artifact is supporting evidence and must not be treated as a production
 `daily_cycle_job` pass.
 
+Orchestrator status still reports no full production Dagster current-cycle
+freeze proof. That non-claim does not invalidate the bounded PG freeze artifact;
+it means the freeze has not yet been exercised inside a complete real
+`daily_cycle_job` run with Phase 0/1/2/3/audit resources.
+
 ## Commits Reviewed
 
 - data-platform: `912d099098122840c5c92d78f60cfd475aa6c0eb`
@@ -54,18 +59,22 @@ artifact is supporting evidence and must not be treated as a production
   - Phase 2 pool failure-rate gate derives from L8 or a persisted metric
     artifact, rejects stale cycle IDs against the Dagster run tag, and keeps
     inline env JSON labeled as a non-production fallback only.
-- data-platform: `20331c7636f47cf2b67228ef8c2b4ce1269cb4be`
+- data-platform: `330f6b4d82a96d36c8fd150cc1a0a432d7c6cb9c`
   - Adds runtime `TUSHARE_INTERFACE_REGISTRY`, Raw manifest v2 metadata, and
     keeps only 28 typed assets production-selectable.
+  - Makes ambiguous `doc_api` mapping lookups fail closed unless
+    `source_interface_id` is supplied.
 - data-platform: `4e10c6e3ee441c107e804bef8bbe5a00a81905a6`
   - Adds provider-neutral canonical current-cycle input loader.
-- orchestrator: `361bfe6fc0104414aaa55c3f1e11699acdffcfd3`
+- orchestrator: `6a4c42c687fb6e7be4a792a8b3a5b9681b0a254f`
   - Makes production P2 default to `DataPlatformCanonicalCurrentCycleInputProvider`
     and renames the supported surface to `phase2_current_cycle_canonical_inputs`.
+  - Clarifies that the bounded PG freeze artifact is not a full production
+    Dagster current-cycle freeze proof.
 - frontend-api: `0c24fad51deabd3b1031dc1315b8d98294392b49`
   - Keeps raw debug routes and direct data-platform public fallback out of the
     default read-only production surface.
-- main-core: `efaa4f697267257c5936ddd8df6f3c16b3b5634d`
+- main-core: `efaa4f62027401ee85d1a20095ab4f7ff29e6994`
   - Removes provider-specific labels from the controlled vertical-slice event
     fixture.
 

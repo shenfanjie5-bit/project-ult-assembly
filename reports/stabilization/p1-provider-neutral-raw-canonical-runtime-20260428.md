@@ -16,12 +16,14 @@ a runtime admission gate:
 
 ## Commits Reviewed
 
-- data-platform: `20331c7636f47cf2b67228ef8c2b4ce1269cb4be`
+- data-platform: `330f6b4d82a96d36c8fd150cc1a0a432d7c6cb9c`
   - Adds `TUSHARE_INTERFACE_REGISTRY` keyed by `source_interface_id`.
   - Adds Raw manifest v2 metadata for provider/source interface/doc API/schema
     hash/request parameter hash.
   - Preserves old manifest readability.
   - Keeps existing typed Tushare assets as the only production fetch set.
+  - Makes ambiguous `doc_api` mapping lookups fail closed unless
+    `source_interface_id` is supplied.
 - data-platform: `4e10c6e3ee441c107e804bef8bbe5a00a81905a6`
   - Adds canonical dataset/table mapping and provider-neutral current-cycle
     loader used by P2 preflight.
@@ -164,4 +166,3 @@ result:
   deferred; every new production promotion still requires canonical dataset,
   field mapping, primary key, unit, date policy, adjustment policy, refresh
   policy, late-arriving policy, and coverage decision.
-

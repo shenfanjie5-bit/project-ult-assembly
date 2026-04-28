@@ -16,16 +16,18 @@ test/debug provider.
   - Loads current-cycle rows from canonical tables/datasets only.
   - Fails closed when canonical snapshots, entity aliases, or candidate rows are
     missing.
-- orchestrator: `361bfe6fc0104414aaa55c3f1e11699acdffcfd3`
+- orchestrator: `6a4c42c687fb6e7be4a792a8b3a5b9681b0a254f`
   - Adds `DataPlatformCanonicalCurrentCycleInputProvider`.
   - Makes `P2DryRunAssetFactoryProvider` default to the canonical provider.
   - Changes production provider surface to
     `phase2_current_cycle_canonical_inputs`.
   - Adds no-source-leak checks for P2 input evidence.
+  - Clarifies that bounded PG freeze proof is not yet a full production
+    Dagster freeze proof.
 - frontend-api: `0c24fad51deabd3b1031dc1315b8d98294392b49`
   - Keeps raw data routes out of the default read-only production surface.
   - Disables direct data-platform public API fallback by default.
-- main-core: `efaa4f697267257c5936ddd8df6f3c16b3b5634d`
+- main-core: `efaa4f62027401ee85d1a20095ab4f7ff29e6994`
   - Removes provider-specific labels from the controlled vertical-slice event
     fixture.
 
@@ -77,7 +79,15 @@ PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/orchestrator/src:/Users/fanj
   /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python - <<'PY'
 from orchestrator_adapters.production_daily_cycle import production_daily_cycle_provider
 provider = production_daily_cycle_provider()
-print(provider.status().supported_surfaces)
+surfaces = provider.status().supported_surfaces
+print(
+    "phase2_current_cycle_canonical_inputs",
+    "present" if "phase2_current_cycle_canonical_inputs" in surfaces else "missing",
+)
+print(
+    "phase2_current_cycle_tushare_inputs",
+    "present" if "phase2_current_cycle_tushare_inputs" in surfaces else "absent",
+)
 print(provider.p2_provider.input_provider.__class__.__name__)
 PY
 ```
