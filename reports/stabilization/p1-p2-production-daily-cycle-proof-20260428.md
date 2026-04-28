@@ -9,6 +9,9 @@ This 2026-04-28 update advances the state from the 2026-04-27 blocker evidence:
 
 - P3 live GDS closure is now PASS and should no longer be counted as an open
   production daily-cycle blocker.
+- Provider-neutral Raw/canonical runtime and P2 canonical current-cycle input
+  provider preflight are now PASS. Production P2 no longer defaults to the
+  Tushare staging provider.
 - Data-platform current-cycle selector and PG wrapper tests are strengthened,
   and the 2026-04-28 bounded runner now proves live Tushare refresh,
   current-cycle selection, PG candidate validation, and PG transaction freeze
@@ -51,6 +54,20 @@ artifact is supporting evidence and must not be treated as a production
   - Phase 2 pool failure-rate gate derives from L8 or a persisted metric
     artifact, rejects stale cycle IDs against the Dagster run tag, and keeps
     inline env JSON labeled as a non-production fallback only.
+- data-platform: `20331c7636f47cf2b67228ef8c2b4ce1269cb4be`
+  - Adds runtime `TUSHARE_INTERFACE_REGISTRY`, Raw manifest v2 metadata, and
+    keeps only 28 typed assets production-selectable.
+- data-platform: `4e10c6e3ee441c107e804bef8bbe5a00a81905a6`
+  - Adds provider-neutral canonical current-cycle input loader.
+- orchestrator: `361bfe6fc0104414aaa55c3f1e11699acdffcfd3`
+  - Makes production P2 default to `DataPlatformCanonicalCurrentCycleInputProvider`
+    and renames the supported surface to `phase2_current_cycle_canonical_inputs`.
+- frontend-api: `0c24fad51deabd3b1031dc1315b8d98294392b49`
+  - Keeps raw debug routes and direct data-platform public fallback out of the
+    default read-only production surface.
+- main-core: `efaa4f697267257c5936ddd8df6f3c16b3b5634d`
+  - Removes provider-specific labels from the controlled vertical-slice event
+    fixture.
 
 ## Runtime Environment Preflight
 
@@ -169,6 +186,27 @@ result:
 skipped tests require dbt CLI in the execution environment
 ```
 
+Provider-neutral P2 preflight:
+
+```text
+cd /Users/fanjie/Desktop/Cowork/project-ult/orchestrator
+PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/orchestrator/src:/Users/fanjie/Desktop/Cowork/project-ult/main-core/src:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src:/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src:/Users/fanjie/Desktop/Cowork/project-ult/reasoner-runtime \
+  /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest -q \
+  tests/integration/test_production_daily_cycle_provider.py \
+  tests/integration/test_p2_dry_run_handoff.py
+
+result:
+completed with 5 dbt CLI skips; no failures
+```
+
+Frontend/main-core/source boundary checks:
+
+```text
+frontend-api focused suite: 41 passed
+main-core vertical slice: 1 passed
+no-source scan over graph-engine/reasoner-runtime/main-core/frontend-api: no matches
+```
+
 Orchestrator lint:
 
 ```text
@@ -203,13 +241,13 @@ py_compile passed
 | P1 | Production Phase 2 pool failure-rate can now derive from current-cycle L8 output or a persisted metric artifact, with stale-cycle and inline-artifact regressions covered, but no full production Dagster run has exercised that handoff yet. | `orchestrator/src/orchestrator_adapters/production_daily_cycle.py`; `orchestrator/src/orchestrator/checks/phase2.py` |
 | P1 | Full `daily_cycle_job.execute_in_process(tags={"cycle_id": selector.cycle_id})` has not run with real Phase 0/1/2/3/audit resources. Provider wiring and full Dagster proof remain pending unless that proof actually runs and passes. | JSON artifact |
 | P2 | Audit hook hardening is complete, but no production Dagster run has yet produced and consumed the final audit hook artifact. | `audit-eval/src/audit_eval/retro/hook.py` |
-| P3 | Additional Tushare inventory is now cataloged as provider availability, but unpromoted interfaces remain a canonical-mapping and promotion-scope decision gap, not a business-layer implementation shortcut. | `p1-provider-neutral-tushare-catalog-20260428.md` |
+| P3 | Additional provider inventory is now cataloged as provider availability, but unpromoted interfaces remain a canonical-mapping and promotion-scope decision gap, not a business-layer implementation shortcut. | `p1-provider-neutral-raw-canonical-runtime-20260428.md` |
 
 ## Findings
 
 - P0: none.
-- P1: production daily-cycle remains blocked by configured runtime/provider
-  gaps and missing full Dagster proof, not by missing env or P3 GDS.
+- P1: production daily-cycle remains blocked by full real Dagster proof, not by
+  missing env, P3 GDS, or source-specific P2 input provider.
 - P2: audit hook production artifact remains unproven in a full Dagster run.
 - P3: Tushare provider inventory is larger than the original 40-API planning
   target; production consumers must still wait for canonical mapping approval
