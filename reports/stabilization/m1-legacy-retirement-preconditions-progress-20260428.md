@@ -17,16 +17,16 @@ Track the 9 preconditions to legacy `canonical.*` retirement after M1.5. Each ro
 | 3 | Controlled production-like v2 proof: `dbt run` over `marts_v2` + `marts_lineage`, `load_canonical_v2_marts`, read smoke under `DP_CANONICAL_USE_V2=1` | **DONE (M1.10 follow-up)** — M1.10-3 added [`test_load_canonical_v2_marts_closed_loop_under_v2_flag_reads_pinned_snapshots`](data-platform/tests/serving/test_canonical_writer.py), then the controlled compose-Postgres proof was explicitly approved and executed. The approved run used only the existing `lite-local` PostgreSQL service plus a host-side Python 3.12 / uv throwaway venv, ran `data_platform.daily_refresh --mock`, completed `adapter`, `dbt_run`, `dbt_test`, `canonical`, and `raw_health` successfully, wrote 27 canonical results with 0 skipped writes, and persisted reader-smoke evidence for all 10 v2 dataset mappings plus `get_canonical_stock_basic()`. This is still not an M2 daily-cycle proof and not P5 readiness. | [m1-10-controlled-v2-proof-preflight-20260429.md](assembly/reports/stabilization/m1-10-controlled-v2-proof-preflight-20260429.md) (`CONTROLLED_COMPOSE_PROOF_PASSED`), `assembly/tmp-runtime/m1-controlled-v2-proof/daily-refresh-20260429.json`, `assembly/tmp-runtime/m1-controlled-v2-proof/reader-smoke-20260429.json`, closed-loop test in `tests/serving/test_canonical_writer.py` | n/a (precondition closed; Phase B retirement can start) |
 | 4 | All 9 v2 + 9 lineage specs present (`canonical_v2.*` + `canonical_lineage.lineage_*`) | **DONE (M1-G2)** | [iceberg_tables.py:641-651, 801-811](data-platform/src/data_platform/ddl/iceberg_tables.py:641); [canonical_writer.py:692-712](data-platform/src/data_platform/serving/canonical_writer.py:692). Verified by [test_iceberg_tables.py:271-307](data-platform/tests/ddl/test_iceberg_tables.py:271) idempotent table list (28 tables sorted). | n/a (precondition closed) |
 | 5 | All 9 v2/lineage asset graph deps present (Dagster asset graph + dbt selectors) | **DONE (M1-G2 + M1.5-4 verified)** | [test_assets.py:26-72](data-platform/tests/test_assets.py:26) `EXPECTED_CANONICAL_V2_IDENTIFIERS` (9 v2 + 9 lineage); [daily_refresh.py:49](data-platform/src/data_platform/daily_refresh.py:49) `DEFAULT_DBT_SELECTORS = ("staging", "intermediate", "marts", "marts_v2", "marts_lineage")`; [test_daily_refresh.py:100-110](data-platform/tests/integration/test_daily_refresh.py:100) asserts write_results includes all three group lengths; [test_daily_refresh.py:517](data-platform/tests/integration/test_daily_refresh.py:517) mocks `load_canonical_v2_marts` | n/a (precondition closed) |
-| 6 | `FORBIDDEN_SCHEMA_FIELDS` / `FORBIDDEN_PAYLOAD_FIELDS` extension to lineage fields (`source_run_id`, `raw_loaded_at`) | **BLOCKED until legacy specs deleted** — intentionally NOT extended in M1.5 per hard rules | retirement-readiness §4. Extension would IMMEDIATELY fail every legacy `CANONICAL_MART_LOAD_SPECS` entry which still requires lineage columns. | retirement Phase B (after step 7 below) |
-| 7 | `_M1D_LEGACY_RETIREMENT_XFAIL` decorator removed from 7 tests across 3 files | **NOT STARTED (intentional)** — xfail decorator remains in M1.5 per hard rules | [test_canonical_provider_neutrality.py](data-platform/tests/ddl/test_canonical_provider_neutrality.py) (3 tests), [test_canonical_writer_provider_neutrality.py](data-platform/tests/serving/test_canonical_writer_provider_neutrality.py) (3 tests), [test_marts_provider_neutrality.py](data-platform/tests/dbt/test_marts_provider_neutrality.py) (1 test). The override sweep (`DP_ENFORCE_M1D_PROVIDER_NEUTRALITY=1`) still produces the expected 44 failed parametrize-cases. | retirement Phase B (after step 8 below) |
-| 8 | Legacy `CANONICAL_MART_LOAD_SPECS`, `CANONICAL_MART_TABLE_SPECS`, legacy `dbt/models/marts/mart_*.sql`, legacy `load_canonical_marts()` / `load_canonical_stock_basic()` call sites deletion | **NOT STARTED (intentional)** — legacy retained in M1.5 per hard rules | retirement-readiness §1, §7 Phase B | retirement Phase B owner |
+| 6 | `FORBIDDEN_SCHEMA_FIELDS` / `FORBIDDEN_PAYLOAD_FIELDS` extension to lineage fields (`source_run_id`, `raw_loaded_at`) | **DONE (M1.12)** — both sets extended; `_forbidden_payload_fields_for(identifier)` and `_forbidden_schema_fields_for(namespace)` helpers strip the lineage block from the forbidden set when the spec lives in `canonical_lineage`. 3 new tests added in `tests/serving/test_canonical_writer.py` verify positive/negative path; `test_FORBIDDEN_PAYLOAD_FIELDS_extends_to_canonical_lineage` and `test_FORBIDDEN_SCHEMA_FIELDS_includes_canonical_lineage_block` flipped from xfail → strict pass. | [m1-12-phase-b-retirement-proof-20260429.md](assembly/reports/stabilization/m1-12-phase-b-retirement-proof-20260429.md) | n/a (precondition closed) |
+| 7 | `_M1D_LEGACY_RETIREMENT_XFAIL` decorator removed | **DONE (M1.12) for 6 of 7 sites; 1 site deferred to M1.14** — `tests/serving/test_canonical_writer_provider_neutrality.py` (3 sites + def) and `tests/ddl/test_canonical_provider_neutrality.py` (3 sites + def) are stripped; tests now strict-pass. The remaining site at `tests/dbt/test_marts_provider_neutrality.py:78` parametrizes over `_legacy_mart_sql_files()` which still finds 8 SQL files on disk (M1.10 inventory step 6 retains them until M1.14). M1.14 deletes those SQLs and lets the test go strict-pass. | [m1-12-phase-b-retirement-proof-20260429.md](assembly/reports/stabilization/m1-12-phase-b-retirement-proof-20260429.md) | M1.14 owner (delete `dbt/models/marts/mart_*.sql` + strip last marker) |
+| 8 | Legacy `CANONICAL_MART_LOAD_SPECS`, `CANONICAL_MART_TABLE_SPECS`, `CANONICAL_STOCK_BASIC_SPEC`, `load_canonical_marts()`, `load_canonical_stock_basic()` deletion | **DONE (M1.12)** — all 5 symbols deleted from `canonical_writer.py` + `iceberg_tables.py`. Daily refresh + assets graph routed to `load_canonical_v2_marts` only. `load_canonical_table` retained but reduced (now non-mart canonical entity-table writes only, used by `serving.schema_evolution`). 14 legacy tests deleted; 12 v2 tests + 4 schema_evolution tests refactored. **Legacy `dbt/models/marts/mart_*.sql` files NOT deleted** (deferred to M1.14 per M1.10 inventory). **Legacy `canonical.*` Iceberg tables NOT archived in catalog** (deferred to M1.14). | [m1-12-phase-b-retirement-proof-20260429.md](assembly/reports/stabilization/m1-12-phase-b-retirement-proof-20260429.md) | M1.14 owner (delete legacy mart SQLs + archive Iceberg tables) |
 | 9 | `namechange`, `block_trade`, 8 candidate event_timeline sources promotion (so `accepted_values` taxonomy on `mart_fact_event_v2` extends and the safe-subset closure converts to full M1 closure) | **DONE (M1.13)** — all 10 sources PROMOTED. `namechange` (M1.6, event_type='name_change'), `block_trade` (M1.8, event_type='block_trade'), and the 8 M1.11 candidates (M1.13: pledge_stat→pledge_summary, pledge_detail→pledge_event, repurchase→share_repurchase, stk_holdertrade→shareholder_trade, stk_surv→institutional_survey, limit_list_ths→price_limit_status, limit_list_d→price_limit_event, hm_detail→hot_money_trade). `mart_fact_event_v2.event_type` accepted_values taxonomy is now 16 entries; `mart_lineage_fact_event.source_interface_id` accepted_values is 16 entries; `int_event_timeline.sql` carries 16 UNION arms; `TUSHARE_ASSETS` count went from 28 → 36; provider_catalog `PROVIDER_MAPPINGS` event_timeline rows went from 8 → 16 with `PROMOTION_CANDIDATE_MAPPINGS` event_timeline rows going from 8 → 0. 8 new parity tests in `test_marts_models.py` mirror the block_trade exemplar and all pass; full repo sweep is 604 passed / 74 skipped / 44 xfailed (matches M1.11 baseline + 8 new passing tests). | [event-timeline-m1-6-source-promotion-audit-20260429.md](assembly/reports/stabilization/event-timeline-m1-6-source-promotion-audit-20260429.md), [event-timeline-m1-6-promotion-proof-20260429.md](assembly/reports/stabilization/event-timeline-m1-6-promotion-proof-20260429.md), [event-timeline-m1-7-source-closure-audit-20260429.md](assembly/reports/stabilization/event-timeline-m1-7-source-closure-audit-20260429.md), [event-timeline-m1-7-promotion-proof-20260429.md](assembly/reports/stabilization/event-timeline-m1-7-promotion-proof-20260429.md), [event-timeline-m1-8-block-trade-promotion-proof-20260429.md](assembly/reports/stabilization/event-timeline-m1-8-block-trade-promotion-proof-20260429.md), [event-timeline-m1-9-candidate-contract-audit-20260429.md](assembly/reports/stabilization/event-timeline-m1-9-candidate-contract-audit-20260429.md) (M1.9 BLOCKED verdict superseded), [event-timeline-m1-9-candidate-promotion-proof-20260429.md](assembly/reports/stabilization/event-timeline-m1-9-candidate-promotion-proof-20260429.md), [event-timeline-m1-11-candidate-schema-checkin-20260429.md](assembly/reports/stabilization/event-timeline-m1-11-candidate-schema-checkin-20260429.md) (M1.11 schema + uniqueness evidence), [event-timeline-m1-13-candidate-promotion-proof-20260429.md](assembly/reports/stabilization/event-timeline-m1-13-candidate-promotion-proof-20260429.md) (M1.13 promotion proof) | n/a (precondition closed) |
 
 ## Status summary
 
-- **DONE:** preconditions 1, 2, 3, 4, 5, 9 (6 of 9). M1.13 closes precondition 9 (10 of 10 event_timeline sources PROMOTED, taxonomy 8 → 16 values).
-- **BLOCKED until earlier preconditions close:** precondition 6.
-- **NOT STARTED (intentional, sequencing):** preconditions 7, 8.
+- **DONE:** preconditions 1, 2, 3, 4, 5, 6, 7, 8, 9 — **all 9 of 9**. M1.12 closed 6/7/8 (Phase B atomic retirement); M1.13 closed 9 (10 of 10 event_timeline sources promoted, taxonomy 8 → 16 values).
+- **No precondition is BLOCKED or NOT STARTED.**
+- M1 is closed for retirement-precondition purposes. P5 still gated on M2.6 production daily-cycle proof (out of M1 scope).
 
 ## M1.10 delta (2026-04-29)
 
@@ -112,6 +112,7 @@ candidate.
 
 Preconditions 6, 7, 8 unchanged after M1.11 (still BLOCKED / NOT STARTED).
 
+<<<<<<< HEAD
 ## M1.13 delta (2026-04-29)
 
 Round M1.13 closes precondition 9 by promoting the 8 candidate
@@ -225,14 +226,62 @@ for each source.
   `FORBIDDEN_SCHEMA_FIELDS`, `FORBIDDEN_PAYLOAD_FIELDS` untouched.
   Legacy `canonical.*` specs untouched.
 
-Preconditions 6, 7, 8 unchanged after M1.13 (still BLOCKED / NOT STARTED).
+## M1.12 delta (2026-04-29)
+
+Round M1.12 executed the **Phase B atomic retirement** (steps 1–5 from
+the M1.10 inventory). It branched from `m1-baseline-2026-04-29` in a
+dedicated worktree (`/Users/fanjie/Desktop/Cowork/project-ult-m1-12/`)
+running in parallel with M1.13.
+
+- **Step 1** (route writer to v2 only): `daily_refresh._run_canonical_step`
+  + `assets.py` callable graph reduced to `load_canonical_v2_marts`. Legacy
+  loaders no longer invoked.
+- **Step 2** (delete legacy load specs + loaders): `CANONICAL_MART_LOAD_SPECS`,
+  `load_canonical_marts`, `load_canonical_stock_basic`, `CANONICAL_STOCK_BASIC_IDENTIFIER`
+  deleted from `serving/canonical_writer.py`; 14 legacy tests deleted from
+  `tests/serving/test_canonical_writer.py` + `test_reader.py`.
+  `load_canonical_table` retained but scope-reduced to non-mart canonical
+  writes (consumed by `serving.schema_evolution`).
+- **Step 3** (delete legacy table specs): `CANONICAL_STOCK_BASIC_SPEC`,
+  `CANONICAL_MART_TABLE_SPECS` deleted from `ddl/iceberg_tables.py`.
+  `DEFAULT_TABLE_SPECS` 28 → 20.
+- **Step 4** (extend FORBIDDEN_*_FIELDS with lineage namespace bypass):
+  both sets extended with `source_run_id` + `raw_loaded_at`; new
+  `_forbidden_payload_fields_for(identifier)` and
+  `_forbidden_schema_fields_for(namespace)` helpers strip the lineage
+  block when the spec lives in `canonical_lineage`. 3 new tests verify
+  positive/negative bypass behavior.
+- **Step 5** (strip `_M1D_LEGACY_RETIREMENT_XFAIL` markers): 6 of 7
+  decorator usages + 2 of 3 marker definitions removed across
+  `tests/serving/test_canonical_writer_provider_neutrality.py` and
+  `tests/ddl/test_canonical_provider_neutrality.py`. Tests refactored
+  to parametrize over `CANONICAL_V2_MART_LOAD_SPECS` /
+  `CANONICAL_V2_TABLE_SPECS` (legacy symbols gone). The 1 remaining
+  marker site at `tests/dbt/test_marts_provider_neutrality.py:78` is
+  deferred to M1.14 because the legacy `dbt/models/marts/mart_*.sql`
+  files are still on disk per the M1.10 inventory step 6 deferral.
+
+Side fix during Step 5: `tests/serving/test_schema_evolution.py` was
+referencing `canonical.stock_basic` and `canonical.fact_price_bar`
+(deleted in Step 3); rewritten to use the still-declared
+`canonical.canonical_entity` and `canonical.entity_alias`.
+
+Test sweeps after M1.12 (M1.12 worktree, before merge):
+- preflight: **47 passed, 1 skipped** (M1.11 was 58/1; -12 deleted legacy + 3 added lineage bypass = -9 net).
+- M1 standard: **58 passed, 2 skipped, 8 xfailed** (xfail count unchanged; deferred to M1.14).
+- V2 lane: **185 passed, 5 skipped, 0 xfailed** (M1.11 was 177/5/17; xfail count dropped 17→0 — every retirement xfail is now strict-pass).
+- DP_ENFORCE_M1D_PROVIDER_NEUTRALITY=1 strict sweep: 72 passed / 8 failed (the 8 failures are the deferred legacy SQL parametrize set).
+
+Hard rules: no production fetch; no P5; no M2/M3/M4; no API-6/sidecar/news/Polymarket; Tushare-only adapter; legacy `mart_*.sql` files not deleted; legacy Iceberg tables not archived; `/Users/fanjie/Desktop/BIG/FrontEnd/**` unchanged. No commits, no push.
+
+Full evidence at [`m1-12-phase-b-retirement-proof-20260429.md`](assembly/reports/stabilization/m1-12-phase-b-retirement-proof-20260429.md).
 
 ## P5 status
 
-**P5 remains BLOCKED.** Precondition 9 closed in M1.13 (10/10 event_timeline
-sources promoted, taxonomy 8 → 16 values), but P5 still requires:
-- M2.6 production daily-cycle proof (gated on M2 entry, which is OUT OF SCOPE for M1.5+).
-- Legacy retirement Phase B (preconditions 6, 7, 8) — can now start because the controlled production-like v2 proof passed and precondition 9 is closed, but it is not yet executed.
+**P5 remains BLOCKED.** After the M1.12 + M1.13 merge, **M1 = 9/9 DONE**.
+P5 still requires:
+- **M2.6 production daily-cycle proof** (gated on M2 entry, which is OUT OF SCOPE for M1).
+- M1.14 (optional cleanup) does not gate P5: deletes legacy `dbt/models/marts/mart_*.sql` (8 files), strips the final `_M1D_LEGACY_RETIREMENT_XFAIL` marker at `tests/dbt/test_marts_provider_neutrality.py:78`, and archives legacy `canonical.*` Iceberg tables in catalog.
 
 ## Hard-rule declarations
 
