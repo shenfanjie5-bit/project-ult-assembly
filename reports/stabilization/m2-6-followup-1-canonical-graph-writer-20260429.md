@@ -233,3 +233,222 @@ chain proceeds through Phase 3 + audit-eval. M2.6 daily-cycle proof is
 `m2-baseline-2026-04-29` continues to accumulate evidence; M2 is now
 **1 PARTIAL away from full code-side readiness** (blocker #4 is
 operationally limited by Codex quota).
+
+---
+
+## Post-review fold-in (M2.6f1.r1)
+
+After the initial M2.6 followup #1 commits landed, **3 reviewer agents**
+(python-reviewer / database-reviewer / code-reviewer) ran in parallel
+and surfaced 3 P1 + 5 P2 findings. All actionable findings folded into
+the same `m2-6f1-iceberg-canonical-graph-writer-v2` branch (data-
+platform). Below is the disposition.
+
+### P1-A — Append-only writer with no idempotency enforcement
+
+**Reviewer:** database-reviewer
+**Risk:** Phase 1 retry after a partial failure would duplicate node /
+edge / assertion rows; no read-side filter enforcement either.
+**Fix applied:** writer switched from
+`target.append(arrow)` to
+`target.overwrite(arrow, overwrite_filter=EqualTo("cycle_id", plan.cycle_id))`.
+Re-running the same cycle's plan now atomically replaces the prior
+cycle's slice rather than accumulating duplicates. Cross-cycle writes
+still accumulate (verified by the renamed
+`test_iceberg_writer_writes_distinct_cycles_without_overwriting_each_other`).
+**API probe:** confirmed `pyiceberg 0.11.1` `overwrite()` with row-
+filter works on `SqlCatalog` (probe in
+`assembly/tmp-runtime/m2-6f1-r1/probe_overwrite_filter.py`-equivalent
+script run pre-implementation; result: row-level idempotency works as
+expected, with a pyiceberg internal UserWarning on the first overwrite
+of an empty table — cosmetic only).
+**New tests:**
+* `test_iceberg_writer_overwrite_filter_pins_cycle_id` (unit) —
+  asserts the overwrite filter is `EqualTo("cycle_id", cycle_id)` with
+  the plan's exact `cycle_id` value, on each of the 3 tables.
+* `test_iceberg_writer_is_idempotent_across_two_runs_of_same_cycle`
+  (live integration) — writes the same plan twice, asserts each table
+  has exactly 1 row after both writes.
+
+### P1-B — Timestamp tz-naive on graph specs
+
+**Reviewer:** database-reviewer
+**Risk:** PyArrow accepts tz-aware datetimes into a tz-naive
+`pa.timestamp("us")` field via silent coercion in current versions;
+stricter PyArrow versions or a PostgreSQL-backed Iceberg catalog
+enforcing `timestamptz` would reject. Live integration test fixtures
+were already passing tz-aware datetimes — drift was latent.
+**Fix applied:** new `GRAPH_TIMESTAMP_TYPE = pa.timestamp("us", tz="UTC")`
+in `iceberg_tables.py`, applied to the 3 graph specs only. Existing
+`TIMESTAMP_TYPE` (tz-naive) unchanged for `canonical_entity` /
+`entity_alias` / `canonical_v2.*` / `canonical_lineage.*` to avoid a
+catalog-wide migration; harmonising the entire family is a separate
+`canonical-timestamp-tz` round.
+**Test side:** unit test `_now()` updated to return
+`datetime(..., tzinfo=timezone.utc)` to match the new schema (was
+tz-naive — the drift the reviewer flagged).
+
+### P1-C — Writer inline schema duplicated `TableSpec`
+
+**Reviewer:** database-reviewer
+**Risk:** Two sources of truth — if `TableSpec` evolves a column, the
+writer's inline `pa.schema(...)` would silently drift and only fail
+at append time against the already-created Iceberg table.
+**Fix applied:** all three `_node_records_to_arrow` /
+`_edge_records_to_arrow` / `_assertion_records_to_arrow` helpers now
+import the corresponding `CANONICAL_GRAPH_*_SPEC` and reference
+`spec.schema` directly. Lazy import keeps module-load behaviour
+unchanged.
+
+### P2-1 — `StubCanonicalGraphWriter` exported via `__all__`
+
+**Reviewers:** python-reviewer + database-reviewer + code-reviewer
+(unanimous)
+**Risk:** A name containing "Stub" that resolves to the production
+`IcebergCanonicalGraphWriter` is misleading via `from module import *`.
+**Fix applied:** removed from `__all__`. The module-level alias is
+retained for direct-name imports (M2.3a-2 callers), with a comment
+pointing new code at `IcebergCanonicalGraphWriter` /
+`_FailClosedCanonicalGraphWriter`.
+
+### P2-2 — Bare `list` type hints on writer helpers
+
+**Reviewer:** python-reviewer
+**Fix applied:** `records: list` → `records: list[Any]` on all three
+`_*_records_to_arrow` helpers (specific record types live in
+graph-engine and would create a reverse-import; `Any` is the correct
+boundary placeholder per the data-platform CLAUDE.md ownership rules).
+
+### P2-3 — No test for partial-write exception propagation
+
+**Reviewers:** code-reviewer + database-reviewer
+**Fix applied:** new
+`test_iceberg_writer_partial_write_exception_propagates_after_first_table`
+unit test injects a catalog whose graph_edge `overwrite()` raises;
+asserts the exception propagates, asserts graph_node was already
+overwritten before the failure, asserts graph_assertion was not
+attempted. This pins the recovery contract: the cycle-scoped overwrite
+on retry replaces the partial state cleanly.
+
+### P2-4 — Duplicate fake dataclass definitions across unit + integration
+
+**Reviewer:** python-reviewer
+**Risk:** Already drifted: integration test passed `tzinfo=UTC`, unit
+test passed naive datetime — a real bug surface.
+**Fix applied:** new `tests/_graph_promotion_fakes.py` (added `tests`
+to `pythonpath` in `pyproject.toml`) defines `FakeNodeRecord` /
+`FakeEdgeRecord` / `FakeAssertionRecord` / `FakePromotionPlan` once.
+Both unit and integration tests now import the same definitions
+(aliased to `_FakeXxx` at the call site to keep the leading-underscore
+private-test-helper signal). Helper factories (`_node_record` /
+`_edge` etc.) stay local to each test file since fixture shapes
+diverge by intent.
+
+### P2-5 — `partition_by=["cycle_id"]` on graph specs
+
+**Reviewer:** database-reviewer
+**Probe result:** `_identity_partition_spec` calls
+`pyiceberg.io.pyarrow.pyarrow_to_schema()` which raises
+`"Parquet file does not have field-ids and the Iceberg table does not
+have 'schema.name-mapping.default' defined"` on a `pa.schema(...)`-built
+PyArrow schema — same constraint that already deferred
+`partition_by=["trade_date"]` on `canonical_v2.fact_*` (cf.
+`iceberg_tables.py` L301-304).
+**Fix applied:** `partition_by=None` retained on all 3 graph specs;
+inline NOTE comments on each spec explicitly cite the deferral cause
+and reference the `canonical_v2.fact_*` precedent. A future
+`canonical-partition-strategy` round can add field-id mapping for the
+whole canonical family in one pass; the scan-side cost is acceptable
+at M2.6 daily-cycle volumes (one cycle's rows per scan).
+
+### Test results post fold-in
+
+```
+$ cd data-platform
+$ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src:contracts/src .venv/bin/python -m pytest \
+   -p no:cacheprovider tests/cycle/test_graph_phase1_adapters.py
+25 passed in 0.50s   (was 23 — added overwrite_filter_pins_cycle_id +
+                      partial_write_exception_propagates_after_first_table)
+
+$ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src:contracts/src .venv/bin/python -m pytest \
+   -p no:cacheprovider tests/integration/test_iceberg_canonical_graph_writer_live.py
+3 passed, 3 warnings in 0.62s   (was 2 — added is_idempotent_across_two_runs_of_same_cycle;
+                                 the warnings are pyiceberg's internal
+                                 "Delete operation did not match any records" on
+                                 first overwrite of an empty table — cosmetic)
+
+$ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src:contracts/src .venv/bin/python -m pytest \
+   -p no:cacheprovider
+654 passed, 73 skipped, 10 warnings in 46.33s   (was 626/74/0;
+                                                 +28 = 25 cycle adapters + 3 live
+                                                 integration tests now collected
+                                                 here, **0 regressions**)
+
+$ cd graph-engine
+$ PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -p no:cacheprovider
+425 passed, 21 skipped in 0.84s   (matches M2.3a-2 / M2.6f1 baseline; **0 regressions**)
+```
+
+### Files changed (post-fold-in)
+
+* `data-platform/src/data_platform/cycle/graph_phase1_adapters.py` —
+  `IcebergCanonicalGraphWriter.write_canonical_records` switched to
+  cycle-scoped `target.overwrite(...)`; `_*_records_to_arrow` helpers
+  reference `CANONICAL_GRAPH_*_SPEC.schema`; bare-`list` hints fixed;
+  `__all__` no longer exports `StubCanonicalGraphWriter`.
+* `data-platform/src/data_platform/ddl/iceberg_tables.py` — new
+  `GRAPH_TIMESTAMP_TYPE = pa.timestamp("us", tz="UTC")` applied to 3
+  graph specs; `partition_by` deferral notes added.
+* `data-platform/tests/_graph_promotion_fakes.py` — new shared module
+  hosting `FakeNodeRecord` / `FakeEdgeRecord` / `FakeAssertionRecord` /
+  `FakePromotionPlan` for both unit + integration test suites.
+* `data-platform/tests/cycle/test_graph_phase1_adapters.py` —
+  `_FakeIcebergTable.overwrite()` records `(arrow, filter)` pairs;
+  `_now()` returns tz-aware datetime; 7 existing writer assertions
+  switched from `appended` to `overwritten`; +2 new tests
+  (`overwrite_filter_pins_cycle_id`,
+  `partial_write_exception_propagates_after_first_table`); imports
+  shared fakes.
+* `data-platform/tests/integration/test_iceberg_canonical_graph_writer_live.py`
+  — renamed `appends_across_two_cycles` →
+  `writes_distinct_cycles_without_overwriting_each_other` (semantics
+  clarified); +1 new test
+  `is_idempotent_across_two_runs_of_same_cycle`; imports shared fakes.
+* `data-platform/pyproject.toml` — `pythonpath` extended to
+  `["src", "tests"]` to enable the shared fakes module.
+* `assembly/reports/stabilization/m2-6-followup-1-canonical-graph-writer-20260429.md`
+  — this Post-review fold-in section.
+
+### Reviewer false-alarm dispositions (deep-verified, no fix needed)
+
+* python-reviewer P1: `target_node_id` not explicitly `nullable=True`
+  in the assertion spec/writer. Verified PyArrow `pa.field()` defaults
+  to `nullable=True`, the test for null target_node_id passes, and the
+  schema contract validator (`_schema_field_contract`) compares
+  nullable flags symmetrically. code-reviewer self-retracted the same
+  finding upon further inspection. **Disposition:** P2 polish at most
+  (explicitness only); not folded.
+* code-reviewer expressed asymmetry concern about
+  `_FailClosedCanonicalGraphWriter` being private (no `__all__` entry)
+  while the `StubCanonicalGraphWriter` alias was public. The fold-in
+  removes `StubCanonicalGraphWriter` from `__all__`, resolving the
+  asymmetry by demoting the alias rather than promoting the
+  fail-closed class. The fail-closed class remains the explicit
+  fail-closed surface; orchestrator can construct it via the typed
+  exception path in `phase1.py`.
+
+### Aggregate M2 readiness (unchanged from M2.6f1 pre-fold)
+
+| # | Blocker | Status |
+|---|---|---|
+| 1 | `configured_data_platform_current_cycle_runtime` | READY |
+| 2 | `configured_graph_phase0_status_runtime` | READY-IN-CODE |
+| 3 | `configured_graph_phase1_runtime` | **READY-IN-CODE** (now with idempotent re-run + tz-aware timestamps) |
+| 4 | `configured_reasoner_runtime` | PARTIAL (Codex 429 quota) |
+| 5 | `configured_audit_eval_retrospective_hook_runtime` | READY |
+| 6 | `production_current_cycle_dagster_run_evidence` | DEFERRED-TO-M2.6 |
+
+The Phase 1 graph_promotion asset's write semantics are now harder to
+break: a re-run produces the same final state as a single run, and
+catalog-side timezone enforcement is satisfied. M2.6 readiness is
+unchanged in the count, **strengthened in the contract**.
