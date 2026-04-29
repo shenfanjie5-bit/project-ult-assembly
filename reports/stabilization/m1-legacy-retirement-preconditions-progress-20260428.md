@@ -20,12 +20,11 @@ Track the 9 preconditions to legacy `canonical.*` retirement after M1.5. Each ro
 | 6 | `FORBIDDEN_SCHEMA_FIELDS` / `FORBIDDEN_PAYLOAD_FIELDS` extension to lineage fields (`source_run_id`, `raw_loaded_at`) | **BLOCKED until legacy specs deleted** — intentionally NOT extended in M1.5 per hard rules | retirement-readiness §4. Extension would IMMEDIATELY fail every legacy `CANONICAL_MART_LOAD_SPECS` entry which still requires lineage columns. | retirement Phase B (after step 7 below) |
 | 7 | `_M1D_LEGACY_RETIREMENT_XFAIL` decorator removed from 7 tests across 3 files | **NOT STARTED (intentional)** — xfail decorator remains in M1.5 per hard rules | [test_canonical_provider_neutrality.py](data-platform/tests/ddl/test_canonical_provider_neutrality.py) (3 tests), [test_canonical_writer_provider_neutrality.py](data-platform/tests/serving/test_canonical_writer_provider_neutrality.py) (3 tests), [test_marts_provider_neutrality.py](data-platform/tests/dbt/test_marts_provider_neutrality.py) (1 test). The override sweep (`DP_ENFORCE_M1D_PROVIDER_NEUTRALITY=1`) still produces the expected 44 failed parametrize-cases. | retirement Phase B (after step 8 below) |
 | 8 | Legacy `CANONICAL_MART_LOAD_SPECS`, `CANONICAL_MART_TABLE_SPECS`, legacy `dbt/models/marts/mart_*.sql`, legacy `load_canonical_marts()` / `load_canonical_stock_basic()` call sites deletion | **NOT STARTED (intentional)** — legacy retained in M1.5 per hard rules | retirement-readiness §1, §7 Phase B | retirement Phase B owner |
-| 9 | `namechange`, `block_trade`, 8 candidate event_timeline sources promotion (so `accepted_values` taxonomy on `mart_fact_event_v2` extends and the safe-subset closure converts to full M1 closure) | **PARTIAL — 2/10 promoted; 8 candidates schema-checked-in and uniqueness-verified, READY_FOR_TAXONOMY_SIGNOFF (M1.11)** — `namechange` PROMOTED in M1.6 (event_type='name_change'); `block_trade` PROMOTED in M1.8 (event_type='block_trade'). **M1.11 supersedes the M1.9 BLOCKED_NO_LOCAL_SCHEMA verdict for all 8 remaining candidates**: the local Tushare archive at `/Volumes/dockcase2tb/database_all/股票数据/` carries authoritative CSV-header schemas + millions of historical rows, which let us (a) lift authoritative column lists, (b) verify intra-day uniqueness empirically (5 sources `PK_CONFIRMED`, 3 sources `PK_CONFIRMED_AFTER_STAGING_DEDUP` — byte-identical Tushare re-emissions resolved by the existing `stg_latest_raw` macro), and (c) propose canonical `event_type` taxonomy + `summary` template + identity_fields per source. Owner sign-off table sits in the M1.11 evidence file; M1.13 implements adapter + fixture + staging + UNION + parity-test for 8 sources after sign-off. | [event-timeline-m1-6-source-promotion-audit-20260429.md](assembly/reports/stabilization/event-timeline-m1-6-source-promotion-audit-20260429.md), [event-timeline-m1-6-promotion-proof-20260429.md](assembly/reports/stabilization/event-timeline-m1-6-promotion-proof-20260429.md), [event-timeline-m1-7-source-closure-audit-20260429.md](assembly/reports/stabilization/event-timeline-m1-7-source-closure-audit-20260429.md), [event-timeline-m1-7-promotion-proof-20260429.md](assembly/reports/stabilization/event-timeline-m1-7-promotion-proof-20260429.md), [event-timeline-m1-8-block-trade-promotion-proof-20260429.md](assembly/reports/stabilization/event-timeline-m1-8-block-trade-promotion-proof-20260429.md), [event-timeline-m1-9-candidate-contract-audit-20260429.md](assembly/reports/stabilization/event-timeline-m1-9-candidate-contract-audit-20260429.md) (M1.9 BLOCKED verdict superseded), [event-timeline-m1-9-candidate-promotion-proof-20260429.md](assembly/reports/stabilization/event-timeline-m1-9-candidate-promotion-proof-20260429.md), [event-timeline-m1-11-candidate-schema-checkin-20260429.md](assembly/reports/stabilization/event-timeline-m1-11-candidate-schema-checkin-20260429.md) (M1.11 schema + uniqueness evidence) | M1.13 implementation owner: read M1.11 sign-off table verbatim → 8 staging models + 1 `int_event_timeline.sql` UNION-arms patch + 2 `_schema.yml` accepted_values extensions + 1 adapter `_TushareFetchSpec` patch + 1 `registry.py` identity-tuple patch + 8 parity tests + `tushare_available_interfaces.csv` flip |
+| 9 | `namechange`, `block_trade`, 8 candidate event_timeline sources promotion (so `accepted_values` taxonomy on `mart_fact_event_v2` extends and the safe-subset closure converts to full M1 closure) | **DONE (M1.13)** — all 10 sources PROMOTED. `namechange` (M1.6, event_type='name_change'), `block_trade` (M1.8, event_type='block_trade'), and the 8 M1.11 candidates (M1.13: pledge_stat→pledge_summary, pledge_detail→pledge_event, repurchase→share_repurchase, stk_holdertrade→shareholder_trade, stk_surv→institutional_survey, limit_list_ths→price_limit_status, limit_list_d→price_limit_event, hm_detail→hot_money_trade). `mart_fact_event_v2.event_type` accepted_values taxonomy is now 16 entries; `mart_lineage_fact_event.source_interface_id` accepted_values is 16 entries; `int_event_timeline.sql` carries 16 UNION arms; `TUSHARE_ASSETS` count went from 28 → 36; provider_catalog `PROVIDER_MAPPINGS` event_timeline rows went from 8 → 16 with `PROMOTION_CANDIDATE_MAPPINGS` event_timeline rows going from 8 → 0. 8 new parity tests in `test_marts_models.py` mirror the block_trade exemplar and all pass; full repo sweep is 604 passed / 74 skipped / 44 xfailed (matches M1.11 baseline + 8 new passing tests). | [event-timeline-m1-6-source-promotion-audit-20260429.md](assembly/reports/stabilization/event-timeline-m1-6-source-promotion-audit-20260429.md), [event-timeline-m1-6-promotion-proof-20260429.md](assembly/reports/stabilization/event-timeline-m1-6-promotion-proof-20260429.md), [event-timeline-m1-7-source-closure-audit-20260429.md](assembly/reports/stabilization/event-timeline-m1-7-source-closure-audit-20260429.md), [event-timeline-m1-7-promotion-proof-20260429.md](assembly/reports/stabilization/event-timeline-m1-7-promotion-proof-20260429.md), [event-timeline-m1-8-block-trade-promotion-proof-20260429.md](assembly/reports/stabilization/event-timeline-m1-8-block-trade-promotion-proof-20260429.md), [event-timeline-m1-9-candidate-contract-audit-20260429.md](assembly/reports/stabilization/event-timeline-m1-9-candidate-contract-audit-20260429.md) (M1.9 BLOCKED verdict superseded), [event-timeline-m1-9-candidate-promotion-proof-20260429.md](assembly/reports/stabilization/event-timeline-m1-9-candidate-promotion-proof-20260429.md), [event-timeline-m1-11-candidate-schema-checkin-20260429.md](assembly/reports/stabilization/event-timeline-m1-11-candidate-schema-checkin-20260429.md) (M1.11 schema + uniqueness evidence), [event-timeline-m1-13-candidate-promotion-proof-20260429.md](assembly/reports/stabilization/event-timeline-m1-13-candidate-promotion-proof-20260429.md) (M1.13 promotion proof) | n/a (precondition closed) |
 
 ## Status summary
 
-- **DONE:** preconditions 1, 2, 3, 4, 5 (5 of 9).
-- **PARTIAL (2 of 10 sources promoted: namechange in M1.6, block_trade in M1.8; 8 candidates schema-checked-in + uniqueness-verified in M1.11, READY_FOR_TAXONOMY_SIGNOFF):** precondition 9.
+- **DONE:** preconditions 1, 2, 3, 4, 5, 9 (6 of 9). M1.13 closes precondition 9 (10 of 10 event_timeline sources PROMOTED, taxonomy 8 → 16 values).
 - **BLOCKED until earlier preconditions close:** precondition 6.
 - **NOT STARTED (intentional, sequencing):** preconditions 7, 8.
 
@@ -113,12 +112,127 @@ candidate.
 
 Preconditions 6, 7, 8 unchanged after M1.11 (still BLOCKED / NOT STARTED).
 
+## M1.13 delta (2026-04-29)
+
+Round M1.13 closes precondition 9 by promoting the 8 candidate
+event_timeline sources whose schemas + identity tuples were verified in
+M1.11. The mechanical closure followed the M1.6 / M1.8 exemplars —
+adapter spec + staging model + UNION arm + accepted_values + parity test
+for each source.
+
+- Wrote
+  [`event-timeline-m1-13-candidate-promotion-proof-20260429.md`](assembly/reports/stabilization/event-timeline-m1-13-candidate-promotion-proof-20260429.md)
+  capturing per-source taxonomy mapping, files added/modified, parity
+  test pass results, and the before/after coverage summary.
+- Production code touched in M1.13 (12 files modified, 8 staging SQL
+  files added):
+  - `data-platform/src/data_platform/adapters/tushare/assets.py` —
+    8 new schemas + 8 new asset specs; `TUSHARE_ASSETS` count
+    28 → 36; `EVENT_METADATA_FIELDS` 7 → 15.
+  - `data-platform/src/data_platform/adapters/tushare/__init__.py` —
+    re-exports for the 8 new asset symbols.
+  - `data-platform/src/data_platform/adapters/tushare/adapter.py` —
+    8 new `_TushareClient` Protocol methods + 8 new entries in each
+    of `EVENT_IDENTITY_FIELDS`, `EVENT_DATE_FIELDS`,
+    `_METHOD_BY_DATASET`, `_PARTITION_DATE_FIELD_BY_DATASET`,
+    `_PARTITION_REQUEST_PARAMS_BY_DATASET`,
+    `_DATE_PARAM_NAMES_BY_DATASET`. `STOCK_TS_CODE_DATASETS` extends
+    automatically through `EVENT_DATASETS = frozenset(EVENT_METADATA_FIELDS)`.
+  - `data-platform/src/data_platform/provider_catalog/registry.py` —
+    8 entries moved from `PROMOTION_CANDIDATE_MAPPINGS` (status
+    `candidate`) to `PROVIDER_MAPPINGS` (status `promoted`) with the
+    M1.11-verified wide identity tuples. Extended
+    `_PARTITION_KEY_BY_RAW_DATASET` with the 8 new entries.
+  - `data-platform/src/data_platform/daily_refresh.py` — extended
+    `DATE_FIELD_NAMES` with `release_date` + `surv_date`; extended
+    `STRING_NUMERIC_FIELD_NAMES` with the new sources' numeric
+    columns so `--mock` rows pass the staging cast.
+  - `data-platform/src/data_platform/dbt/models/staging/stg_*.sql` —
+    8 new staging SQL files (pledge_stat, pledge_detail, repurchase,
+    stk_holdertrade, stk_surv, limit_list_ths, limit_list_d,
+    hm_detail) using the `stg_latest_raw` macro pattern.
+  - `data-platform/src/data_platform/dbt/models/staging/_schema.yml` —
+    8 new staging-model declarations with `unique_combination_of_columns`
+    + per-column `not_null` + `parsable_yyyymmdd_or_date` tests.
+  - `data-platform/src/data_platform/dbt/models/staging/_sources.yml` —
+    8 new raw source declarations.
+  - `data-platform/src/data_platform/dbt/models/intermediate/int_event_timeline.sql` —
+    8 new UNION arms with literal `event_type` + `source_interface_id`
+    + `concat()`-based `summary` from M1.11 sign-off table.
+  - `data-platform/src/data_platform/dbt/models/intermediate/_schema.yml` —
+    `event_type` and `source_interface_id` accepted_values 8 → 16
+    each; updated description with M1.13 closure pointer.
+  - `data-platform/src/data_platform/dbt/models/marts_v2/_schema.yml` —
+    `mart_fact_event_v2.event_type` accepted_values 8 → 16; updated
+    header comment + model description.
+  - `data-platform/src/data_platform/dbt/models/marts_lineage/_schema.yml` —
+    `mart_lineage_fact_event.source_interface_id` accepted_values
+    8 → 16; updated header comment + model description.
+  - `data-platform/src/data_platform/dbt/models/marts/_schema.yml` —
+    legacy `mart_fact_event.event_type` accepted_values 8 → 16
+    (legacy and v2 share the same `int_event_timeline` source).
+- Test code touched in M1.13:
+  - `data-platform/tests/adapters/test_tushare_events.py` — `EVENT_ASSETS`,
+    `METHOD_BY_DATASET`, `FETCH_PARAMS_BY_DATASET`, `FakeTushareEventClient`
+    extended for 8 new sources; `_event_row` date-field set extended
+    with `exp_date`, `release_date`, `start_date`, `surv_date`;
+    `_raw_partition_call_params` extended with new partition-date
+    cases.
+  - `data-platform/tests/dbt/test_intermediate_models.py` — `event_types`
+    assertion 8 → 16 entries (alphabetic).
+  - `data-platform/tests/dbt/test_marts_models.py` — bumped
+    `event_summary` count `(8, 8)` → `(16, 16)`; added 8 new parity
+    tests + 1 shared helper `_assert_event_v2_and_lineage_pair_preserved`
+    that mirrors the block_trade exemplar (v2/lineage canonical-PK
+    parity, lineage-column membership, event_type/source_interface_id
+    presence).
+  - `data-platform/tests/dbt/test_tushare_staging_models.py` —
+    `DATE_FIELD_NAMES` + 7 new `<DATASET>_NUMERIC_FIELD_NAMES`
+    constants + extended `_sample_value` so the 8 new datasets get
+    parsable date strings + decimal-style numeric strings in
+    fixtures.
+  - `data-platform/tests/provider_catalog/test_provider_catalog.py` —
+    `len(production_entries) == len(TUSHARE_ASSETS) == 28` → `36`.
+- Production code NOT touched in M1.13:
+  - `mart_fact_event_v2.sql` — `event_key` md5 derivation unchanged.
+  - `mart_lineage_fact_event.sql` — same.
+  - `tushare_available_interfaces.csv` — UNCHANGED. The validator at
+    `registry.py:84` enforces `access_status == "available"` for
+    every row in this inventory CSV. The actual "promotion" the
+    M1.11 evidence file described as a `tushare_available_interfaces.csv` flip
+    is encoded in `provider_catalog/registry.py` (PROVIDER_MAPPINGS
+    membership) — `TUSHARE_INTERFACE_REGISTRY[<source_id>].promotion_status`
+    is `"promoted"` for each of the 8 sources after M1.13.
+  - Iceberg DDL, canonical writer specs, dataset routing, serving
+    runtime — unchanged.
+  - Legacy `canonical.*` specs — NOT deleted (Phase B owns it).
+  - `_M1D_LEGACY_RETIREMENT_XFAIL` — NOT removed.
+  - `FORBIDDEN_SCHEMA_FIELDS` / `FORBIDDEN_PAYLOAD_FIELDS` — NOT extended.
+- Test sweep results after M1.13:
+  - Provider catalog: 11 passed.
+  - Adapter / raw: 171 passed.
+  - dbt (skeleton + coverage + intermediate + marts + provider
+    neutrality + staging): 64 passed, 3 skipped, 8 xfailed.
+  - Integration daily refresh + canonical writer + reader: 58
+    passed, 1 skipped.
+  - V2 lane (`DP_CANONICAL_USE_V2=1`): 177 passed, 5 skipped, 17 xfailed.
+  - 8 new parity tests via `-k pledge_stat or ...`: 8 passed.
+  - Full repo sweep: 604 passed, 74 skipped, 44 xfailed.
+- Hard rules: no Tushare HTTP. Local archive at
+  `/Volumes/dockcase2tb/database_all/股票数据/` consulted read-only
+  for column-list verification only (no rows copied into repo). No
+  commits / push / amend / reset. `_M1D_LEGACY_RETIREMENT_XFAIL`,
+  `FORBIDDEN_SCHEMA_FIELDS`, `FORBIDDEN_PAYLOAD_FIELDS` untouched.
+  Legacy `canonical.*` specs untouched.
+
+Preconditions 6, 7, 8 unchanged after M1.13 (still BLOCKED / NOT STARTED).
+
 ## P5 status
 
-**P5 remains BLOCKED.** None of the M1.5 / M1.6 / M1.7 / M1.8 / M1.9 work changes that. P5 still requires:
+**P5 remains BLOCKED.** Precondition 9 closed in M1.13 (10/10 event_timeline
+sources promoted, taxonomy 8 → 16 values), but P5 still requires:
 - M2.6 production daily-cycle proof (gated on M2 entry, which is OUT OF SCOPE for M1.5+).
-- Legacy retirement Phase B (preconditions 6, 7, 8) — can now start because the controlled production-like v2 proof passed, but it is not yet executed.
-- Closure of the 8 remaining `event_timeline` candidate sources (precondition 9) — independent track. M1.11 supersedes the M1.9 `BLOCKED_NO_LOCAL_SCHEMA` verdict by lifting authoritative schemas + empirically verifying primary keys against the local Tushare archive. The remaining gates are (a) **owner taxonomy sign-off** for `event_type` / `summary` / identity_fields per source (table in M1.11 evidence file), then (b) M1.13 mechanical implementation: 8 staging models + 1 `int_event_timeline.sql` UNION-arms patch + 2 `_schema.yml` accepted_values extensions + 1 adapter `_TushareFetchSpec` patch + 1 `registry.py` identity-tuple patch + 8 parity tests + `tushare_available_interfaces.csv` flip. M1.6's namechange and M1.8's block_trade promotions establish the pattern.
+- Legacy retirement Phase B (preconditions 6, 7, 8) — can now start because the controlled production-like v2 proof passed and precondition 9 is closed, but it is not yet executed.
 
 ## Hard-rule declarations
 
