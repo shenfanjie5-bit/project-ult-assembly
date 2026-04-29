@@ -112,7 +112,6 @@ candidate.
 
 Preconditions 6, 7, 8 unchanged after M1.11 (still BLOCKED / NOT STARTED).
 
-<<<<<<< HEAD
 ## M1.13 delta (2026-04-29)
 
 Round M1.13 closes precondition 9 by promoting the 8 candidate
