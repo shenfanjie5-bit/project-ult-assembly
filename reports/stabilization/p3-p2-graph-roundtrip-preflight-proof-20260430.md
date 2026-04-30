@@ -3,17 +3,26 @@
 ## Status
 
 **M3.2 status: COMPLETE (preflight scope).** Closes the M3.2 milestone
-criterion: P2 / main-core consumes an **actually produced** graph
-snapshot ref in a bounded run, not a fixture-only fake. Four new
-integration tests in main-core wire graph-engine's
-`FormalArtifactSnapshotWriter` + `ArtifactCanonicalReader` through a
-test-only `_ArtifactBackedGraphEnginePort` adapter into main-core's L3
-+ L4 consumers, and verify the snapshot's identity (cycle_id +
-graph_snapshot_id) and payload round-trip end-to-end.
+criterion for GraphSnapshot consumption: P2 / main-core consumes an
+**actually produced** graph snapshot ref in a bounded run, not a
+fixture-only fake. Four new integration tests in main-core wire
+graph-engine's `FormalArtifactSnapshotWriter` + `ArtifactCanonicalReader`
+through a test-only `_ArtifactBackedGraphEnginePort` adapter into
+main-core's L3 + L4 consumers, and verify the GraphSnapshot identity
+(cycle_id + graph_snapshot_id) plus node/edge payload round-trip
+end-to-end.
+
+This preflight does **not** prove formal `GraphImpactSnapshot`
+consumption. The writer stores the companion `impact_snapshot` in the
+artifact, but the public `ArtifactCanonicalReader` path used here
+exposes a GraphSnapshot-derived `ColdReloadPlan` only. Consuming and
+validating the formal `GraphImpactSnapshot` remains future work for the
+production `GraphEnginePort` / orchestrator wiring.
 
 This is **preflight**, not the full M3.3 production same-cycle proof:
 no live PG, no live Neo4j, no Dagster job execution. M3.3 remains the
-end-to-end production proof and depends on M2.6 (Codex quota).
+end-to-end production proof and depends on M2.6 plus production
+`GraphEnginePort` / orchestrator wiring.
 
 ---
 
@@ -21,11 +30,11 @@ end-to-end production proof and depends on M2.6 (Codex quota).
 
 - M2.3 (graph Phase 0/1 runtime wiring) — **READY-IN-CODE** as of
   M2.3a-2 / M2.6f1.r1+r2. graph-engine's `FormalArtifactSnapshotWriter`
-  + `ArtifactCanonicalReader` are the artefacts produced by M2.3 path
-  that M3.2 verifies round-trip cleanly.
+  + `ArtifactCanonicalReader` are the public artifact writer/reader
+  pair used by M3.2 to verify the GraphSnapshot-derived round-trip.
 - M3.1 (L3/L4 cross-cycle integration rejection test) — **PASS** as of
   the same-day commit. M3.1 closed the rejection-branch coverage gap;
-  M3.2 closes the production-snapshot-consumption coverage gap.
+  M3.2 closes the GraphSnapshot round-trip preflight coverage gap.
 - C4 audit (`assembly/reports/stabilization/p3-p2-graph-consumption-audit-20260428.md`)
   identified both gaps. M3.1 + M3.2 close them in succession.
 
@@ -41,22 +50,24 @@ cycle-id round-trip test:
 
 1. **Phase 1 — `test_graph_snapshot_artifact_round_trips_via_writer_and_reader`**
    — pure graph-engine boundary check: `FormalArtifactSnapshotWriter`
-   writes a real `(GraphSnapshot, GraphImpactSnapshot)` pair to
-   `tmp_path`; `ArtifactCanonicalReader.read_cold_reload_plan` reads
-   back a `ColdReloadPlan` whose `expected_snapshot.snapshot_id`
+   writes a real `GraphSnapshot` plus companion `GraphImpactSnapshot`
+   to `tmp_path`; `ArtifactCanonicalReader.read_cold_reload_plan`
+   reads back a `ColdReloadPlan` whose `expected_snapshot.snapshot_id`
    matches the original `graph_snapshot_id`, and whose
    `node_records` / `edge_records` counts match `node_count` /
-   `edge_count`. Proves the write/read shapes agree.
+   `edge_count`. Proves the GraphSnapshot write/read shapes agree; it
+   does not prove consumption of the embedded `impact_snapshot`.
 
-2. **Phase 2 — `test_main_core_l3_consumes_artifact_backed_graph_impact_records`**
+2. **Phase 2 — `test_main_core_l3_consumes_artifact_backed_graph_snapshot_node_payload`**
    — wires the artifact-backed `GraphEnginePort` through main-core's
    `build_feature_signal_bundles`. Verifies:
    - the produced snapshot's `graph_snapshot_id` appears in
      `bundle.graph_features["snapshot_id"]` (proving L3 read the
      **real** ref, not a synthetic value);
-   - the round-trip marker `"from-artifact-reader"` appears in
+   - the round-trip marker `"from-artifact-payload"` appears in
      `bundle.graph_features["features"]`, proving records flowed
-     through the reader rather than a bypassed in-memory shortcut;
+     from the GraphSnapshot node payload through the reader rather
+     than a bypassed in-memory shortcut;
    - `graph_port.impact_calls == [cycle_id]` (called exactly once
      with the requested cycle id).
 
@@ -69,7 +80,7 @@ cycle-id round-trip test:
      the original snapshot;
    - `graph_port.regime_calls == [cycle_id]`.
 
-4. **Belt-and-braces — `test_round_trip_preserves_cycle_id_under_unicode_safe_ref`**
+4. **Belt-and-braces — `test_round_trip_preserves_cycle_id_with_long_alphanumeric_ref`**
    — exercises a non-trivial-but-spec-compliant `cycle_id` (e.g.
    `"cycle-m3-2-2026-04-30T12-00Z"`) to catch a regression where the
    writer or reader silently coerces / truncates the cycle id.
@@ -78,18 +89,22 @@ cycle-id round-trip test:
 
 `_ArtifactBackedGraphEnginePort` (in the test file) is a small
 adapter that satisfies main-core's `GraphEnginePort` protocol by
-sourcing records from the cold-reload plan's `node_records`. It is
+sourcing protocol records from the cold-reload plan's `node_records`.
+It does not consume the formal `GraphImpactSnapshot` payload. It is
 **local to the test** — not a production adapter — but its shape
 mirrors what a future production adapter would do (read records from a
 persisted artifact, reshape into `GraphImpactRecord` /
-`GraphRegimeContext`).
+`GraphRegimeContext`). A production adapter still needs an explicit
+formal-impact consumption/validation path.
 
 ### graph-engine
 
 No source-code changes. The test consumes graph-engine's **public**
 entry points only: `FormalArtifactSnapshotWriter` and
 `ArtifactCanonicalReader` from `graph_engine.snapshots` /
-`graph_engine.reload`.
+`graph_engine.reload`. The public reader path exercised here exposes
+GraphSnapshot-derived reload records, not a typed
+`GraphImpactSnapshot` reader.
 
 ### orchestrator
 
@@ -162,21 +177,28 @@ This is documented inline in the test fixture builder
 | L3 fail-closed on cross-cycle (integration) | M3.1 PASS | M3.1 PASS (unchanged) |
 | L4 fail-closed on cross-cycle (integration) | M3.1 PASS | M3.1 PASS (unchanged) |
 | Snapshot writer/reader round-trip (graph-engine) | covered by `test_live_closure.py` | unchanged |
-| **Cross-module write→read→consume round-trip** | **MISSING** | **PASS (preflight)** |
+| **Cross-module write→read→consume round-trip** | **MISSING** | **PASS (GraphSnapshot preflight)** |
 | Snapshot ID + counts round-trip end-to-end | MISSING | PASS |
-| Production same-cycle consumption proof | Blocked on M2.6 | Blocked on M2.6 (unchanged) |
+| Node/edge payload marker round-trip end-to-end | MISSING | PASS |
+| Formal GraphImpactSnapshot consumption | MISSING | Future work |
+| Production same-cycle consumption proof | Blocked on M2.6 + production GraphEnginePort/orchestrator wiring | Unchanged |
 
-M3.2 closes the cross-module preflight gap. M3.3 (production same-
-cycle proof through the full daily_cycle_job) remains the blocking
-prerequisite for the full G3 gate; M3.2 narrows the
-"could-the-cross-module-snapshot-consumption-actually-work" question
-that M3.3 would otherwise need to answer from scratch.
+M3.2 closes the cross-module GraphSnapshot preflight gap. M3.3
+(production same-cycle proof through the full daily_cycle_job) remains
+the blocking prerequisite for the full G3 gate; M3.2 narrows the
+"could-the-cross-module-GraphSnapshot-consumption-actually-work"
+question that M3.3 would otherwise need to answer from scratch.
 
 ### What M3.2 does NOT prove
 
 * It does NOT prove production same-cycle consumption (M3.3
   territory; needs `daily_cycle_job` execution + real Iceberg/Neo4j +
-  Codex quota for the LLM legs).
+  Codex quota for the LLM legs + production GraphEnginePort/orchestrator
+  wiring).
+* It does NOT prove formal `GraphImpactSnapshot` consumption. The
+  writer embeds the companion `impact_snapshot`, but the public
+  cold-reload reader path used by this preflight exposes
+  GraphSnapshot-derived metrics and node/edge records only.
 * It does NOT exercise a real production `GraphEnginePort` impl.
   None exists yet — main-core's L3 / L4 still use
   `FakeGraphEnginePort` in tests. The test introduces a local
@@ -198,13 +220,15 @@ that M3.3 would otherwise need to answer from scratch.
 |---|---|---|---|
 | M3.1 | L3/L4 cross-cycle integration rejection test | PASS | PASS |
 | M3.2 | Graph snapshot ref round-trip preflight | (P1, ready to start) | **PASS (preflight)** |
-| M3.3 | Production same-cycle graph consumption proof | P1, blocked on M2.6 + M3.2 | **Blocked on M2.6 only** (Codex quota) |
+| M3.3 | Production same-cycle graph consumption proof | P1, blocked on M2.6 + M3.2 | **Blocked on M2.6 + production GraphEnginePort/orchestrator wiring** |
 | M3.4 | Graph impact consumption decision | P2, blocked (PM decision) | Blocked (PM decision) |
 | M3.5 | L6 graph context architecture decision | P2, blocked (PM decision) | Blocked (PM decision) |
 
-The next progressable round depends on M2.6 (Codex quota reset). In
-the meantime, **M4.7 (Docling/LlamaIndex offline preflight)** is an
-independent P2 round that can progress without M2.6.
+The next production same-cycle proof round depends on M2.6 plus
+production GraphEnginePort/orchestrator wiring. M4.7 can still host
+synthetic offline smoke work outside the daily-cycle path, but the
+M4.7 milestone closure remains gated by its own M4.1 dependency and by
+real representative-document / real-Docling evidence.
 
 ---
 
@@ -252,7 +276,7 @@ independent P2 round that can progress without M2.6.
 |---|---|---|---|
 | **review** M3.2 | reviewer agents + codex CLI | 5-10 min | catches design / coverage gaps |
 | M4.7 — Docling/LlamaIndex offline preflight | subsystem-announcement + subsystem-news; offline parse 10-20 docs | 0.5-1 round | independent track, P2, not on daily-cycle critical path |
-| Wait for Codex quota reset (~5d) → M2.6 + M3.3 | full daily-cycle + production same-cycle proof | 1-2 rounds + wait | M2 closure + G2/G3 unblock |
+| Wait for Codex quota reset (~5d) → M2.6 + production GraphEnginePort/orchestrator wiring + M3.3 | full daily-cycle + production same-cycle proof | 1-2 rounds + wait | M2 closure + G2/G3 unblock |
 
 `m2-baseline-2026-04-29` continues to accumulate evidence; M3.2 is the
 second M3 round to land on the same day as M3.1.

@@ -112,6 +112,7 @@ PROOF_ROOT="$ULT_ROOT/assembly/tmp-runtime/m1-controlled-v2-proof"
 PROOF_VENV=/tmp/project-ult-m1-controlled-v2-proof-py312
 
 cd "$ULT_ROOT"
+mkdir -p "$PROOF_ROOT"
 
 set -a
 . "$ULT_ROOT/assembly/.env"
@@ -138,6 +139,28 @@ for attempt in $(seq 1 60); do
   sleep 2
 done
 
+/Users/fanjie/.local/bin/python3.12 - "$POSTGRES_PORT" <<'PY'
+import socket
+import sys
+import time
+
+host = "127.0.0.1"
+port = int(sys.argv[1])
+deadline = time.time() + 120
+last_error = None
+while time.time() < deadline:
+    try:
+        with socket.create_connection((host, port), timeout=2):
+            break
+    except OSError as exc:
+        last_error = exc
+        time.sleep(2)
+else:
+    raise SystemExit(
+        f"postgres host port {host}:{port} not reachable after 120s: {last_error}"
+    )
+PY
+
 # Host-side Python 3.12 dbt/data-platform runtime, outside the repo.
 uv venv --clear --python /Users/fanjie/.local/bin/python3.12 "$PROOF_VENV"
 uv pip install --python "$PROOF_VENV/bin/python" -e "$ULT_ROOT/data-platform"
@@ -150,6 +173,27 @@ export DP_ICEBERG_CATALOG_NAME="data_platform_m1_controlled_v2_proof"
 export DP_DBT_EXECUTABLE="$PROOF_VENV/bin/dbt"
 export DP_CANONICAL_USE_V2=1
 export PYTHONDONTWRITEBYTECODE=1
+
+"$PROOF_VENV/bin/python" - <<'PY'
+import os
+import time
+
+from sqlalchemy import create_engine, text
+
+deadline = time.time() + 120
+last_error = None
+engine = create_engine(os.environ["DP_PG_DSN"])
+while time.time() < deadline:
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("select 1"))
+        break
+    except Exception as exc:
+        last_error = exc
+        time.sleep(2)
+else:
+    raise SystemExit(f"postgres SQL readiness failed after 120s: {last_error}")
+PY
 
 "$PROOF_VENV/bin/python" -m data_platform.daily_refresh \
   --date "$PROOF_DATE" \
@@ -197,8 +241,13 @@ payload = {
     "stock_basic_helper": {"row_count": stock_basic.num_rows},
 }
 output_path.parent.mkdir(parents=True, exist_ok=True)
-output_path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+tmp_path = output_path.with_suffix(output_path.suffix + ".tmp")
+tmp_path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+tmp_path.replace(output_path)
+assert output_path.exists() and output_path.stat().st_size > 0
 PY
+
+test -s "$PROOF_ROOT/reader-smoke-$PROOF_DATE.json"
 ```
 
 Expected proof properties:
@@ -210,7 +259,10 @@ Expected proof properties:
   tables into a PG-backed Iceberg SQL catalog.
 - The final Python process proves reader-side `DP_CANONICAL_USE_V2=1`
   smoke from a separate process, reads manifest-pinned snapshots, and
-  persists `reader-smoke-20260429.json` under `PROOF_ROOT`.
+  persists `reader-smoke-20260429.json` atomically under `PROOF_ROOT`.
+- The command waits for both container-side `pg_isready` and host-side
+  TCP/SQL readiness before invoking the PG-backed Iceberg catalog, closing
+  the prior host-port readiness race.
 - It is still not a Dagster `daily_cycle_job.execute_in_process(...)`
   proof and must not be reported as M2 or P5 evidence.
 

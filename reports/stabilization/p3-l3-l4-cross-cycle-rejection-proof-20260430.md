@@ -57,10 +57,10 @@ fail-closed cross-cycle rejection branch end-to-end through
      `derive_world_state`; asserts L4 raises `GraphSnapshotError`
      AND the world-state policy was never consulted (proving the
      reject halts before any downstream world-state computation).
-   - `test_cross_cycle_rejection_halts_before_world_state_is_emitted`
-     — drifts both paths; asserts the L3 raise prevents any
-     `WorldStateSnapshot` from being emitted (regime read never
-     attempted, since L3 raises first).
+   - `test_cross_cycle_rejection_stops_before_l4_graph_read`
+     — drifts both paths; asserts the L3 raise prevents the L4 graph
+     regime read from being attempted. This is an integration-layer
+     ordering proof, not a wrapper-level world-state emission proof.
 
 ### assembly (branch `m2-baseline-2026-04-29`)
 
@@ -76,7 +76,7 @@ $ PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -p no:cacheprovider \
     tests/integration/test_graph_readonly_consumption.py -v
 4 passed in 0.13s
   (was 1 — added L3 cross-cycle rejection, L4 cross-cycle rejection,
-   end-to-end halt-before-world-state-emit)
+   and L3-stops-before-L4-read coverage)
 
 $ PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -p no:cacheprovider
 379 passed, 3 skipped in 0.26s
@@ -98,24 +98,26 @@ All checks passed!
 | L4 fail-closed on cross-cycle (per-layer unit) | Was: Pass | Now: Pass (unchanged) |
 | L3 fail-closed on cross-cycle (integration) | Was: **Missing** | Now: **Pass** (new) |
 | L4 fail-closed on cross-cycle (integration) | Was: **Missing** | Now: **Pass** (new) |
-| End-to-end halt before world-state emit | Was: **Missing** | Now: **Pass** (new) |
-| Production same-cycle consumption proof | Blocked on M2.6 daily-cycle proof | Unchanged |
+| L3 rejection stops before L4 graph read | Was: **Missing** | Now: **Pass** (new) |
+| Production same-cycle consumption proof | Blocked on M2.6 + production GraphEnginePort/orchestrator wiring | Unchanged |
 
 M3.1 closes the integration-coverage gap that the C4 audit explicitly
-identified. M3.3 (production same-cycle proof) remains the blocking
-prerequisite for the full G3 gate; M3.1 just narrows the
-"could-the-fail-closed-guard-survive-the-real-call-stack" question
-that M3.3 would otherwise have to answer from scratch.
+identified. M3.3 (production same-cycle proof) remains blocked on
+M2.6 plus production GraphEnginePort/orchestrator wiring; M3.1 just
+narrows the "could-the-fail-closed-guard-survive-the-real-call-stack"
+question that M3.3 would otherwise have to answer from scratch.
 
 ### What M3.1 does NOT prove
 
 * It does NOT prove production same-cycle consumption (M3.3 territory;
-  needs `daily_cycle_job` execution + real Iceberg/Neo4j).
+  needs `daily_cycle_job` execution + real Iceberg/Neo4j +
+  production GraphEnginePort/orchestrator wiring).
 * It does NOT exercise a real `GraphEnginePort` implementation —
   only the protocol contract via `FakeDriftedGraphEnginePort`. The
   real `Neo4jGraphSnapshotPort` (or equivalent) reading from Iceberg
   graph snapshots is a separate integration step (depends on M2.6 +
-  M3.2 round-trip preflight).
+  production GraphEnginePort/orchestrator wiring; M3.2 only covers
+  the bounded GraphSnapshot round-trip preflight).
 * It does NOT exercise the L4 → L5 / L6 chain. Today main-core's L5+
   do not consume graph context directly (per main-core/CLAUDE.md
   L4 is the shared state surface; L5+ read `world_state_snapshot`),
@@ -130,7 +132,7 @@ that M3.3 would otherwise have to answer from scratch.
 |---|---|---|---|
 | M3.1 | L3/L4 cross-cycle integration rejection test | (P2, not started) | **PASS** |
 | M3.2 | Graph snapshot ref round-trip preflight | P1, blocked on M2.3 (now READY-IN-CODE) | Ready to start |
-| M3.3 | Production same-cycle graph consumption proof | P1, blocked on M2.6 + M3.2 | Blocked on M2.6 (Codex quota) |
+| M3.3 | Production same-cycle graph consumption proof | P1, blocked on M2.6 + M3.2 | Blocked on M2.6 + production GraphEnginePort/orchestrator wiring |
 | M3.4 | Graph impact consumption decision | P2, blocked on M3.2 | Blocked (PM decision) |
 | M3.5 | L6 graph context architecture decision | P2, blocked on C4 (closed) | Blocked (PM decision) |
 

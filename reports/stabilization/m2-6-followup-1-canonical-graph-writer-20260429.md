@@ -142,7 +142,16 @@ trace renamed accordingly.
 
 ---
 
-## Test results
+## Test results (initial M2.6f1 — superseded by review-fold + codex-fold sections below)
+
+> **NOTE:** these are the initial-implementation counts before the
+> M2.6f1.r1 review-fold and the M2.6f1.r2 codex-fold landed. The only
+> current authoritative sweep block is **Test results post codex-fold
+> (reproducible)** (~L690), which explicitly excludes `tests/dbt`
+> because the three dbt-toolchain failures reproduce independently of
+> the graph writer.
+
+Initial implementation pass (M2.6f1, commit `4e5e3d6`):
 
 ```
 $ cd data-platform
@@ -163,15 +172,10 @@ $ PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -p no:cacheprovider
 425 passed, 21 skipped, 0 failed
 ```
 
-- data-platform unit tests on the new module: **23 passed** (was 15
-  in M2.3a-2 review-fold).
-- data-platform live Iceberg integ tests: **2 passed** (covers SQLite-
-  backed catalog round-trip + 2-cycle append semantics).
-- data-platform full sweep (excl. new test): **626 passed / 74 skipped
-  / 0 failed** (was 624/74/0 in M1.14 baseline; +2 = 2 new live Iceberg
-  tests; **0 regressions**).
-- graph-engine full sweep: **425 passed / 21 skipped / 0 failed**
-  (matches M2.3a-2 review-fold baseline; **0 regressions**).
+These counts are historical: the M2.6f1.r1 review-fold added the
+review-fold test set, and the M2.6f1.r2 codex-fold added the
+empty-slice + UTC-validation test set. **Do not cite these initial
+numbers as the current state.**
 
 ---
 
@@ -380,14 +384,14 @@ on retry replaces the partial state cleanly.
 **Reviewer:** python-reviewer
 **Risk:** Already drifted: integration test passed `tzinfo=UTC`, unit
 test passed naive datetime — a real bug surface.
-**Fix applied:** new `tests/_graph_promotion_fakes.py` (added `tests`
-to `pythonpath` in `pyproject.toml`) defines `FakeNodeRecord` /
-`FakeEdgeRecord` / `FakeAssertionRecord` / `FakePromotionPlan` once.
-Both unit and integration tests now import the same definitions
-(aliased to `_FakeXxx` at the call site to keep the leading-underscore
-private-test-helper signal). Helper factories (`_node_record` /
-`_edge` etc.) stay local to each test file since fixture shapes
-diverge by intent.
+**Fix applied:** new `tests/_graph_promotion_fakes.py` defines
+`FakeNodeRecord` / `FakeEdgeRecord` / `FakeAssertionRecord` /
+`FakePromotionPlan` once. Both unit and integration tests now import
+the same definitions as `tests._graph_promotion_fakes` (aliased to
+`_FakeXxx` at the call site to keep the leading-underscore
+private-test-helper signal), so pytest only needs `pythonpath=["src"]`.
+Helper factories (`_node_record` / `_edge` etc.) stay local to each
+test file since fixture shapes diverge by intent.
 
 ### P2-5 — `partition_by=["cycle_id"]` on graph specs
 
@@ -406,7 +410,13 @@ and reference the `canonical_v2.fact_*` precedent. A future
 whole canonical family in one pass; the scan-side cost is acceptable
 at M2.6 daily-cycle volumes (one cycle's rows per scan).
 
-### Test results post fold-in (reproducible commands)
+### Test results post fold-in (historical, superseded)
+
+This block records the M2.6f1.r1 review-fold reproducer before the
+codex-fold and before the dbt-toolchain exclusion was made explicit.
+It is retained for provenance only. **Do not cite this as the current
+authoritative sweep result.** Use **Test results post codex-fold
+(reproducible)** below for the current graph-writer evidence.
 
 `contracts` is a sibling repo at the workspace root, not a subdir of
 data-platform; the `PYTHONPATH` must be expressed as an absolute path
@@ -439,7 +449,7 @@ $ PYTHONDONTWRITEBYTECODE=1 \
    Warnings are pyiceberg's internal "Delete operation did not match
    any records" on first overwrite of an empty table — cosmetic.)
 
-# Full data-platform regression sweep:
+# Historical full data-platform regression sweep (pre-codex-fold):
 $ PYTHONDONTWRITEBYTECODE=1 \
   PYTHONPATH=src:<workspace>/contracts/src \
   .venv/bin/python -m pytest -p no:cacheprovider
@@ -480,8 +490,9 @@ $ PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -p no:cacheprovider
   `writes_distinct_cycles_without_overwriting_each_other` (semantics
   clarified); +1 new test
   `is_idempotent_across_two_runs_of_same_cycle`; imports shared fakes.
-* `data-platform/pyproject.toml` — `pythonpath` extended to
-  `["src", "tests"]` to enable the shared fakes module.
+* `data-platform/pyproject.toml` — pytest `pythonpath` is `["src"]`;
+  shared fakes are imported through `tests._graph_promotion_fakes`
+  rather than as top-level helper modules.
 * `assembly/reports/stabilization/m2-6-followup-1-canonical-graph-writer-20260429.md`
   — this Post-review fold-in section.
 
@@ -692,6 +703,11 @@ the same explicit signature.
 
 ### Test results post codex-fold (reproducible)
 
+This is the current authoritative sweep block for M2.6f1 graph-writer
+evidence. The full data-platform command intentionally excludes
+`tests/dbt`; the dbt-toolchain failures are tracked separately and are
+not part of the graph-writer regression signal.
+
 ```
 $ cd <workspace>/data-platform
 # uv-managed minimal venv lacks pytest at clone time:
@@ -734,14 +750,22 @@ $ PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -p no:cacheprovider
   `_FakeIcebergTable.overwrite` strict signature recording 3-tuples
   (codex #9); previous `skips_table_when_record_list_empty` test
   flipped to `overwrites_all_three_tables_even_for_empty_slices`
-  (codex #1); +3 new tests (`empty_slice_overwrite_carries_zero_row_arrow_with_cycle_filter`,
+  (codex #1) and now covers empty node slices as well as empty edge /
+  assertion slices; +3 new tests
+  (`empty_slice_overwrite_carries_zero_row_arrow_with_cycle_filter`,
   `rejects_tz_naive_created_at_on_node`,
   `rejects_non_utc_offset_on_edge`); `_FailOnEdgeIcebergTable` updated
   to the strict signature.
 * `data-platform/tests/integration/test_iceberg_canonical_graph_writer_live.py`
   — cross-cycle test seeds full slices for both cycles + iterates over
   all three tables (codex #6); +1 new test
-  (`clears_prior_cycle_rows_when_retry_slice_is_empty`).
+  (`clears_prior_cycle_rows_when_retry_slice_is_empty`), now seeding a
+  second cycle and retrying the first cycle with empty node / edge /
+  assertion slices to prove the zero-row overwrite is cycle-scoped and
+  preserves other cycles.
+* `data-platform/pyproject.toml` — pytest `pythonpath` narrowed back
+  to `["src"]`; graph-writer tests import the shared helper as
+  `tests._graph_promotion_fakes`.
 * `assembly/reports/stabilization/m2-6-followup-1-canonical-graph-writer-20260429.md`
   — top section + downstream-claim + reproducible-commands sections
   rewritten (codex #2 / #5 / #8); this codex-fold section appended.

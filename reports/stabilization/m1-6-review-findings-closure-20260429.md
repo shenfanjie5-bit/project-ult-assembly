@@ -4,6 +4,12 @@
 **Date:** 2026-04-29
 **Status:** Review-findings closure only. No blueprint/milestone edits. No compose, production fetch, P5 shadow-run, M2/M3/M4 work, legacy retirement, xfail removal, or `FORBIDDEN_*_FIELDS` extension.
 
+**Supersession note (2026-04-30):** This report is historical M1.6-R
+evidence. Its blocker wording was true for M1.6-R only. `block_trade` was
+promoted in M1.8; the 8 candidate sources were refined from
+`BLOCKED_NO_STAGING` to `BLOCKED_NO_LOCAL_SCHEMA` in M1.9, schema-checked
+in M1.11, and promoted in M1.13. M1.14 closed M1 with 0 xfails.
+
 ## Scope
 
 Close the 10 Codex review findings raised after M1.6. This round fixes CI/test protection, lineage attribution, public-reader fail-closed behavior, formal source-leak guards, paired v2 timestamps, and stale evidence wording. It does not claim production daily-cycle proof or P5 readiness.
@@ -19,7 +25,7 @@ Close the 10 Codex review findings raised after M1.6. This round fixes CI/test p
 | F5 — Nested formal fields bypass data-platform guard | **Fixed** | `serving/formal.py` recursively walks `pa.Schema` struct/list fields and rejects exact forbidden names plus source/provider naming patterns. `frontend-api` sanitizer now uses the same pattern rule. | `tests/serving/test_formal_no_source_leak.py` includes nested and pattern-field cases; frontend-api route tests passed. |
 | F6 — V2 lane is manual-only | **Fixed** | `data-platform/.github/workflows/ci.yml` adds `canonical-v2-default-on`, running the v2 lane with `DP_CANONICAL_USE_V2=1`. `canonical-v2-default-on-test-proof-20260428.md` documents CI protection. | Local v2 lane JUnit: 198 tests, 0 failures, 22 skipped/xfail (`176 passed, 5 skipped, 17 xfailed`). |
 | F7 — Paired `canonical_loaded_at` is not paired | **Fixed** | `canonical_writer.py` now computes one `paired_canonical_loaded_at` per `load_canonical_v2_marts()` call and injects it into every v2 and lineage prepared load. `test_canonical_writer.py` asserts v2/lineage `canonical_loaded_at` sets match. | Targeted canonical writer tests passed; full data-platform sweep passed. |
-| F8 — Stale event-source wording remains | **Fixed** | Updated stale comments/descriptions in DDL, writer, dbt schema headers, tests, and evidence to say `fact_event` covers 7 promoted source interfaces after M1.6; `block_trade` and 8 unstaged candidates remain blocked. | Stale-string `rg` no longer finds the old source-count / pre-M1.6 wording in the edited surfaces. |
+| F8 — Stale event-source wording remains | **Fixed** | Updated stale comments/descriptions in DDL, writer, dbt schema headers, tests, and evidence to say `fact_event` covered 7 promoted source interfaces after M1.6; at that point `block_trade` and 8 unstaged candidates remained blocked. This wording is superseded by M1.8/M1.13 promotions. | Stale-string `rg` no longer found the old source-count / pre-M1.6 wording in the edited surfaces. |
 | F9 — Formal proof overstates coverage | **Fixed** | `formal-serving-no-source-leak-runtime-proof-20260428.md` now distinguishes exact-key set from pattern rule, documents recursive schema guard, and attributes frontend tests as 4 in `test_no_source_leak.py` plus 6 in `test_cycle_routes.py`. | Frontend-api regression: 10 passed. Data-platform formal tests included in full sweep. |
 | F10 — Event/P5 evidence wording under-specified | **Fixed** | `event-timeline-m1-6-promotion-proof-20260429.md` now lists the P5 blocker stack as G1 canonical retirement, G2/M2.6 production daily-cycle proof, G3 same-cycle production consumption, G4 live-PG/downstream bridge closure, plus legacy retirement. It also states 7 covered sources and 9 blocked sources without the stale "10 sources" wording. | Evidence reviewed by `rg`; no production proof/P5 readiness claim added. |
 
@@ -84,15 +90,15 @@ git -C assembly diff --check
 
 Result: all clean.
 
-## Remaining Blockers
+## Historical Remaining Blockers At M1.6-R
 
-- `block_trade` remains `BLOCKED_NO_STABLE_KEY`.
-- 8 event_timeline candidate sources remain `BLOCKED_NO_STAGING`.
-- Controlled Lite-compose v2 proof was not executed.
-- Legacy `canonical.*` retirement was not executed.
-- `_M1D_LEGACY_RETIREMENT_XFAIL` remains in place.
-- `FORBIDDEN_SCHEMA_FIELDS` / `FORBIDDEN_PAYLOAD_FIELDS` were not extended.
-- P5 remains blocked.
+- `block_trade` was `BLOCKED_NO_STABLE_KEY` at M1.6-R; superseded by M1.8 promotion.
+- 8 event_timeline candidate sources were `BLOCKED_NO_STAGING` at M1.6-R; superseded by M1.9 `BLOCKED_NO_LOCAL_SCHEMA`, M1.11 schema check-in, and M1.13 promotion.
+- Controlled Lite-compose v2 proof had not executed at M1.6-R; superseded by M1.10 controlled compose proof.
+- Legacy `canonical.*` retirement had not executed at M1.6-R; superseded by M1.12 + M1.14.
+- `_M1D_LEGACY_RETIREMENT_XFAIL` remained in place at M1.6-R; superseded by M1.14 removal.
+- `FORBIDDEN_SCHEMA_FIELDS` / `FORBIDDEN_PAYLOAD_FIELDS` were not extended at M1.6-R; superseded by M1.12.
+- P5 remains blocked on post-M1 gates, especially M2.6 production daily-cycle proof, G3 same-cycle consumption, and G4 live PG/downstream bridge closure.
 
 ## Hard-Rule Declarations
 

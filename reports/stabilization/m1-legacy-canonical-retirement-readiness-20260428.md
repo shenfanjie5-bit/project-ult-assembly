@@ -4,6 +4,13 @@
 **Date:** 2026-04-28
 **Status:** Inventory + plan only. NO legacy code deleted in this round.
 
+**Current supersession (2026-04-30):** The plan below began as M1-G3
+inventory. Its open precondition statuses are superseded by
+[m1-legacy-retirement-preconditions-progress-20260428.md](assembly/reports/stabilization/m1-legacy-retirement-preconditions-progress-20260428.md):
+all 9 preconditions are DONE, M1.13 promoted the 8 event_timeline
+candidates, and M1.14 removed the final retirement xfail. M1/G1 is now
+closed; P5 remains blocked by post-M1 gates.
+
 ## Purpose
 
 Inventory the legacy `canonical.*` namespace surface so M1.5 / M2.6 know exactly what to retire and when. Establish the pre-conditions for removing the `_M1D_LEGACY_RETIREMENT_XFAIL` decorator and extending `FORBIDDEN_SCHEMA_FIELDS` / `FORBIDDEN_PAYLOAD_FIELDS` to lineage fields. The retirement is sequenced behind the canonical_v2 implementation and reader cutover; it does NOT block on M2.6.
@@ -41,7 +48,7 @@ For every reader that resolves through `_selected_dataset_to_table()` in [canoni
 | market_daily_feature | canonical.fact_market_daily_feature | canonical_v2.fact_market_daily_feature | **CUTOVER-ELIGIBLE** |
 | index_master | canonical.dim_index | canonical_v2.dim_index | **CUTOVER-ELIGIBLE** |
 | index_price_bar | canonical.fact_index_price_bar | canonical_v2.fact_index_price_bar | **CUTOVER-ELIGIBLE** |
-| event_timeline | canonical.fact_event | canonical_v2.fact_event | **CUTOVER-ELIGIBLE-PARTIAL** (8 promoted sources after M1.8; 8 candidate interfaces remain BLOCKED_NO_LOCAL_SCHEMA per the M1.9 contract audit — column lists not in repo, owner check-in needed) |
+| event_timeline | canonical.fact_event | canonical_v2.fact_event | **CUTOVER-ELIGIBLE** after M1.13 (16/16 source interfaces promoted; the M1.9 `BLOCKED_NO_LOCAL_SCHEMA` verdict was superseded by M1.11 schema check-in + M1.13 promotion) |
 | financial_indicator | canonical.fact_financial_indicator | canonical_v2.fact_financial_indicator | **CUTOVER-ELIGIBLE** |
 | financial_forecast_event | canonical.fact_forecast_event | canonical_v2.fact_forecast_event | **CUTOVER-ELIGIBLE** |
 
@@ -75,36 +82,42 @@ All readers that go through `read_canonical_dataset()`, `read_canonical_dataset_
 
 [iceberg_tables.py:23](data-platform/src/data_platform/ddl/iceberg_tables.py:23): `frozenset({"submitted_at", "ingest_seq"})`.
 
-Extending to `frozenset({"submitted_at", "ingest_seq", "source_run_id", "raw_loaded_at"})` would IMMEDIATELY fail every legacy `CANONICAL_MART_TABLE_SPECS` entry (they all carry `source_run_id` and `raw_loaded_at` — these are the lineage columns the legacy specs require). Cannot extend until legacy specs are removed.
+At M1-G3, extending to `frozenset({"submitted_at", "ingest_seq", "source_run_id", "raw_loaded_at"})` would have failed every legacy `CANONICAL_MART_TABLE_SPECS` entry (they all carried `source_run_id` and `raw_loaded_at` — these are the lineage columns the legacy specs required). This is superseded by M1.12, which removed the legacy specs and extended the forbidden-field sets.
 
-Test that captures this: [test_canonical_provider_neutrality.py:110-122](data-platform/tests/ddl/test_canonical_provider_neutrality.py:110) — `test_FORBIDDEN_SCHEMA_FIELDS_includes_canonical_lineage_block` — currently `xfail` under `_M1D_LEGACY_RETIREMENT_XFAIL`.
+Test that captured this at M1-G3: [test_canonical_provider_neutrality.py:110-122](data-platform/tests/ddl/test_canonical_provider_neutrality.py:110) — `test_FORBIDDEN_SCHEMA_FIELDS_includes_canonical_lineage_block` — was `xfail` under `_M1D_LEGACY_RETIREMENT_XFAIL`; later strict-pass after M1.12/M1.14.
 
 ### `FORBIDDEN_PAYLOAD_FIELDS`
 
 [canonical_writer.py:35](data-platform/src/data_platform/serving/canonical_writer.py:35): `frozenset({"submitted_at", "ingest_seq"})`.
 
-Extending to add `source_run_id`, `raw_loaded_at` would IMMEDIATELY fail every legacy `CanonicalLoadSpec.required_columns` (they require lineage columns by design). Cannot extend until legacy load specs are removed.
+At M1-G3, extending to add `source_run_id`, `raw_loaded_at` would have failed every legacy `CanonicalLoadSpec.required_columns` (they required lineage columns by design). This is superseded by M1.12, which removed the legacy load specs and extended the payload guard.
 
-Test that captures this: [test_canonical_writer_provider_neutrality.py:91-102](data-platform/tests/serving/test_canonical_writer_provider_neutrality.py:91) — `test_FORBIDDEN_PAYLOAD_FIELDS_extends_to_canonical_lineage` — currently `xfail` under `_M1D_LEGACY_RETIREMENT_XFAIL`.
+Test that captured this at M1-G3: [test_canonical_writer_provider_neutrality.py:91-102](data-platform/tests/serving/test_canonical_writer_provider_neutrality.py:91) — `test_FORBIDDEN_PAYLOAD_FIELDS_extends_to_canonical_lineage` — was `xfail` under `_M1D_LEGACY_RETIREMENT_XFAIL`; later strict-pass after M1.12/M1.14.
 
 ## Section 5 — When can `_M1D_LEGACY_RETIREMENT_XFAIL` be removed?
 
-Pre-conditions, in dependency order:
+Pre-conditions, in dependency order. The status labels below are current after
+M1.14; the original M1-G3 open-plan wording is retained only in the surrounding
+inventory context.
 
-1. **All in-repo direct callers of `read_canonical(<bare_name>)` audited.** Confirm zero direct calls in src code outside test fixtures. (Candidates to inspect: orchestrator, main-core, frontend-api, subsystem-*.) — **NOT YET VERIFIED.**
+1. **All in-repo direct callers of `read_canonical(<bare_name>)` audited.** Confirm zero direct calls in src code outside test fixtures. (Candidates to inspect: orchestrator, main-core, frontend-api, subsystem-*.) — **DONE (M1.5-1).**
 2. **`DP_CANONICAL_USE_V2=1` exercised once in a controlled production-like test** (Lite compose PostgreSQL service + host-side Python 3.12 `daily_refresh --mock` + `load_canonical_v2_marts` + read-side smoke through `read_canonical_dataset`) so all readers run on v2 end-to-end. **This is a precondition for M2.6 readiness review, NOT gated by M2.6 itself.** Section 6 below confirms the dependency direction (M2.6 depends on M1, not vice versa). — **DONE in M1.10 follow-up.**
-3. **`load_canonical_marts()` / `load_canonical_stock_basic()` either deleted or re-pointed to canonical_v2 specs.** This is the actual write-side cutover. — **NOT YET STARTED.**
-4. **`CANONICAL_MART_LOAD_SPECS`, `CANONICAL_MART_TABLE_SPECS`, `CANONICAL_STOCK_BASIC_SPEC` deleted from src.** This unblocks `FORBIDDEN_SCHEMA_FIELDS` and `FORBIDDEN_PAYLOAD_FIELDS` extensions.
-5. **`FORBIDDEN_SCHEMA_FIELDS` and `FORBIDDEN_PAYLOAD_FIELDS` extended to include `{"source_run_id", "raw_loaded_at"}`.**
-6. **Legacy `mart_*.sql` files in `dbt/models/marts/` deleted or marked as compatibility shims.** (8 files.) Verifies that no canonical `mart_*` SQL still selects lineage at the SELECT shape.
-7. **Decorator `_M1D_LEGACY_RETIREMENT_XFAIL` removed** from:
+3. **`load_canonical_marts()` / `load_canonical_stock_basic()` either deleted or re-pointed to canonical_v2 specs.** This is the actual write-side cutover. — **DONE (M1.12).**
+4. **`CANONICAL_MART_LOAD_SPECS`, `CANONICAL_MART_TABLE_SPECS`, `CANONICAL_STOCK_BASIC_SPEC` deleted from src.** This unblocks `FORBIDDEN_SCHEMA_FIELDS` and `FORBIDDEN_PAYLOAD_FIELDS` extensions. — **DONE (M1.12).**
+5. **`FORBIDDEN_SCHEMA_FIELDS` and `FORBIDDEN_PAYLOAD_FIELDS` extended to include `{"source_run_id", "raw_loaded_at"}`.** — **DONE (M1.12).**
+6. **Legacy `mart_*.sql` files in `dbt/models/marts/` deleted or marked as compatibility shims.** (8 files.) Verifies that no canonical `mart_*` SQL still selects lineage at the SELECT shape. — **DONE (M1.14 deletion).**
+7. **Decorator `_M1D_LEGACY_RETIREMENT_XFAIL` removed** from — **DONE (M1.12 + M1.14, 0 markers remain):**
    - [test_canonical_provider_neutrality.py](data-platform/tests/ddl/test_canonical_provider_neutrality.py) (3 tests)
    - [test_canonical_writer_provider_neutrality.py](data-platform/tests/serving/test_canonical_writer_provider_neutrality.py) (3 tests)
    - [test_marts_provider_neutrality.py](data-platform/tests/dbt/test_marts_provider_neutrality.py) (1 test)
-8. **Remaining 8 candidate event_timeline sources promoted or explicitly scoped out in a future adapter-build round** (so `accepted_values` taxonomy on `mart_fact_event_v2` either extends to full event_timeline coverage or records the narrowed scope).
-9. **Remaining event_timeline branches resolved or explicitly scoped out**: M1.6 promoted `namechange`; M1.8 promoted `block_trade` (with the int_event_timeline uniqueness contract widened to include `summary`); M1.9 contract audit refined the 8 candidate interfaces' verdict to `BLOCKED_NO_LOCAL_SCHEMA` (the upstream blocker is owner column-list check-in, not staging implementation effort).
+8. **Remaining 8 candidate event_timeline sources promoted or explicitly scoped out in a future adapter-build round** (so `accepted_values` taxonomy on `mart_fact_event_v2` either extends to full event_timeline coverage or records the narrowed scope). — **DONE (M1.13 promotion).**
+9. **Remaining event_timeline branches resolved or explicitly scoped out**: M1.6 promoted `namechange`; M1.8 promoted `block_trade` (with the int_event_timeline uniqueness contract widened to include `summary`); M1.9 contract audit refined the 8 candidate interfaces' verdict to `BLOCKED_NO_LOCAL_SCHEMA`; M1.11 supplied schema + uniqueness evidence; M1.13 promoted the 8 candidates. — **DONE.**
 
-The retirement is **NOT blocked on M2.6**: M2.6 production daily-cycle proof depends on canonical_v2 write/read readiness, not the other way around. M1-G3 retirement readiness can land before M2.6 if steps 1-7 above are taken in sequence — and step 2 in particular (the controlled v2-default-on proof) is what M2.6's readiness review will look for, NOT something to wait for M2.6 to deliver.
+The retirement was **NOT blocked on M2.6**: M2.6 production daily-cycle
+proof depends on canonical_v2 write/read readiness, not the other way around.
+That dependency direction is now resolved for M1: M1.10 supplied step 2,
+M1.12/M1.14 completed retirement, and M2.6 remains a separate production
+daily-cycle proof gate.
 
 ## Section 6 — Dependency direction (M2.6 vs M1)
 
@@ -122,21 +135,21 @@ Reaffirmed per user direction:
 3. **dbt model graph break**: deleting `dbt/models/marts/mart_*.sql` files would break the legacy dbt run. Mitigation: keep the legacy mart files AS-IS until step 4 (load specs deleted), then either delete or convert to compatibility views.
 4. **Test fixture cleanup**: 187 test-code references to legacy strings must be reviewed. Many are in shared fixtures.
 
-### Recommended sequencing (handoff to M1.5 owner; M2.6 reads the result)
+### Recommended sequencing (historical handoff; current status noted)
 
-1. **Phase A (M1.5)** — verification + controlled v2 proof:
+1. **Phase A (M1.5/M1.10)** — verification + controlled v2 proof: **DONE**.
    - Audit every subrepo for direct `read_canonical("<bare_name>")` calls.
    - Default `DP_CANONICAL_USE_V2=1` in CI/test.
    - Run E2E test suite under v2-default-on.
    - Run a controlled Lite-compose v2 cycle (dbt run + load_canonical_v2_marts + read-side smoke) — this is the production-like proof M2.6 review will reference; it is delivered by M1.5, NOT by M2.6.
-2. **Phase B (post-M1.5, before legacy retirement)** — retirement:
+2. **Phase B (M1.12/M1.14)** — retirement: **DONE**.
    - Delete legacy load specs from canonical_writer.py.
    - Delete legacy table specs from iceberg_tables.py.
    - Extend `FORBIDDEN_SCHEMA_FIELDS` and `FORBIDDEN_PAYLOAD_FIELDS`.
    - Delete legacy `dbt/models/marts/mart_*.sql` files.
    - Remove `_M1D_LEGACY_RETIREMENT_XFAIL` decorator.
    - Update test fixtures.
-3. **Phase C (M2.6)** — production daily-cycle proof reads the now-canonical-v2-only state.
+3. **Phase C (M2.6)** — production daily-cycle proof reads the now-canonical-v2-only state: **pending**.
 
 ### Rollback plan
 
@@ -148,11 +161,11 @@ If Phase C breaks production:
 
 ## Section 8 — Status declarations
 
-- This is a **READINESS** evidence file. No legacy code deleted.
-- M1-G2 advanced (NOT closed) M1 by adding canonical_v2.fact_event for the safe subset.
-- Full M1 closure remains pending until the 8 remaining PROMOTION_CANDIDATE_MAPPINGS sources are adapter-built/promoted or explicitly scoped out AND the retirement sequencing in Section 5 lands.
+- This started as a **READINESS** evidence file. No legacy code was deleted in the original M1-G3 round.
+- M1-G2 advanced (NOT closed) M1 by adding canonical_v2.fact_event for the safe subset; that statement is historical.
+- Current status after M1.14: M1/G1 is closed; all 9 retirement preconditions are DONE, the 8 candidates are promoted, and 0 `_M1D_LEGACY_RETIREMENT_XFAIL` markers remain.
 - P5 remains BLOCKED.
-- `project_ult_v5_0_1.md` and `ult_milestone.md` UNCHANGED.
+- `project_ult_v5_0_1.md` was UNCHANGED in this readiness round.
 
 ## Section 9 — M1.10 delta (2026-04-29)
 
@@ -183,16 +196,17 @@ If Phase C breaks production:
   The inventory enumerates every reference site (loaders, callers, specs,
   forbidden-field declarations, xfail markers, legacy dbt SQL, legacy
   asserting tests) with file path + line range + per-step test gate. NO
-  Phase B step executed in M1.10. The inventory is a map, not a green
-  light — Phase B can now start, but it remains unexecuted.
-- M1.10 status declarations:
+  Phase B step executed in M1.10. The inventory was a map, not a green
+  light. Current status is superseded by M1.12/M1.14, where Phase B
+  closed.
+- Historical M1.10 status declarations:
   - `project_ult_v5_0_1.md` and `ult_milestone.md` UNCHANGED.
   - No production fetch. No P5 shadow-run. No M2/M3/M4 work.
   - No API-6 / sidecar / frontend write API / Kafka / Flink / Temporal /
     news / Polymarket touched.
   - Tushare remains a `provider="tushare"` source adapter only.
-  - Legacy `canonical.*` specs / load specs / dbt marts NOT deleted.
-  - `_M1D_LEGACY_RETIREMENT_XFAIL` NOT removed.
-  - `FORBIDDEN_SCHEMA_FIELDS` / `FORBIDDEN_PAYLOAD_FIELDS` NOT extended.
+  - Legacy `canonical.*` specs / load specs / dbt marts NOT deleted in M1.10; superseded by M1.12/M1.14.
+  - `_M1D_LEGACY_RETIREMENT_XFAIL` NOT removed in M1.10; superseded by M1.14.
+  - `FORBIDDEN_SCHEMA_FIELDS` / `FORBIDDEN_PAYLOAD_FIELDS` NOT extended in M1.10; superseded by M1.12.
   - `/Users/fanjie/Desktop/BIG/FrontEnd` NOT modified.
   - No commits, no push, no amend, no reset.
