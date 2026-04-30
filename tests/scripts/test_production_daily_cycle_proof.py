@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import importlib.util
+import json
+import sys
 from pathlib import Path
-from types import SimpleNamespace
+from types import ModuleType, SimpleNamespace
 from typing import Any
 
 
@@ -36,6 +38,49 @@ class FailingSelection:
         raise RuntimeError("selection resolution failed")
 
 
+def _install_fake_graph_engine_modules(monkeypatch: Any, client_cls: type) -> None:
+    graph_engine = ModuleType("graph_engine")
+    graph_engine.__path__ = []  # type: ignore[attr-defined]
+    client_module = ModuleType("graph_engine.client")
+    config_module = ModuleType("graph_engine.config")
+    propagation_module = ModuleType("graph_engine.propagation")
+    propagation_module.__path__ = []  # type: ignore[attr-defined]
+    gds_module = ModuleType("graph_engine.propagation._gds")
+
+    client_module.Neo4jClient = client_cls
+    config_module.load_config_from_env = lambda: SimpleNamespace(
+        uri="bolt://localhost:7687",
+        user="neo4j",
+        password="password",
+        database="neo4j",
+    )
+
+    def probe_gds_availability(client: Any) -> Any:
+        version_rows = client.execute_read(
+            "CALL gds.version() YIELD gdsVersion RETURN gdsVersion",
+            {},
+        )
+        exists_rows = client.execute_read(
+            "CALL gds.graph.exists($graph_name) YIELD exists RETURN exists",
+            {"graph_name": "__graph_engine_gds_probe__"},
+        )
+        return SimpleNamespace(
+            gds_version=version_rows[0]["gdsVersion"],
+            graph_exists_procedure_available=isinstance(
+                exists_rows[0].get("exists"),
+                bool,
+            ),
+        )
+
+    gds_module.probe_gds_availability = probe_gds_availability
+
+    monkeypatch.setitem(sys.modules, "graph_engine", graph_engine)
+    monkeypatch.setitem(sys.modules, "graph_engine.client", client_module)
+    monkeypatch.setitem(sys.modules, "graph_engine.config", config_module)
+    monkeypatch.setitem(sys.modules, "graph_engine.propagation", propagation_module)
+    monkeypatch.setitem(sys.modules, "graph_engine.propagation._gds", gds_module)
+
+
 def _materialization_event(index: int, asset_name: str) -> SimpleNamespace:
     del index
     asset_key = FakeAssetKey(asset_name)
@@ -51,6 +96,94 @@ def _materialization_event(index: int, asset_name: str) -> SimpleNamespace:
         is_step_materialization=True,
         event_specific_data=SimpleNamespace(materialization=materialization),
     )
+
+
+def test_neo4j_gds_preflight_writes_pass_artifact(tmp_path: Path, monkeypatch: Any) -> None:
+    module = _load_module()
+
+    class FakeGDSClient:
+        def __init__(self, config: object) -> None:
+            self.config = config
+
+        def __enter__(self) -> "FakeGDSClient":
+            return self
+
+        def __exit__(self, *args: object) -> None:
+            return None
+
+        def verify_connectivity(self) -> bool:
+            return True
+
+        def execute_read(
+            self,
+            query: str,
+            parameters: dict[str, Any],
+        ) -> list[dict[str, Any]]:
+            if "gds.version" in query:
+                return [{"gdsVersion": "2.13.2"}]
+            if "gds.graph.exists" in query:
+                assert parameters == {"graph_name": "__graph_engine_gds_probe__"}
+                return [{"exists": False}]
+            raise AssertionError(f"unexpected query: {query}")
+
+    _install_fake_graph_engine_modules(monkeypatch, FakeGDSClient)
+    monkeypatch.setenv("NEO4J_URI", "bolt://localhost:7687")
+    monkeypatch.setenv("NEO4J_USER", "neo4j")
+    monkeypatch.setenv("NEO4J_PASSWORD", "password")
+
+    result = module._probe_neo4j_gds(tmp_path)
+    payload = json.loads((tmp_path / "neo4j-gds-preflight.json").read_text())
+
+    assert result["status"] == "passed"
+    assert result["blocker"] is None
+    assert result["gds_version"] == "2.13.2"
+    assert payload["blocker"] is None
+    assert payload["gds_graph_exists_probe"] == {
+        "graph_name": "__graph_engine_gds_probe__",
+        "procedure_available": True,
+    }
+    assert payload["v5_0_1_semantics"]["neo4j_role"] == "hot_mirror"
+
+
+def test_neo4j_gds_preflight_writes_blocker_artifact(
+    tmp_path: Path,
+    monkeypatch: Any,
+) -> None:
+    module = _load_module()
+
+    class MissingGDSClient:
+        def __init__(self, config: object) -> None:
+            self.config = config
+
+        def __enter__(self) -> "MissingGDSClient":
+            return self
+
+        def __exit__(self, *args: object) -> None:
+            return None
+
+        def verify_connectivity(self) -> bool:
+            return True
+
+        def execute_read(
+            self,
+            query: str,
+            parameters: dict[str, Any],
+        ) -> list[dict[str, Any]]:
+            del query, parameters
+            raise RuntimeError("GDS plugin not available")
+
+    _install_fake_graph_engine_modules(monkeypatch, MissingGDSClient)
+    monkeypatch.setenv("NEO4J_URI", "bolt://localhost:7687")
+    monkeypatch.setenv("NEO4J_USER", "neo4j")
+    monkeypatch.setenv("NEO4J_PASSWORD", "password")
+
+    result = module._probe_neo4j_gds(tmp_path)
+    payload = json.loads((tmp_path / "neo4j-gds-preflight.json").read_text())
+
+    assert result["status"] == "failed"
+    assert result["blocker"] == "configured_neo4j_gds_runtime"
+    assert payload["status"] == "failed"
+    assert payload["error"] == "GDS plugin not available"
 
 
 def test_dagster_execution_evidence_rejects_incomplete_15_materialization_claim() -> None:
@@ -82,7 +215,7 @@ def test_dagster_execution_evidence_rejects_incomplete_15_materialization_claim(
             "candidate_freeze",
             "graph_status",
         ],
-        expected_materialization_count=15,
+        legacy_materialization_claim_count=15,
     )
 
     assert evidence["run_id"] == "run-123"
@@ -107,16 +240,87 @@ def test_dagster_execution_evidence_rejects_incomplete_15_materialization_claim(
             "metadata": {"rows": 1},
         },
     ]
-    assert evidence["materialization_count_against_claim_15"] == {
-        "claim_count": 15,
+    assert evidence["materialization_count_against_selected_assets"] == {
+        "expected_selected_asset_count": 3,
+        "actual_count": 2,
+        "actual_unique_count": 2,
+        "has_exactly_selected_asset_count": False,
+        "missing_selected_asset_count": 1,
+        "extra_materialized_asset_count": 0,
+    }
+    assert evidence["legacy_materialization_count_against_claim_15"] == {
+        "legacy_claim_count": 15,
         "actual_count": 2,
         "actual_unique_count": 2,
         "has_at_least_15": False,
         "has_exactly_15": False,
+        "historical_only": True,
     }
-    assert evidence["selected_asset_count_matches_claim"] is False
+    assert evidence["selected_asset_count_matches_legacy_claim"] is False
     assert evidence["missing_selected_asset_keys"] == ["graph_status"]
     assert evidence["terminal_observed_steps"] == []
+    step = module._dagster_step_from_evidence(evidence)
+    assert step["failure_error"] == {
+        "message": "status row missing",
+        "type": "RuntimeError",
+    }
+    assert step["failure_root_cause"] == "status row missing"
+
+
+def test_finalized_dagster_artifact_persists_step_summary(tmp_path: Path) -> None:
+    module = _load_module()
+    evidence_path = tmp_path / "dagster-execution-evidence.json"
+    evidence = {
+        "schema_version": "test",
+        "status": "failed",
+        "artifact": str(evidence_path),
+        "cycle_id": "CYCLE_20260415",
+        "dagster_success": False,
+        "run_id": "run-123",
+        "selected_asset_count": 3,
+        "selected_materializations_complete": False,
+        "materialized_asset_keys": ["candidate_freeze"],
+        "materialized_asset_count": 1,
+        "materialization_count_against_selected_assets": {
+            "expected_selected_asset_count": 3,
+            "actual_unique_count": 1,
+        },
+        "legacy_materialization_count_against_claim_15": {
+            "legacy_claim_count": 15,
+            "actual_unique_count": 1,
+            "has_exactly_15": False,
+        },
+        "failure_step": "graph_snapshot",
+        "failure_events": [
+            {
+                "error": {
+                    "message": (
+                        "ValueError: GraphImpactSnapshot requires at least one "
+                        "target entity for cycle_id='CYCLE_20260415'"
+                    ),
+                    "type": "ValueError",
+                }
+            }
+        ],
+    }
+
+    step = module._finalize_dagster_evidence(
+        evidence,
+        evidence_path,
+        module.perf_counter(),
+    )
+    payload = json.loads(evidence_path.read_text())
+
+    assert step["failure_step"] == "graph_snapshot"
+    assert payload["failure_root_cause"].startswith(
+        "ValueError: GraphImpactSnapshot requires at least one target entity"
+    )
+    assert payload["artifact_backed_pass_claim"] is False
+    assert payload["supports_selected_asset_materialization_claim"] is False
+    assert payload["supports_legacy_15_materializations_claim"] is False
+    assert payload["dagster_step_summary"]["failure_root_cause"] == payload[
+        "failure_root_cause"
+    ]
 
 
 def test_dagster_step_pass_claim_requires_artifact_backed_materializations() -> None:
@@ -132,11 +336,9 @@ def test_dagster_step_pass_claim_requires_artifact_backed_materializations() -> 
             "materialized_asset_count": 1,
             "selected_asset_count": 1,
             "selected_materializations_complete": True,
-            "materialization_count_against_claim_15": {
-                "has_at_least_15": False,
-                "has_exactly_15": False,
+            "materialization_count_against_selected_assets": {
+                "expected_selected_asset_count": 2,
                 "actual_unique_count": 1,
-                "claim_count": 15,
             },
         }
     )
@@ -150,11 +352,9 @@ def test_dagster_step_pass_claim_requires_artifact_backed_materializations() -> 
             "materialized_asset_count": 15,
             "selected_asset_count": 15,
             "selected_materializations_complete": True,
-            "materialization_count_against_claim_15": {
-                "has_at_least_15": True,
-                "has_exactly_15": True,
+            "materialization_count_against_selected_assets": {
+                "expected_selected_asset_count": 15,
                 "actual_unique_count": 15,
-                "claim_count": 15,
             },
         }
     )
@@ -168,11 +368,9 @@ def test_dagster_step_pass_claim_requires_artifact_backed_materializations() -> 
             "materialized_asset_count": 15,
             "selected_asset_count": 0,
             "selected_materializations_complete": False,
-            "materialization_count_against_claim_15": {
-                "has_at_least_15": True,
-                "has_exactly_15": True,
+            "materialization_count_against_selected_assets": {
+                "expected_selected_asset_count": 15,
                 "actual_unique_count": 15,
-                "claim_count": 15,
             },
         }
     )
@@ -221,7 +419,7 @@ def test_all_assets_selection_fallback_can_support_artifact_backed_pass_claim() 
     defs = SimpleNamespace(
         assets=[
             SimpleNamespace(key=FakeAssetKey(f"asset_{index}"))
-            for index in range(15)
+            for index in range(17)
         ],
     )
     selected_asset_keys = module._selected_job_asset_keys(
@@ -242,15 +440,24 @@ def test_all_assets_selection_fallback_can_support_artifact_backed_pass_claim() 
         cycle_id="CYCLE_20260415",
         job_name="daily_cycle_job",
         selected_asset_keys=selected_asset_keys,
-        expected_materialization_count=15,
+        legacy_materialization_claim_count=15,
     )
     step = module._dagster_step_from_evidence(evidence)
 
-    assert evidence["selected_asset_count"] == 15
-    assert evidence["selected_asset_count_matches_claim"] is True
+    assert evidence["selected_asset_count"] == 17
+    assert evidence["selected_asset_count_matches_legacy_claim"] is False
     assert evidence["selected_materializations_complete"] is True
+    assert evidence["materialization_count_against_selected_assets"] == {
+        "expected_selected_asset_count": 17,
+        "actual_count": 17,
+        "actual_unique_count": 17,
+        "has_exactly_selected_asset_count": True,
+        "missing_selected_asset_count": 0,
+        "extra_materialized_asset_count": 0,
+    }
     assert step["status"] == "passed"
     assert step["artifact_backed_pass_claim"] is True
+    assert step["supports_legacy_15_materializations_claim"] is False
 
 
 def test_dagster_step_rejects_partial_selection_even_with_15_materializations() -> None:
@@ -270,13 +477,16 @@ def test_dagster_step_rejects_partial_selection_even_with_15_materializations() 
         cycle_id="CYCLE_20260415",
         job_name="daily_cycle_job",
         selected_asset_keys=materialized_asset_keys[:14],
-        expected_materialization_count=15,
+        legacy_materialization_claim_count=15,
     )
     step = module._dagster_step_from_evidence(evidence)
 
-    assert evidence["materialization_count_against_claim_15"]["has_exactly_15"] is True
+    assert (
+        evidence["legacy_materialization_count_against_claim_15"]["has_exactly_15"]
+        is True
+    )
     assert evidence["extra_materialized_asset_keys"] == ["asset_14"]
-    assert step["selected_asset_count_matches_claim"] is False
+    assert step["selected_asset_count_matches_materialization_basis"] is True
     assert step["status"] == "failed"
     assert step["artifact_backed_pass_claim"] is False
 
@@ -302,7 +512,7 @@ def test_graph_promotion_materialization_record_is_artifact_backed() -> None:
             "graph_status",
             "graph_promotion",
         ],
-        expected_materialization_count=15,
+        legacy_materialization_claim_count=15,
     )
 
     graph_promotion_records = [
@@ -344,7 +554,7 @@ def test_asset_check_evidence_accepts_event_specific_data_evaluation_shape() -> 
         cycle_id="CYCLE_20260415",
         job_name="daily_cycle_job",
         selected_asset_keys=["graph_status"],
-        expected_materialization_count=15,
+        legacy_materialization_claim_count=15,
     )
 
     assert evidence["asset_checks"] == [

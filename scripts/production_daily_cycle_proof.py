@@ -150,6 +150,11 @@ def main(argv: Sequence[str] | None = None) -> int:
             reasoner_health=not args.skip_reasoner_health,
         )
         preflight_blockers = _failed_probe_names(report["preflight"])
+        if args.run_dagster and "neo4j_gds" in preflight_blockers:
+            raise RuntimeError(
+                "configured_neo4j_gds_runtime is required before running "
+                "daily_cycle_job; see neo4j-gds-preflight.json"
+            )
         if args.preflight_only:
             report["verdict"] = (
                 "RUNTIME_PREFLIGHT_PASS"
@@ -353,6 +358,7 @@ def _run_preflights(
     probes: dict[str, Any] = {
         "imports": _probe_imports(),
         "pg_connect": _probe_pg_connect(),
+        "neo4j_gds": _probe_neo4j_gds(artifact_dir),
         "audit_duckdb_write_read": _probe_audit_duckdb(runtime_root),
     }
     if reasoner_health:
@@ -427,6 +433,75 @@ def _probe_pg_connect() -> dict[str, Any]:
             "error": _redact_text(str(exc)),
             "duration_ms": _elapsed_ms(started),
         }
+
+
+def _probe_neo4j_gds(artifact_dir: Path) -> dict[str, Any]:
+    artifact_path = artifact_dir / "neo4j-gds-preflight.json"
+    started = perf_counter()
+    evidence: dict[str, Any] = {
+        "schema_version": f"{SCHEMA_VERSION}.neo4j-gds-preflight.v1",
+        "status": "running",
+        "generated_at_utc": datetime.now(UTC).isoformat(),
+        "artifact": str(artifact_path),
+        "neo4j_uri": _redact_text(os.environ.get("NEO4J_URI", "missing")),
+        "neo4j_user": "set" if os.environ.get("NEO4J_USER") else "missing",
+        "neo4j_database": os.environ.get("NEO4J_DATABASE", "neo4j"),
+        "required_runtime": "Neo4j Graph Data Science plugin",
+        "required_probes": [
+            "CALL gds.version() YIELD gdsVersion RETURN gdsVersion",
+            "CALL gds.graph.exists($graph_name) YIELD exists RETURN exists",
+        ],
+        "v5_0_1_semantics": {
+            "neo4j_role": "hot_mirror",
+            "canonical_truth": "Layer A canonical stores, not Neo4j",
+            "no_graph_delta_writes": True,
+            "gds_required_for_layer_c_graph_snapshot": True,
+        },
+    }
+    try:
+        from graph_engine.client import Neo4jClient
+        from graph_engine.config import load_config_from_env
+        from graph_engine.propagation._gds import probe_gds_availability
+
+        config = load_config_from_env()
+        with Neo4jClient(config) as client:
+            connected = client.verify_connectivity()
+            if not connected:
+                raise ConnectionError("Neo4j connectivity check failed")
+            availability = probe_gds_availability(client)
+        evidence.update(
+            {
+                "status": "passed",
+                "blocker": None,
+                "gds_version": availability.gds_version,
+                "gds_graph_exists_probe": {
+                    "graph_name": "__graph_engine_gds_probe__",
+                    "procedure_available": (
+                        availability.graph_exists_procedure_available
+                    ),
+                },
+            }
+        )
+    except Exception as exc:  # noqa: BLE001 - structured preflight evidence
+        evidence.update(
+            {
+                "status": "failed",
+                "blocker": "configured_neo4j_gds_runtime",
+                "error_type": type(exc).__name__,
+                "error": _redact_text(str(exc)),
+            }
+        )
+    evidence["duration_ms"] = _elapsed_ms(started)
+    _write_json_artifact(artifact_path, evidence)
+    return {
+        "status": evidence["status"],
+        "artifact": str(artifact_path),
+        "blocker": "configured_neo4j_gds_runtime"
+        if evidence["status"] == "failed"
+        else None,
+        "gds_version": evidence.get("gds_version"),
+        "duration_ms": evidence["duration_ms"],
+    }
 
 
 def _probe_reasoner_health() -> dict[str, Any]:
@@ -934,7 +1009,8 @@ def _run_production_dagster(
         "job_name": "daily_cycle_job",
         "cycle_id": cycle_id,
         "artifact": str(evidence_path),
-        "claim_target_materialization_count": EXPECTED_DAGSTER_MATERIALIZATION_CLAIM_COUNT,
+        "pass_basis": "resolved_selected_asset_keys",
+        "legacy_materialization_claim_count": EXPECTED_DAGSTER_MATERIALIZATION_CLAIM_COUNT,
         "terminal_observed_steps": [],
         "terminal_observed_policy": (
             "terminal-observed progress is operator context only; PASS claims "
@@ -955,11 +1031,9 @@ def _run_production_dagster(
                 "failure_step": "orchestrator_dbt_compile",
                 "error_type": type(exc).__name__,
                 "error": _redact_text(str(exc)),
-                "duration_ms": _elapsed_ms(started),
             }
         )
-        _write_json_artifact(evidence_path, evidence)
-        return _dagster_step_from_evidence(evidence)
+        return _finalize_dagster_evidence(evidence, evidence_path, started)
 
     os.chdir(ORCHESTRATOR_ROOT)
     try:
@@ -975,6 +1049,22 @@ def _run_production_dagster(
         dagster.Definitions.validate_loadable(defs)
         job_def = defs.get_job_def("daily_cycle_job")
         selected_asset_keys = _selected_job_asset_keys(job_def, defs)
+        if not selected_asset_keys:
+            evidence.update(
+                {
+                    "status": "failed",
+                    "dagster_success": False,
+                    "failure_step": "dagster_setup",
+                    "error_type": "RuntimeError",
+                    "error": (
+                        "daily_cycle_job resolved an empty selected asset set; "
+                        "proof pass/fail cannot be evaluated without an asset basis"
+                    ),
+                    "selected_asset_count": 0,
+                    "selected_asset_keys": [],
+                }
+            )
+            return _finalize_dagster_evidence(evidence, evidence_path, started)
         with dagster.DagsterInstance.ephemeral() as instance:
             result = job_def.execute_in_process(
                 instance=instance,
@@ -987,7 +1077,7 @@ def _run_production_dagster(
                 cycle_id=cycle_id,
                 job_name="daily_cycle_job",
                 selected_asset_keys=selected_asset_keys,
-                expected_materialization_count=(
+                legacy_materialization_claim_count=(
                     EXPECTED_DAGSTER_MATERIALIZATION_CLAIM_COUNT
                 ),
             )
@@ -1004,30 +1094,58 @@ def _run_production_dagster(
         )
     finally:
         os.chdir(previous_cwd)
+    return _finalize_dagster_evidence(evidence, evidence_path, started)
+
+
+def _finalize_dagster_evidence(
+    evidence: dict[str, Any],
+    evidence_path: Path,
+    started: float,
+) -> dict[str, Any]:
     evidence["duration_ms"] = _elapsed_ms(started)
+    step = _dagster_step_from_evidence(evidence)
+    evidence["dagster_step_summary"] = step
+    for key in (
+        "artifact_backed_pass_claim",
+        "expected_materialized_asset_count",
+        "failure_error",
+        "failure_message",
+        "failure_root_cause",
+        "selected_asset_count_matches_materialization_basis",
+        "supports_legacy_15_materializations_claim",
+        "supports_selected_asset_materialization_claim",
+    ):
+        evidence[key] = step.get(key)
     _write_json_artifact(evidence_path, evidence)
-    return _dagster_step_from_evidence(evidence)
+    return step
 
 
 def _dagster_step_from_evidence(evidence: Mapping[str, Any]) -> dict[str, Any]:
-    materialization_claim = evidence.get("materialization_count_against_claim_15")
-    if not isinstance(materialization_claim, Mapping):
-        materialization_claim = {}
+    selected_claim = evidence.get("materialization_count_against_selected_assets")
+    if not isinstance(selected_claim, Mapping):
+        selected_claim = {}
+    legacy_claim = evidence.get("legacy_materialization_count_against_claim_15")
+    if not isinstance(legacy_claim, Mapping):
+        legacy_claim = {}
     selected_asset_count = int(evidence.get("selected_asset_count") or 0)
     selected_materializations_complete = bool(
         evidence.get("selected_materializations_complete")
     )
-    exact_claim = bool(
-        materialization_claim.get("has_exactly_15") is True
-        and materialization_claim.get("actual_unique_count")
-        == materialization_claim.get("claim_count")
+    selected_unique_count_matches = bool(
+        selected_claim.get("actual_unique_count")
+        == selected_claim.get("expected_selected_asset_count")
     )
+    no_extra_materializations = not evidence.get("extra_materialized_asset_keys")
+    failure_event = _first_mapping(evidence.get("failure_events"))
+    failure_error = failure_event.get("error") if failure_event else None
+    failure_message = failure_event.get("message") if failure_event else None
+    failure_root_cause = _failure_root_cause(failure_error, failure_message)
     artifact_backed_pass = bool(
         evidence.get("dagster_success") is True
-        and exact_claim
-        and selected_asset_count == materialization_claim.get("claim_count")
+        and selected_asset_count > 0
         and selected_materializations_complete
-        and not evidence.get("extra_materialized_asset_keys")
+        and selected_unique_count_matches
+        and no_extra_materializations
     )
     return {
         "status": "passed" if artifact_backed_pass else "failed",
@@ -1039,13 +1157,53 @@ def _dagster_step_from_evidence(evidence: Mapping[str, Any]) -> dict[str, Any]:
         "materialized_asset_count": evidence.get("materialized_asset_count", 0),
         "materialized_asset_keys": evidence.get("materialized_asset_keys", []),
         "selected_asset_count": selected_asset_count,
-        "selected_asset_count_matches_claim": (
-            selected_asset_count == materialization_claim.get("claim_count")
+        "expected_materialized_asset_count": selected_claim.get(
+            "expected_selected_asset_count", 0
         ),
+        "selected_asset_count_matches_materialization_basis": selected_asset_count
+        == selected_claim.get("expected_selected_asset_count"),
         "selected_materializations_complete": selected_materializations_complete,
         "failure_step": evidence.get("failure_step"),
-        "supports_15_materializations_claim": exact_claim,
+        "failure_error": failure_error if isinstance(failure_error, Mapping) else None,
+        "failure_message": failure_message,
+        "failure_root_cause": failure_root_cause,
+        "supports_selected_asset_materialization_claim": artifact_backed_pass,
+        "legacy_claim_count": legacy_claim.get("legacy_claim_count"),
+        "supports_legacy_15_materializations_claim": bool(
+            legacy_claim.get("has_exactly_15") is True
+            and legacy_claim.get("actual_unique_count")
+            == legacy_claim.get("legacy_claim_count")
+        ),
     }
+
+
+def _first_mapping(value: Any) -> Mapping[str, Any] | None:
+    if isinstance(value, Sequence) and not isinstance(value, str):
+        for item in value:
+            if isinstance(item, Mapping):
+                return item
+    return None
+
+
+def _failure_root_cause(
+    failure_error: object,
+    failure_message: object,
+) -> str | None:
+    candidates: list[str] = []
+    if isinstance(failure_error, Mapping) and failure_error.get("message"):
+        candidates.append(str(failure_error["message"]))
+    if failure_message:
+        candidates.append(str(failure_message))
+    for candidate in candidates:
+        for raw_line in candidate.splitlines():
+            line = raw_line.strip()
+            if line.startswith(("ValueError:", "RuntimeError:", "ConnectionError:")):
+                return _redact_text(line)
+            if "GraphImpactSnapshot requires at least one target entity" in line:
+                return _redact_text(line)
+    if candidates:
+        return _tail(candidates[0], limit=500)
+    return None
 
 
 def _selected_job_asset_keys(job_def: Any, defs: Any) -> list[str]:
@@ -1105,7 +1263,7 @@ def _dagster_execution_evidence_from_result(
     cycle_id: str,
     job_name: str,
     selected_asset_keys: Sequence[str],
-    expected_materialization_count: int,
+    legacy_materialization_claim_count: int,
 ) -> dict[str, Any]:
     events = tuple(getattr(result, "all_events", ()) or ())
     materializations: list[dict[str, Any]] = []
@@ -1172,15 +1330,27 @@ def _dagster_execution_evidence_from_result(
     extra_materialized_asset_keys = sorted(
         set(unique_materialized_asset_keys).difference(selected_asset_keys)
     )
-    materialization_claim = {
-        "claim_count": expected_materialization_count,
+    selected_materialization_claim = {
+        "expected_selected_asset_count": len(selected_asset_keys),
         "actual_count": len(materialized_asset_keys),
         "actual_unique_count": len(unique_materialized_asset_keys),
-        "has_at_least_15": len(materialized_asset_keys) >= expected_materialization_count,
-        "has_exactly_15": len(materialized_asset_keys) == expected_materialization_count,
+        "has_exactly_selected_asset_count": len(unique_materialized_asset_keys)
+        == len(selected_asset_keys),
+        "missing_selected_asset_count": len(missing_selected_asset_keys),
+        "extra_materialized_asset_count": len(extra_materialized_asset_keys),
     }
-    selected_asset_count_matches_claim = (
-        len(selected_asset_keys) == expected_materialization_count
+    legacy_materialization_claim = {
+        "legacy_claim_count": legacy_materialization_claim_count,
+        "actual_count": len(materialized_asset_keys),
+        "actual_unique_count": len(unique_materialized_asset_keys),
+        "has_at_least_15": len(materialized_asset_keys)
+        >= legacy_materialization_claim_count,
+        "has_exactly_15": len(unique_materialized_asset_keys)
+        == legacy_materialization_claim_count,
+        "historical_only": True,
+    }
+    selected_asset_count_matches_legacy_claim = (
+        len(selected_asset_keys) == legacy_materialization_claim_count
     )
     failure_step = failures[0].get("step_key") if failures else None
     dagster_success = bool(getattr(result, "success", False))
@@ -1192,14 +1362,17 @@ def _dagster_execution_evidence_from_result(
         "cycle_id": cycle_id,
         "selected_asset_count": len(selected_asset_keys),
         "selected_asset_keys": list(selected_asset_keys),
-        "selected_asset_count_matches_claim": selected_asset_count_matches_claim,
+        "selected_asset_count_matches_legacy_claim": (
+            selected_asset_count_matches_legacy_claim
+        ),
         "materializations": materializations,
         "materialized_asset_count": len(materialized_asset_keys),
         "unique_materialized_asset_count": len(unique_materialized_asset_keys),
         "materialized_asset_keys": materialized_asset_keys,
         "unique_materialized_asset_keys": unique_materialized_asset_keys,
         "materialization_order": materialized_asset_keys,
-        "materialization_count_against_claim_15": materialization_claim,
+        "materialization_count_against_selected_assets": selected_materialization_claim,
+        "legacy_materialization_count_against_claim_15": legacy_materialization_claim,
         "selected_materializations_complete": (
             bool(selected_asset_keys) and not missing_selected_asset_keys
         ),
@@ -1657,6 +1830,9 @@ def _open_blockers(report: Mapping[str, Any]) -> list[str]:
         failure_step = dagster_step.get("failure_step")
         if failure_step:
             blockers.append(f"Dagster failure step: {failure_step}")
+        failure_root_cause = dagster_step.get("failure_root_cause")
+        if failure_root_cause:
+            blockers.append(f"Dagster failure root cause: {failure_root_cause}")
     provider_status = _mapping_get(report, "steps", "production_provider_status")
     if provider_status:
         if provider_status.get("status") != "passed":
@@ -1698,6 +1874,8 @@ def _active_provider_runtime_blockers(
     if failure_step == "graph_status":
         return _filter_blockers(raw_blockers, {"configured_graph_phase0_status_runtime"})
     if failure_step == "graph_promotion":
+        return _filter_blockers(raw_blockers, {"configured_graph_phase1_runtime"})
+    if failure_step == "graph_snapshot":
         return _filter_blockers(raw_blockers, {"configured_graph_phase1_runtime"})
     if failure_step in {"l1", "l2", "l3", "l4", "l5", "l6", "l7", "l8"}:
         return _filter_blockers(raw_blockers, {"configured_reasoner_runtime"})

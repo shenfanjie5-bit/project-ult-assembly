@@ -2,30 +2,34 @@
 
 ## Verdict
 
-**BLOCKED. M2.6 is not passed.**
+**PARTIAL_PASS_BLOCKED. M2.6 is not passed.**
 
-The May 1 repair moved the proof past the previous Phase 1
-`graph_promotion` blocker. The latest full Dagster run materialized
-`graph_promotion`, proving the proof path now reaches the real Phase 1
-write-back surface. The run then failed closed at `graph_snapshot` because the
-configured Neo4j instance does not expose the GDS procedure used by graph
-propagation:
+The May 1 follow-up closed the previous Neo4j GDS runtime blocker for the
+local proof path. The running Lite Neo4j container was non-destructively
+recreated from `neo4j:5.26.25` with
+`NEO4J_PLUGINS='["graph-data-science"]'`, and the proof runner now persists a
+GDS preflight artifact before Dagster execution.
+
+The latest full proof reached real Dagster execution, materialized
+`graph_promotion`, and executed GDS-backed graph snapshot logic. It then failed
+closed at `graph_snapshot` with a new Phase 1 blocker:
 
 ```text
-RuntimeError: GDS plugin not available
-Neo.ClientError.Procedure.ProcedureNotFound: gds.graph.exists
+ValueError: GraphImpactSnapshot requires at least one target entity for cycle_id='CYCLE_20260415', world_state_ref='world-state:latest', graph_generation_id=1
 ```
 
 Current blocker:
 
-- `graph_snapshot` failed because Neo4j GDS is unavailable in the local proof
-  graph runtime.
-- Only 5 artifact-backed materializations were recorded, not the required full
-  daily-cycle materialization set.
+- `graph_snapshot` no longer fails because GDS is missing; GDS version `2.13.9`
+  is artifact-backed.
+- `graph_snapshot` now fails because the generated impact snapshot has no
+  target entity for the proof cycle.
+- 5 artifact-backed materializations were recorded out of the 17 selected
+  daily-cycle assets.
 - Phase 2, Phase 3, audit/replay, and retrospective hook were not reached.
 
 This is not a Codex quota blocker. The reasoner health probe was reachable and
-reported `quota_status: ok` during the bounded proof.
+reported `quota_status: ok`.
 
 ## v5.0.1 Alignment
 
@@ -42,21 +46,35 @@ This attempt stayed inside the Lite P1-P5 path:
 
 ## Branch And Head Snapshot
 
-The latest proof artifact records repo heads and dirty state in
+The latest full proof artifact records repo heads and dirty state in
 `production-daily-cycle-proof.json`. The run used local in-flight changes from
-this repair round, so several repos are intentionally marked dirty.
+this repair round.
 
-| Repo | Branch | Head Recorded | State |
+| Repo | Branch | Head Recorded | State In Artifact |
 |---|---|---:|---|
-| `data-platform` | `m2-6f1-iceberg-canonical-graph-writer-v2` | `8374504` | clean in artifact |
-| `main-core` | `m2-3a-2-regime-reader` | `3def30a` | clean in artifact |
-| `graph-engine` | `m2-6f1-real-canonical-writer` | `2eb9e11` | dirty: validation-error wrapping patch |
-| `orchestrator` | `m2-3a-2-phase1-wiring` | `0ccae67` | dirty: Phase 1 provider/status wiring patch |
-| `audit-eval` | `m2-5-live-pg-roundtrip` | `a7d05b7` | clean in artifact |
-| `reasoner-runtime` | `main` | `025db5b` | clean in artifact |
-| `assembly` | `m2-baseline-2026-04-29` | `eac730f` | dirty: proof-runner artifact improvements |
+| `data-platform` | `m2-6f1-iceberg-canonical-graph-writer-v2` | `8374504` | dirty |
+| `main-core` | `m2-3a-2-regime-reader` | `3def30a` | clean |
+| `graph-engine` | `m2-6f1-real-canonical-writer` | `ef6700a` | dirty: GDS availability probe |
+| `orchestrator` | `m2-3a-2-phase1-wiring` | `a9f5f57` | clean |
+| `audit-eval` | `m2-5-live-pg-roundtrip` | `a7d05b7` | clean |
+| `reasoner-runtime` | `main` | `025db5b` | clean |
+| `assembly` | `m2-baseline-2026-04-29` | `0ff0d30` | dirty: proof-runner GDS/evidence changes |
 
 ## Commands
+
+Non-destructive Neo4j/GDS runtime repair:
+
+```bash
+cd /Users/fanjie/Desktop/Cowork/project-ult/assembly
+docker compose --env-file .env -f compose/lite-local.yaml up -d --force-recreate neo4j
+docker exec compose-neo4j-1 cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" \
+  "CALL gds.version() YIELD gdsVersion RETURN gdsVersion"
+docker exec compose-neo4j-1 cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" \
+  "CALL gds.graph.exists('__m2_6_probe__') YIELD exists RETURN exists"
+```
+
+Result: container image `neo4j:5.26.25`; GDS version `2.13.9`;
+`gds.graph.exists` returned `FALSE`.
 
 Graph-engine targeted suite:
 
@@ -65,24 +83,13 @@ cd /Users/fanjie/Desktop/Cowork/project-ult/graph-engine
 PYTHONDONTWRITEBYTECODE=1 \
 PYTHONPATH=.:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src \
 .venv/bin/python -m pytest -p no:cacheprovider \
+  tests/unit/test_phase0_status_provider.py \
   tests/unit/test_phase1_from_env.py \
   tests/unit/test_phase1_provider.py \
-  tests/unit/test_promotion.py -q
+  tests/unit/test_gds_availability.py
 ```
 
-Result: `48 passed, 1 skipped`.
-
-Orchestrator targeted suite:
-
-```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/orchestrator
-PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -p no:cacheprovider \
-  tests/integration/test_production_daily_cycle_provider.py \
-  tests/integration/test_production_daily_cycle_phase1_wired.py \
-  tests/integration/test_phase1_graph_provider_wiring.py -q
-```
-
-Result: `16 passed, 8 skipped`.
+Result: `37 passed, 1 skipped`.
 
 Assembly proof-runner unit tests:
 
@@ -92,12 +99,13 @@ PYTHONDONTWRITEBYTECODE=1 .venv-py312/bin/python -m pytest \
   -p no:cacheprovider tests/scripts/test_production_daily_cycle_proof.py -q
 ```
 
-Result: `8 passed`.
+Result: `11 passed`.
 
 Runtime preflight:
 
 ```bash
 cd /Users/fanjie/Desktop/Cowork/project-ult/assembly
+PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin:$PATH \
 PYTHONDONTWRITEBYTECODE=1 .venv-py312/bin/python \
   scripts/production_daily_cycle_proof.py \
   --preflight-only \
@@ -124,7 +132,7 @@ Result: `PARTIAL_PASS_BLOCKED`.
 Latest full proof artifact root:
 
 ```text
-assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260430T210918Z/
+assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260430T213645Z/
 ```
 
 Key full-proof artifacts:
@@ -132,25 +140,39 @@ Key full-proof artifacts:
 | Artifact | Purpose |
 |---|---|
 | `production-daily-cycle-proof.json` | top-level proof report, command metadata, repo revisions, verdict, blockers, file manifest |
+| `neo4j-gds-preflight.json` | GDS availability proof: version + required procedure availability |
 | `graph-status-initialization.json` | proof-only isolated DB `neo4j_graph_status` bootstrap and readback |
-| `dagster-execution-evidence.json` | Dagster run id, selected assets, materialization records, failure step |
+| `dagster-execution-evidence.json` | Dagster run id, selected assets, materialization records, failure step/root cause |
 | `daily-refresh.json` | data-platform daily refresh evidence |
 | `data-platform-current-selection-tests.stdout.txt` | current-selection focused test stdout |
 | `orchestrator-dbt-compile.stdout.txt` | orchestrator dbt stub compile stdout |
 
-Full proof run id:
+Latest full proof run id:
 
 ```text
-b78a94ef-b3c1-4668-b07f-0b4747baa778
+b93c74e7-23e6-40e6-9219-cf47da449f0c
+```
+
+GDS preflight:
+
+```text
+status: passed
+blocker: null
+gds_version: 2.13.9
+gds_graph_exists_probe.procedure_available: true
+neo4j_role: hot_mirror
+canonical_truth: Layer A canonical stores, not Neo4j
+no_graph_delta_writes: true
 ```
 
 ## Phase Status
 
 | Area | Status | Artifact-backed evidence |
 |---|---|---|
-| Runtime preflight | PASS | `20260430T210918Z/production-daily-cycle-proof.json` |
+| Runtime preflight | PASS | `20260430T213645Z/production-daily-cycle-proof.json` |
+| Neo4j GDS preflight | PASS | `neo4j-gds-preflight.json`, `gds_version: 2.13.9` |
 | Reasoner health/quota | PASS | `quota_status: ok` in full proof JSON |
-| Data-platform refresh/current selection | PASS | `20260430T210918Z/daily-refresh.json`; current-selection stdout |
+| Data-platform refresh/current selection | PASS | `daily-refresh.json`; current-selection stdout |
 | Isolated PG bootstrap | PASS | `postgres_bootstrap` in `production-daily-cycle-proof.json` |
 | Graph status initialization | PASS | `graph-status-initialization.json`; ready row readback, `phase0_graph_delta_writes: 0` |
 | Phase 0 candidate freeze | PASS | Dagster materialization event for `candidate_freeze` |
@@ -158,7 +180,7 @@ b78a94ef-b3c1-4668-b07f-0b4747baa778
 | Phase 0 readiness ping | PASS | Dagster materialization event for `phase0_readiness_ping` |
 | Phase 0 graph status | PASS | Dagster materialization event for `graph_status`; graph consistency asset check passed |
 | Phase 1 graph promotion/write-back | PASS | Dagster materialization event for `graph_promotion` |
-| Phase 1 graph snapshot | BLOCKED | failure step `graph_snapshot`: Neo4j GDS procedure missing |
+| Phase 1 graph snapshot | BLOCKED | `GraphImpactSnapshot requires at least one target entity` |
 | Phase 2 reasoner L1-L8 | NOT REACHED | dependency failure after `graph_snapshot` |
 | Phase 3 formal outputs/publish manifest | NOT REACHED | dependency failure after upstream graph/Phase 2 steps |
 | Audit/replay/retrospective hook | NOT REACHED | dependency failure after publish manifest |
@@ -170,60 +192,55 @@ event_count: 77
 materialized_asset_count: 5
 unique_materialized_asset_count: 5
 selected_asset_count: 17
+expected_materialized_asset_count: 17
+selected_asset_count_matches_materialization_basis: true
 selected_materializations_complete: false
-unique_materialized_asset_keys:
+materialized_asset_keys:
   - candidate_freeze
   - graph_promotion
   - graph_status
   - heartbeat
   - phase0_readiness_ping
 failure_step: graph_snapshot
-full daily-cycle materialization claim supported: false
+failure_root_cause: ValueError: GraphImpactSnapshot requires at least one target entity for cycle_id='CYCLE_20260415', world_state_ref='world-state:latest', graph_generation_id=1
 artifact_backed_pass_claim: false
+supports_legacy_15_materializations_claim: false
+supports_selected_asset_materialization_claim: false
 ```
 
 ## Blocker Classification
 
-Primary blocker class: **Phase 1 graph snapshot / Neo4j GDS availability**.
+Primary blocker class: **Phase 1 graph snapshot input/impact-target coverage**.
 
 The prior blockers are closed for this proof path:
 
-- `graph-engine` normalizes SQLAlchemy-style PostgreSQL DSNs before direct
-  `psycopg` use.
+- SQLAlchemy-style PostgreSQL DSNs are normalized before direct `psycopg` use.
 - The assembly proof runner seeds and verifies a proof-only ready
   `neo4j_graph_status` row in the isolated PostgreSQL database.
-- The proof runner now sets `GRAPH_PHASE1_SNAPSHOT_ARTIFACT_ROOT`.
-- Dagster reached and materialized `graph_promotion`, so the earlier
-  fail-closed missing Phase 1 runtime bundle is no longer the active failure.
+- The proof runner sets `GRAPH_PHASE1_SNAPSHOT_ARTIFACT_ROOT`.
+- Dagster reached and materialized `graph_promotion`.
+- Neo4j GDS is present and artifact-backed (`gds_version: 2.13.9`).
 
 The active failure is later:
 
 ```text
-RuntimeError: GDS plugin not available
-```
-
-Current structured blocker list includes:
-
-```text
-full production daily_cycle_job Dagster proof has not passed
 Dagster failure step: graph_snapshot
-production provider status is blocked
+Dagster failure root cause: ValueError: GraphImpactSnapshot requires at least one target entity for cycle_id='CYCLE_20260415', world_state_ref='world-state:latest', graph_generation_id=1
+production provider runtime pending: configured_graph_phase1_runtime
 ```
 
 Recommended next repair round:
 
-1. Decide the Lite-mode policy for graph snapshot propagation when Neo4j GDS is
-   unavailable: provide a GDS-enabled Neo4j proof image/config, or add an
-   explicitly approved non-GDS propagation fallback if that matches
-   `project_ult_v5_0_1.md`.
-2. Keep Phase 0 graph-status seeding proof-only for isolated proof databases;
-   do not treat it as production graph delta writing.
-3. Rerun the same full proof command and require
-   `dagster-execution-evidence.json` to support the full selected-asset
-   materialization claim.
-4. Reconcile the historic "15 materializations" target with the current
-   `daily_cycle_job` selected asset set, which currently resolves to 17 asset
-   keys; do not claim pass while this count is unresolved.
+1. Inspect the Phase 1 graph promotion output and live Neo4j graph produced for
+   `CYCLE_20260415`.
+2. Decide whether the proof seed/candidate set must create at least one
+   GraphImpactSnapshot target entity, or whether graph-engine should treat an
+   empty impact-target set as a valid empty snapshot for this cycle.
+3. Keep this as a Phase 1 graph snapshot repair only; do not broaden into
+   Phase 2/P5/M3.3 work.
+4. Rerun the same full proof command and require
+   `dagster-execution-evidence.json` to support all 17 selected asset
+   materializations before any M2.6 PASS claim.
 
 ## Explicit Non-Claims
 
