@@ -80,26 +80,31 @@ correctness gap.
   Iceberg is unavailable (mirrors orchestrator's
   `_FailClosedGraphStatusProvider` pattern).
 
-**Tests** (final post-fold-in count):
+**Tests** (M2.6f1-r3 current count):
 
-`tests/cycle/test_graph_phase1_adapters.py` — **28 unit tests** (was
-15 in M2.3a-2 review-fold; +13 across the M2.6f1 line). Coverage:
+`tests/cycle/test_graph_phase1_adapters.py` — **43 unit tests** (was
+15 in M2.3a-2 review-fold; +28 across the M2.6f1 line). Coverage:
 - Stub alias resolution
 - Lazy catalog initialisation in `from_env`
 - Three-table cycle-scoped overwrite sequence
 - `overwrite_filter` pins `EqualTo("cycle_id", cycle_id)` on every call
+- Strict fake `overwrite` signature rejects missing/unsupported kwargs
+  and records accepted `snapshot_properties`
 - Per-record-type Arrow schema + value pinning (node, edge, assertion)
-- Empty-slice cycle-scoped overwrite carries 0-row Arrow + correct filter
+- Empty-slice cycle-scoped overwrite carries 0-row Arrow + canonical
+  schema + correct filter
+- Mixed retry: non-empty node slice rewrites while empty edge/assertion
+  slices clear prior rows
 - Null-target_node_id assertion handling
 - Sorted-key JSON determinism for properties
 - Fail-closed writer raises `RuntimeError`
-- tz-naive datetime rejection (`ValueError`)
-- Non-UTC offset rejection (`ValueError`)
+- Timestamp rejection (`ValueError`) for tz-naive, non-UTC, and
+  non-datetime values across node/edge/assertion persisted timestamp fields
 - Partial-write exception propagation (graph_node committed before
   graph_edge raises; graph_assertion not attempted)
 
 `tests/integration/test_iceberg_canonical_graph_writer_live.py` —
-**4 live Iceberg integration tests** (use SQLite-backed `SqlCatalog`
+**5 live Iceberg integration tests** (use SQLite-backed `SqlCatalog`
 + filesystem warehouse under `tmp_path`):
 - `round_trip_against_live_catalog` — write 1 node + 1 edge + 1
   assertion via `target.overwrite`, read back via `scan().to_arrow()`,
@@ -110,16 +115,19 @@ correctness gap.
   three record types so cross-cycle preservation is verified per
   table, not just `graph_node`).
 - `clears_prior_cycle_rows_when_retry_slice_is_empty` — Run 1 writes
-  full slice for `CYCLE_GHOST`; Run 2 retries the same cycle with
-  empty edge + assertion slices; post-Run-2 graph_edge and
-  graph_assertion have **zero rows** (no ghost rows from Run 1) —
-  the codex review #1 regression test.
+  full slice for `CYCLE_GHOST`; Run 2 writes another cycle; Run 3
+  retries `CYCLE_GHOST` with empty node + edge + assertion slices;
+  only the other cycle remains in all three tables.
+- `mixed_retry_clears_empty_slices_and_preserves_other_cycle` — same
+  cycle retry writes a new node but zero edges/assertions; old
+  edges/assertions are cleared and the other cycle survives.
 - `is_idempotent_across_two_runs_of_same_cycle` — same plan twice;
   each table has exactly 1 row.
 
-**Updated tests:** `tests/ddl/test_iceberg_tables.py` — adds the 3 new
-graph specs to the `test_ensure_tables_is_idempotent` expected table
-list.
+**Updated tests:** `tests/ddl/test_iceberg_tables.py` — **11 DDL tests**;
+adds graph specs to the `test_ensure_tables_is_idempotent` expected
+table list and pins `GRAPH_TIMESTAMP_TYPE` to graph timestamp fields
+while preserving legacy `TIMESTAMP_TYPE` on canonical entity specs.
 
 ### graph-engine (branch `m2-6f1-real-canonical-writer`, off `m2-3a-2-phase1-runtime-from-env`)
 
@@ -142,40 +150,11 @@ trace renamed accordingly.
 
 ---
 
-## Test results (initial M2.6f1 — superseded by review-fold + codex-fold sections below)
+## Test results
 
-> **NOTE:** these are the initial-implementation counts before the
-> M2.6f1.r1 review-fold and the M2.6f1.r2 codex-fold landed. The only
-> current authoritative sweep block is **Test results post codex-fold
-> (reproducible)** (~L690), which explicitly excludes `tests/dbt`
-> because the three dbt-toolchain failures reproduce independently of
-> the graph writer.
-
-Initial implementation pass (M2.6f1, commit `4e5e3d6`):
-
-```
-$ cd data-platform
-$ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src:contracts/src .venv/bin/python -m pytest \
-   -p no:cacheprovider tests/cycle/test_graph_phase1_adapters.py
-23 passed in 0.45s
-
-$ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest \
-   -p no:cacheprovider tests/integration/test_iceberg_canonical_graph_writer_live.py
-2 passed in 1.02s
-
-$ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest \
-   -p no:cacheprovider --ignore=tests/cycle/test_graph_phase1_adapters.py
-626 passed, 74 skipped, 7 warnings in 47.44s
-
-$ cd graph-engine
-$ PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -p no:cacheprovider
-425 passed, 21 skipped, 0 failed
-```
-
-These counts are historical: the M2.6f1.r1 review-fold added the
-review-fold test set, and the M2.6f1.r2 codex-fold added the
-empty-slice + UTC-validation test set. **Do not cite these initial
-numbers as the current state.**
+Initial M2.6f1 and r1/r2 test counts are superseded by the
+M2.6f1-r3 verification block below and are intentionally not repeated
+as current evidence.
 
 ---
 
@@ -193,12 +172,13 @@ numbers as the current state.**
 **Aggregate:** 2 READY + 1 PARTIAL + 0 STUBBED + 1 DEFERRED + 2
 READY-IN-CODE.
 
-The remaining "stub" in Phase 1 is `PlaceholderRegimeContextReader`
+The remaining placeholder in Phase 1 is `PlaceholderRegimeContextReader`
 (neutral 1.0 multipliers). That is a propagation policy choice (regime
-→ multiplier business mapping) tracked as M2.6 followup #2; it does
-NOT block Phase 1 graph_promotion or graph_snapshot from running
-end-to-end, since neutral 1.0 multipliers preserve the existing
-graph-engine test contract (cf. `StaticRegimeReader`).
+→ multiplier business mapping) tracked as M2.6 followup #2. M2.6f1 is
+writer-only readiness: it proves `graph_promotion` no longer raises at
+canonical write time; it does not prove production graph snapshot
+materialization, Phase 2 consumption, or any `canonical.graph_*` reader
+path.
 
 ---
 
@@ -211,23 +191,19 @@ would have halted at the Phase 1 `graph_promotion` asset's call to
 cascade-skip per Dagster's upstream-failure semantics, and M2.6's
 "15 asset materialisations" exit criterion would not be reachable.
 
-Post-followup-#1: Phase 1 `graph_promotion` actually persists the
+Post-followup-#1: Phase 1 `graph_promotion` persists the
 `PromotionPlan` records into the three `canonical.graph_*` Iceberg
-tables instead of raising `NotImplementedError`. The asset returns a
-`GraphPromotionAssetResult` whose `graph_status` field satisfies the
-downstream `graph_snapshot` asset's input contract, so Dagster
-evaluates `graph_snapshot` instead of cascade-skipping; that asset is
-backed by `GraphPhase1Service.compute_graph_snapshot`, which reads
-from Neo4j (live graph) + the regime context reader and writes the
-formal artifact via `snapshot_writer`. Phase 2 / Phase 3 / audit-eval
-do not yet consume `canonical.graph_*` directly — they read the
-formal artifact and Phase 3 publish manifest. **What this fold-in
-unblocks** is therefore:
+tables instead of raising `NotImplementedError`. M2.6f1 proves the
+graph-promotion write-back no longer halts at canonical write time. It
+does **not** prove production graph snapshot materialization, Phase 2
+consumption, or any `canonical.graph_*` reader path; those remain M2.6
+/ M3.3 consumer-side proof work. **What this fold-in unblocks** is
+therefore:
 
 * Phase 1 `graph_promotion` no longer halts the daily cycle at write
   time;
-* the `canonical.graph_*` snapshots are now **available** in
-  Iceberg as a foundation for downstream graph readers — but no
+* the `canonical.graph_*` tables are now **available** in Iceberg as a
+  foundation for downstream graph readers — but no
   consumer is wired up yet (cold reload still reads from
   `ArtifactCanonicalReader`'s JSON path, not Iceberg).
 
@@ -298,8 +274,7 @@ platform). Below is the disposition.
 **Reviewer:** database-reviewer
 **Risk:** Phase 1 retry after a partial failure would duplicate node /
 edge / assertion rows; no read-side filter enforcement either.
-**Fix applied:** writer switched from
-`target.append(arrow)` to
+**Fix applied:** writer switched from unscoped row accumulation to
 `target.overwrite(arrow, overwrite_filter=EqualTo("cycle_id", plan.cycle_id))`.
 Re-running the same cycle's plan now atomically replaces the prior
 cycle's slice rather than accumulating duplicates. Cross-cycle writes
@@ -412,58 +387,8 @@ at M2.6 daily-cycle volumes (one cycle's rows per scan).
 
 ### Test results post fold-in (historical, superseded)
 
-This block records the M2.6f1.r1 review-fold reproducer before the
-codex-fold and before the dbt-toolchain exclusion was made explicit.
-It is retained for provenance only. **Do not cite this as the current
-authoritative sweep result.** Use **Test results post codex-fold
-(reproducible)** below for the current graph-writer evidence.
-
-`contracts` is a sibling repo at the workspace root, not a subdir of
-data-platform; the `PYTHONPATH` must be expressed as an absolute path
-or workspace-relative path, not as a bare relative `contracts/src`
-(codex review #8). Replace `<workspace>` with the absolute path of the
-project-ult workspace root (e.g. `/Users/fanjie/Desktop/Cowork/project-ult`).
-
-```
-# Reproducer setup (one-time): the data-platform venv is uv-managed
-# and minimal at clone time; pytest must be installed explicitly.
-$ cd <workspace>/data-platform
-$ uv pip install --python .venv/bin/python 'pytest>=8,<10' 'pytest-cov>=5,<8'
-
-# Cycle-adapter unit tests (graph_phase1 writer + readers):
-$ PYTHONDONTWRITEBYTECODE=1 \
-  PYTHONPATH=src:<workspace>/contracts/src \
-  .venv/bin/python -m pytest -p no:cacheprovider \
-    tests/cycle/test_graph_phase1_adapters.py
-28 passed in 0.62s
-  (was 25 in M2.6f1.r1; +3 = empty-slice 0-row overwrite,
-   tz-naive rejection, non-UTC offset rejection)
-
-# Live Iceberg integration tests (SQLite-backed SqlCatalog + tmp_path):
-$ PYTHONDONTWRITEBYTECODE=1 \
-  PYTHONPATH=src:<workspace>/contracts/src \
-  .venv/bin/python -m pytest -p no:cacheprovider \
-    tests/integration/test_iceberg_canonical_graph_writer_live.py
-4 passed, 4 warnings in 1.21s
-  (was 3 in M2.6f1.r1; +1 = clears_prior_cycle_rows_when_retry_slice_is_empty.
-   Warnings are pyiceberg's internal "Delete operation did not match
-   any records" on first overwrite of an empty table — cosmetic.)
-
-# Historical full data-platform regression sweep (pre-codex-fold):
-$ PYTHONDONTWRITEBYTECODE=1 \
-  PYTHONPATH=src:<workspace>/contracts/src \
-  .venv/bin/python -m pytest -p no:cacheprovider
-657 passed, 73 skipped in <~50s>
-  (was 654/73/0 in M2.6f1.r1; +3 unit + +1 integration = +4 collected here,
-   no regressions across the rest of the sweep.)
-
-# graph-engine regression sweep (no graph-engine code touched in
-# this fold; baseline pin):
-$ cd <workspace>/graph-engine
-$ PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -p no:cacheprovider
-425 passed, 21 skipped in 0.84s
-  (matches M2.3a-2 / M2.6f1 / M2.6f1.r1 baseline; 0 regressions)
-```
+The M2.6f1.r1 review-fold reproducer is superseded by the r3
+verification block below. Do not cite r1 counts as current evidence.
 
 ### Files changed (post-fold-in)
 
@@ -486,7 +411,7 @@ $ PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -p no:cacheprovider
   `partial_write_exception_propagates_after_first_table`); imports
   shared fakes.
 * `data-platform/tests/integration/test_iceberg_canonical_graph_writer_live.py`
-  — renamed `appends_across_two_cycles` →
+  — distinct-cycle test renamed to
   `writes_distinct_cycles_without_overwriting_each_other` (semantics
   clarified); +1 new test
   `is_idempotent_across_two_runs_of_same_cycle`; imports shared fakes.
@@ -576,8 +501,8 @@ short-circuit is removed.
 ### codex#2 — P1: M2.6 evidence overstates downstream graph consumption
 
 **Finding (re-stated):** the original "What this unlocks for M2.6"
-section said `graph_snapshot` reads the new `canonical.graph_*`
-Iceberg snapshots and Phase 2 consumes them. graph-engine's
+section overstated downstream consumption of the new
+`canonical.graph_*` Iceberg tables. graph-engine's
 `compute_graph_snapshots` reads from Neo4j + regime context, not from
 those Iceberg tables; Phase 2's canonical input loaders also do not
 yet read them.
@@ -585,7 +510,7 @@ yet read them.
 **Fix applied:** the "What this unlocks for M2.6" section is rewritten
 to honestly state what M2.6f1 does prove (Phase 1 `graph_promotion`
 no longer halts the daily cycle at write time; canonical.graph_*
-snapshots are now *available* in Iceberg as a foundation) and what it
+tables are now *available* in Iceberg as a foundation) and what it
 does NOT prove (no consumer is wired up yet — cold reload still
 reads from `ArtifactCanonicalReader`'s JSON path). The
 "end-to-end Iceberg→graph read path" claim is deferred to a separate
@@ -624,9 +549,8 @@ M-evidence round commits its own evidence + code together).
 ### codex#5 — P2: M2.6 evidence top still describes append semantics
 
 **Finding (re-stated):** the original "Files changed" top section
-said the writer calls `target.append(arrow)` and proves append-only
-behaviour, contradicting the M2.6f1.r1 fold-in below it that switched
-to cycle-scoped overwrite.
+still described row-accumulation semantics, contradicting the
+M2.6f1.r1 fold-in below it that switched to cycle-scoped overwrite.
 
 **Fix applied:** the top section is rewritten to match the final
 post-fold-in semantics — `target.overwrite(arrow,
@@ -669,17 +593,14 @@ and `test_iceberg_writer_rejects_non_utc_offset_on_edge`.
 
 ### codex#8 — P2: test command evidence not reproducible as written
 
-**Finding (re-stated):** the prior fold-in evidence documented
-`PYTHONPATH=src:contracts/src` after `cd data-platform`, but
-`contracts` is a sibling repo at the workspace root, not under
-data-platform. The local project venv also lacks `pytest` at clone
-time (uv-managed minimal venv).
+**Finding (re-stated):** the prior fold-in evidence documented a bare
+relative contracts path after `cd data-platform`, but `contracts` is a
+sibling repo at the workspace root, not under data-platform. The local
+project venv also lacks `pytest` at clone time (uv-managed minimal venv).
 
-**Fix applied:** the "Test results" code block is rewritten with
-absolute / workspace-relative `PYTHONPATH` (using a `<workspace>`
-placeholder) and an explicit reproducer-setup step that installs
-`pytest` + `pytest-cov` via `uv pip install`. Run counts updated to
-post-codex-fold values (28 unit / 4 integration).
+**Fix applied:** the current r3 verification block records absolute
+workspace paths in `PYTHONPATH` and an explicit reproducer-setup step
+when needed. Run counts are recorded only from the r3 commands.
 
 ### codex#9 — P3: fake overwrite accepts unsupported kwargs
 
@@ -701,42 +622,28 @@ snapshot_properties is visible to assertions. The
 `_FailOnEdgeIcebergTable` subclass in the partial-write test mirrors
 the same explicit signature.
 
-### Test results post codex-fold (reproducible)
+### Test results post M2.6f1-r3 (authoritative)
 
 This is the current authoritative sweep block for M2.6f1 graph-writer
-evidence. The full data-platform command intentionally excludes
-`tests/dbt`; the dbt-toolchain failures are tracked separately and are
-not part of the graph-writer regression signal.
+evidence. It supersedes the initial/r1/r2 count blocks above.
 
 ```
-$ cd <workspace>/data-platform
+$ cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
 # uv-managed minimal venv lacks pytest at clone time:
 $ uv pip install --python .venv/bin/python 'pytest>=8,<10' 'pytest-cov>=5,<8'
 
 $ PYTHONDONTWRITEBYTECODE=1 \
-  PYTHONPATH=src:<workspace>/contracts/src \
+  PYTHONPATH=src:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src \
   .venv/bin/python -m pytest -p no:cacheprovider \
-    tests/cycle/test_graph_phase1_adapters.py
-28 passed in 0.62s
+    tests/cycle/test_graph_phase1_adapters.py \
+    tests/integration/test_iceberg_canonical_graph_writer_live.py \
+    tests/ddl/test_iceberg_tables.py
+59 passed, 5 warnings in 1.28s
 
 $ PYTHONDONTWRITEBYTECODE=1 \
-  PYTHONPATH=src:<workspace>/contracts/src \
-  .venv/bin/python -m pytest -p no:cacheprovider \
-    tests/integration/test_iceberg_canonical_graph_writer_live.py
-4 passed, 4 warnings in 1.21s
-
-$ PYTHONDONTWRITEBYTECODE=1 \
-  PYTHONPATH=src:<workspace>/contracts/src \
+  PYTHONPATH=src:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src \
   .venv/bin/python -m pytest -p no:cacheprovider --ignore=tests/dbt
-586 passed, 70 skipped in ~41s
-   (excluding tests/dbt — those 3 dbt-toolchain failures pre-exist
-   on the M2.6f1.r1 baseline `fde70e2` and are unrelated to the
-   graph writer; they reproduce identically on stash-pop. Tracked
-   as a separate dbt-tooling round.)
-
-$ cd <workspace>/graph-engine
-$ PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -p no:cacheprovider
-425 passed, 21 skipped in 0.84s   (matches all prior baselines; 0 regressions)
+603 passed, 70 skipped, 12 warnings in 42.32s
 ```
 
 ### Files changed (codex-fold)
@@ -745,30 +652,28 @@ $ PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -p no:cacheprovider
   `write_canonical_records` always overwrites all three tables (codex
   #1); new `_require_utc_datetime` UTC validation helper (codex #7);
   `_*_records_to_arrow` helpers always materialise an Arrow batch
-  (zero-row when slice is empty); docstring rewritten to match.
+  (zero-row when slice is empty); docstrings/comments rewritten to match.
+* `data-platform/src/data_platform/ddl/iceberg_tables.py` —
+  graph timestamp comments now state that the writer validates UTC
+  timestamps; graph table comments now describe cycle-scoped overwrite.
 * `data-platform/tests/cycle/test_graph_phase1_adapters.py` —
-  `_FakeIcebergTable.overwrite` strict signature recording 3-tuples
-  (codex #9); previous `skips_table_when_record_list_empty` test
-  flipped to `overwrites_all_three_tables_even_for_empty_slices`
-  (codex #1) and now covers empty node slices as well as empty edge /
-  assertion slices; +3 new tests
-  (`empty_slice_overwrite_carries_zero_row_arrow_with_cycle_filter`,
-  `rejects_tz_naive_created_at_on_node`,
-  `rejects_non_utc_offset_on_edge`); `_FailOnEdgeIcebergTable` updated
-  to the strict signature.
+  `_FakeIcebergTable.overwrite` strict signature plus sentinel test
+  (codex #9); empty-slice tests now assert canonical schemas; timestamp
+  validation is parameterized across all persisted timestamp fields and
+  invalid value classes; mixed retry unit coverage added.
 * `data-platform/tests/integration/test_iceberg_canonical_graph_writer_live.py`
   — cross-cycle test seeds full slices for both cycles + iterates over
-  all three tables (codex #6); +1 new test
-  (`clears_prior_cycle_rows_when_retry_slice_is_empty`), now seeding a
-  second cycle and retrying the first cycle with empty node / edge /
-  assertion slices to prove the zero-row overwrite is cycle-scoped and
-  preserves other cycles.
-* `data-platform/pyproject.toml` — pytest `pythonpath` narrowed back
-  to `["src"]`; graph-writer tests import the shared helper as
-  `tests._graph_promotion_fakes`.
+  all three tables (codex #6); empty-slice retry tests seed a second
+  cycle and cover both all-empty and mixed node-only retry shapes.
+* `data-platform/tests/ddl/test_iceberg_tables.py` — pins graph
+  timestamp fields to `GRAPH_TIMESTAMP_TYPE` and canonical entity
+  timestamp fields to legacy `TIMESTAMP_TYPE`.
+* `data-platform/tests/__init__.py` — package marker so
+  `tests._graph_promotion_fakes` resolves during workspace-root
+  collection without broadening pytest `pythonpath`.
 * `assembly/reports/stabilization/m2-6-followup-1-canonical-graph-writer-20260429.md`
   — top section + downstream-claim + reproducible-commands sections
-  rewritten (codex #2 / #5 / #8); this codex-fold section appended.
+  rewritten again for M2.6f1-r3; this r3 section is authoritative.
 * `ult_milestone.md` — G0 + G1 row in gate table flipped to "Pass"
   reflecting M1 closure (codex #3); §6 dirty-state replaced with
   "Current Branch / Status Snapshot" (codex #4).
