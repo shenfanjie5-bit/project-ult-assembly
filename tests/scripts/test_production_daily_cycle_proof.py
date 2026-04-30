@@ -30,6 +30,12 @@ class FakeAssetKey:
         return "/".join(self.path)
 
 
+class FailingSelection:
+    def resolve(self, assets: object) -> object:
+        del assets
+        raise RuntimeError("selection resolution failed")
+
+
 def _materialization_event(index: int, asset_name: str) -> SimpleNamespace:
     del index
     asset_key = FakeAssetKey(asset_name)
@@ -162,6 +168,73 @@ def test_dagster_step_pass_claim_requires_artifact_backed_materializations() -> 
     assert passed_step["artifact_backed_pass_claim"] is True
     assert weak_step["status"] == "failed"
     assert weak_step["artifact_backed_pass_claim"] is False
+
+
+def test_selected_job_asset_keys_falls_back_to_definition_assets_for_all_assets_job() -> None:
+    module = _load_module()
+    job_def = SimpleNamespace(selection=None)
+    defs = SimpleNamespace(
+        assets=[
+            SimpleNamespace(keys={FakeAssetKey("asset_b"), FakeAssetKey("asset_a")}),
+            SimpleNamespace(specs=[SimpleNamespace(key=FakeAssetKey("asset_c"))]),
+            SimpleNamespace(key=FakeAssetKey("asset_d")),
+        ],
+    )
+
+    assert module._selected_job_asset_keys(job_def, defs) == [
+        "asset_a",
+        "asset_b",
+        "asset_c",
+        "asset_d",
+    ]
+
+
+def test_selected_job_asset_keys_falls_back_when_selection_cannot_resolve() -> None:
+    module = _load_module()
+    job_def = SimpleNamespace(selection=FailingSelection())
+    defs = SimpleNamespace(
+        assets=[
+            SimpleNamespace(keys_by_output_name={"result": FakeAssetKey("asset_a")}),
+        ],
+    )
+
+    assert module._selected_job_asset_keys(job_def, defs) == ["asset_a"]
+
+
+def test_all_assets_selection_fallback_can_support_artifact_backed_pass_claim() -> None:
+    module = _load_module()
+    defs = SimpleNamespace(
+        assets=[
+            SimpleNamespace(key=FakeAssetKey(f"asset_{index}"))
+            for index in range(15)
+        ],
+    )
+    selected_asset_keys = module._selected_job_asset_keys(
+        SimpleNamespace(selection=None),
+        defs,
+    )
+    result = SimpleNamespace(
+        success=True,
+        run_id="run-all-assets",
+        all_events=tuple(
+            _materialization_event(index, asset_name)
+            for index, asset_name in enumerate(selected_asset_keys)
+        ),
+    )
+
+    evidence = module._dagster_execution_evidence_from_result(
+        result,
+        cycle_id="CYCLE_20260415",
+        job_name="daily_cycle_job",
+        selected_asset_keys=selected_asset_keys,
+        expected_materialization_count=15,
+    )
+    step = module._dagster_step_from_evidence(evidence)
+
+    assert evidence["selected_asset_count"] == 15
+    assert evidence["selected_materializations_complete"] is True
+    assert step["status"] == "passed"
+    assert step["artifact_backed_pass_claim"] is True
 
 
 def test_asset_check_evidence_accepts_event_specific_data_evaluation_shape() -> None:

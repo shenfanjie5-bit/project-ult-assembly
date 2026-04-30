@@ -1035,13 +1035,49 @@ def _dagster_step_from_evidence(evidence: Mapping[str, Any]) -> dict[str, Any]:
 
 
 def _selected_job_asset_keys(job_def: Any, defs: Any) -> list[str]:
+    asset_keys: Any = ()
     try:
         selection = getattr(job_def, "selection", None)
-        if selection is None:
-            return []
-        asset_keys = selection.resolve(getattr(defs, "assets", None) or ())
+        if selection is not None:
+            asset_keys = selection.resolve(getattr(defs, "assets", None) or ())
     except Exception:  # noqa: BLE001 - best-effort evidence only
-        return []
+        asset_keys = ()
+    selected_asset_keys = _asset_keys_to_sorted_strings(asset_keys)
+    if selected_asset_keys:
+        return selected_asset_keys
+    return _definition_asset_keys(defs)
+
+
+def _definition_asset_keys(defs: Any) -> list[str]:
+    asset_keys: list[Any] = []
+    for asset_def in getattr(defs, "assets", None) or ():
+        keys = getattr(asset_def, "keys", None)
+        if keys is not None:
+            asset_keys.extend(keys)
+            continue
+        keys_by_output_name = getattr(asset_def, "keys_by_output_name", None)
+        if isinstance(keys_by_output_name, Mapping):
+            asset_keys.extend(keys_by_output_name.values())
+            continue
+        specs = getattr(asset_def, "specs", None)
+        if specs is not None:
+            asset_keys.extend(
+                key
+                for key in (getattr(spec, "key", None) for spec in specs)
+                if key is not None
+            )
+            continue
+        key = getattr(asset_def, "key", None)
+        if key is not None:
+            asset_keys.append(key)
+            continue
+        asset_key = getattr(asset_def, "asset_key", None)
+        if asset_key is not None:
+            asset_keys.append(asset_key)
+    return _asset_keys_to_sorted_strings(asset_keys)
+
+
+def _asset_keys_to_sorted_strings(asset_keys: Any) -> list[str]:
     return sorted(
         key
         for key in (_dagster_asset_key_to_string(asset_key) for asset_key in asset_keys)
