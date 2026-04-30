@@ -110,6 +110,14 @@ def main(argv: Sequence[str] | None = None) -> int:
             "selected_assets": list(DEFAULT_SELECT),
             "run_dagster": bool(args.run_dagster),
         },
+        "command": {
+            "argv": list(argv if argv is not None else sys.argv[1:]),
+            "cwd": str(Path.cwd()),
+            "env_file": str(args.env_file.expanduser()),
+            "python_executable": sys.executable,
+            "script": str(Path(__file__).resolve()),
+        },
+        "repo_revisions": _repo_revisions(),
         "preflight": {},
         "steps": {},
         "blockers": [],
@@ -133,6 +141,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     temp_database: str | None = None
     try:
         _configure_runtime_paths(runtime_root)
+        report["env"] = _env_presence()
         report["preflight"] = _run_preflights(
             runtime_root=runtime_root,
             artifact_dir=artifact_dir,
@@ -169,6 +178,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "dsn": "<redacted:set>",
             }
         _configure_runtime_paths(runtime_root, pg_dsn=pg_dsn)
+        report["env"] = _env_presence()
         report["steps"]["data_platform_migrations"] = _apply_data_platform_migrations(pg_dsn)
 
         if not args.mock_tushare:
@@ -1015,8 +1025,9 @@ def _dagster_step_from_evidence(evidence: Mapping[str, Any]) -> dict[str, Any]:
     artifact_backed_pass = bool(
         evidence.get("dagster_success") is True
         and exact_claim
-        and selected_asset_count > 0
+        and selected_asset_count == materialization_claim.get("claim_count")
         and selected_materializations_complete
+        and not evidence.get("extra_materialized_asset_keys")
     )
     return {
         "status": "passed" if artifact_backed_pass else "failed",
@@ -1028,6 +1039,9 @@ def _dagster_step_from_evidence(evidence: Mapping[str, Any]) -> dict[str, Any]:
         "materialized_asset_count": evidence.get("materialized_asset_count", 0),
         "materialized_asset_keys": evidence.get("materialized_asset_keys", []),
         "selected_asset_count": selected_asset_count,
+        "selected_asset_count_matches_claim": (
+            selected_asset_count == materialization_claim.get("claim_count")
+        ),
         "selected_materializations_complete": selected_materializations_complete,
         "failure_step": evidence.get("failure_step"),
         "supports_15_materializations_claim": exact_claim,
@@ -1165,6 +1179,9 @@ def _dagster_execution_evidence_from_result(
         "has_at_least_15": len(materialized_asset_keys) >= expected_materialization_count,
         "has_exactly_15": len(materialized_asset_keys) == expected_materialization_count,
     }
+    selected_asset_count_matches_claim = (
+        len(selected_asset_keys) == expected_materialization_count
+    )
     failure_step = failures[0].get("step_key") if failures else None
     dagster_success = bool(getattr(result, "success", False))
     return {
@@ -1175,6 +1192,8 @@ def _dagster_execution_evidence_from_result(
         "cycle_id": cycle_id,
         "selected_asset_count": len(selected_asset_keys),
         "selected_asset_keys": list(selected_asset_keys),
+        "selected_asset_count_matches_claim": selected_asset_count_matches_claim,
+        "materializations": materializations,
         "materialized_asset_count": len(materialized_asset_keys),
         "unique_materialized_asset_count": len(unique_materialized_asset_keys),
         "materialized_asset_keys": materialized_asset_keys,
@@ -1489,13 +1508,25 @@ def _configure_runtime_paths(runtime_root: Path, *, pg_dsn: str | None = None) -
         "DP_DUCKDB_PATH": str(runtime_root / "duckdb" / "data_platform.duckdb"),
         "DP_ICEBERG_CATALOG_NAME": f"data_platform_daily_proof_{uuid4().hex[:8]}",
         "AUDIT_EVAL_DUCKDB_PATH": str(runtime_root / "audit" / "audit_eval.duckdb"),
+        "GRAPH_PHASE1_SNAPSHOT_ARTIFACT_ROOT": str(
+            runtime_root / "graph-phase1-snapshots"
+        ),
     }
     if pg_dsn is not None:
         env["DP_PG_DSN"] = pg_dsn
         env["DATABASE_URL"] = pg_dsn
     os.environ.update(env)
-    for key in ("DP_RAW_ZONE_PATH", "DP_ICEBERG_WAREHOUSE_PATH", "DP_DUCKDB_PATH"):
+    for key in (
+        "DP_RAW_ZONE_PATH",
+        "DP_ICEBERG_WAREHOUSE_PATH",
+        "DP_DUCKDB_PATH",
+        "GRAPH_PHASE1_SNAPSHOT_ARTIFACT_ROOT",
+    ):
         Path(os.environ[key]).expanduser().parent.mkdir(parents=True, exist_ok=True)
+    Path(os.environ["GRAPH_PHASE1_SNAPSHOT_ARTIFACT_ROOT"]).expanduser().mkdir(
+        parents=True,
+        exist_ok=True,
+    )
     dbt_executable = os.environ.get("DP_DBT_EXECUTABLE") or str(
         ASSEMBLY_ROOT / ".venv-py312" / "bin" / "dbt"
     )
@@ -1865,9 +1896,45 @@ def _env_presence() -> dict[str, str]:
         "AUDIT_EVAL_DUCKDB_PATH",
         "ORCHESTRATOR_POLICY_PATH",
         "ORCHESTRATOR_MODULE_FACTORIES",
+        "GRAPH_PHASE1_SNAPSHOT_ARTIFACT_ROOT",
         "REASONER_RUNTIME_ENABLE_CODEX_OAUTH",
     )
     return {key: "set" if os.environ.get(key) else "missing" for key in keys}
+
+
+def _repo_revisions() -> dict[str, dict[str, str]]:
+    repos = {
+        "data-platform": DATA_PLATFORM_ROOT,
+        "main-core": MAIN_CORE_ROOT,
+        "graph-engine": GRAPH_ENGINE_ROOT,
+        "orchestrator": ORCHESTRATOR_ROOT,
+        "audit-eval": AUDIT_EVAL_ROOT,
+        "reasoner-runtime": REASONER_RUNTIME_ROOT,
+        "assembly": ASSEMBLY_ROOT,
+    }
+    return {name: _repo_revision(path) for name, path in repos.items()}
+
+
+def _repo_revision(path: Path) -> dict[str, str]:
+    def _git(*args: str) -> str:
+        completed = subprocess.run(
+            ["git", *args],
+            cwd=path,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            check=False,
+        )
+        if completed.returncode != 0:
+            return "unknown"
+        return completed.stdout.strip() or "unknown"
+
+    status = _git("status", "--short")
+    return {
+        "branch": _git("rev-parse", "--abbrev-ref", "HEAD"),
+        "head": _git("rev-parse", "--short", "HEAD"),
+        "dirty": "yes" if status != "unknown" and status else "no",
+    }
 
 
 def _temp_database_name(stamp: str) -> str:

@@ -4,22 +4,28 @@
 
 **BLOCKED. M2.6 is not passed.**
 
-The May 1 repair cleared the earlier Phase 0 `graph_status` PostgreSQL DSN
-blocker and added proof artifacts for graph-status initialization plus Dagster
-event/materialization capture. The rerun reached Dagster, passed the Phase 0
-`graph_status` path, and then failed closed at Phase 1 `graph_promotion`.
+The May 1 repair moved the proof past the previous Phase 1
+`graph_promotion` blocker. The latest full Dagster run materialized
+`graph_promotion`, proving the proof path now reaches the real Phase 1
+write-back surface. The run then failed closed at `graph_snapshot` because the
+configured Neo4j instance does not expose the GDS procedure used by graph
+propagation:
+
+```text
+RuntimeError: GDS plugin not available
+Neo.ClientError.Procedure.ProcedureNotFound: gds.graph.exists
+```
 
 Current blocker:
 
-- `graph_promotion` failed because the production Phase 1 runtime bundle is not
-  configured.
-- The fail-closed message requires real `candidate_reader`, `canonical_writer`,
-  Neo4j client/status, regime reader, and formal artifact snapshot writer
-  resources.
-- Only 4 artifact-backed materializations were recorded, not the required 15.
+- `graph_snapshot` failed because Neo4j GDS is unavailable in the local proof
+  graph runtime.
+- Only 5 artifact-backed materializations were recorded, not the required full
+  daily-cycle materialization set.
+- Phase 2, Phase 3, audit/replay, and retrospective hook were not reached.
 
 This is not a Codex quota blocker. The reasoner health probe was reachable and
-reported `quota_status: ok` during both preflight and full proof.
+reported `quota_status: ok` during the bounded proof.
 
 ## v5.0.1 Alignment
 
@@ -29,39 +35,54 @@ This attempt stayed inside the Lite P1-P5 path:
 
 - no Kafka, Flink, Temporal, Milvus, Grafana, Superset, or Feast introduced;
 - Layer A/Iceberg remains canonical truth;
-- Neo4j remains a hot mirror and status target, not truth;
+- Neo4j remains a hot mirror and status/propagation target, not truth;
 - Phase 0 validates graph status and does not write graph deltas;
-- Phase 1 graph write-back remains the next blocked stage;
+- Phase 1 graph promotion/write-back ran before the snapshot blocker;
 - P5/shadow-run did not start.
 
 ## Branch And Head Snapshot
 
-| Repo | Branch | Head Used / Repair State | Status |
+The latest proof artifact records repo heads and dirty state in
+`production-daily-cycle-proof.json`. The run used local in-flight changes from
+this repair round, so several repos are intentionally marked dirty.
+
+| Repo | Branch | Head Recorded | State |
 |---|---|---:|---|
-| `data-platform` | `m2-6f1-iceberg-canonical-graph-writer-v2` | `8374504` | clean |
-| `main-core` | `m2-3a-2-regime-reader` | `3def30a` | clean |
-| `graph-engine` | `m2-6f1-real-canonical-writer` | `2eb9e11` | DSN repair state used by the proof run |
-| `orchestrator` | `m2-3a-2-phase1-wiring` | `0ccae67` | clean |
-| `audit-eval` | `m2-5-live-pg-roundtrip` | `a7d05b7` | clean |
-| `reasoner-runtime` | `main` | `025db5b` | clean |
-| `assembly` | `m2-baseline-2026-04-29` | this evidence commit | proof runner/evidence artifacts committed in this round |
+| `data-platform` | `m2-6f1-iceberg-canonical-graph-writer-v2` | `8374504` | clean in artifact |
+| `main-core` | `m2-3a-2-regime-reader` | `3def30a` | clean in artifact |
+| `graph-engine` | `m2-6f1-real-canonical-writer` | `2eb9e11` | dirty: validation-error wrapping patch |
+| `orchestrator` | `m2-3a-2-phase1-wiring` | `0ccae67` | dirty: Phase 1 provider/status wiring patch |
+| `audit-eval` | `m2-5-live-pg-roundtrip` | `a7d05b7` | clean in artifact |
+| `reasoner-runtime` | `main` | `025db5b` | clean in artifact |
+| `assembly` | `m2-baseline-2026-04-29` | `eac730f` | dirty: proof-runner artifact improvements |
 
 ## Commands
 
-Graph-engine DSN compatibility test and targeted provider suite:
+Graph-engine targeted suite:
 
 ```bash
 cd /Users/fanjie/Desktop/Cowork/project-ult/graph-engine
 PYTHONDONTWRITEBYTECODE=1 \
 PYTHONPATH=.:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src \
 .venv/bin/python -m pytest -p no:cacheprovider \
-  tests/unit/test_phase0_status_provider.py \
   tests/unit/test_phase1_from_env.py \
   tests/unit/test_phase1_provider.py \
-  tests/unit/test_postgresql_status_store.py -q
+  tests/unit/test_promotion.py -q
 ```
 
-Result: passed (`35 passed, 1 skipped`).
+Result: `48 passed, 1 skipped`.
+
+Orchestrator targeted suite:
+
+```bash
+cd /Users/fanjie/Desktop/Cowork/project-ult/orchestrator
+PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -p no:cacheprovider \
+  tests/integration/test_production_daily_cycle_provider.py \
+  tests/integration/test_production_daily_cycle_phase1_wired.py \
+  tests/integration/test_phase1_graph_provider_wiring.py -q
+```
+
+Result: `16 passed, 8 skipped`.
 
 Assembly proof-runner unit tests:
 
@@ -71,7 +92,7 @@ PYTHONDONTWRITEBYTECODE=1 .venv-py312/bin/python -m pytest \
   -p no:cacheprovider tests/scripts/test_production_daily_cycle_proof.py -q
 ```
 
-Result: `3 passed`.
+Result: `8 passed`.
 
 Runtime preflight:
 
@@ -100,25 +121,19 @@ Result: `PARTIAL_PASS_BLOCKED`.
 
 ## Artifacts
 
-Preflight artifact root:
+Latest full proof artifact root:
 
 ```text
-assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260430T195759Z/
-```
-
-Full proof artifact root:
-
-```text
-assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260430T200916Z/
+assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260430T210918Z/
 ```
 
 Key full-proof artifacts:
 
 | Artifact | Purpose |
 |---|---|
-| `production-daily-cycle-proof.json` | top-level proof report, verdict, blockers, file manifest |
+| `production-daily-cycle-proof.json` | top-level proof report, command metadata, repo revisions, verdict, blockers, file manifest |
 | `graph-status-initialization.json` | proof-only isolated DB `neo4j_graph_status` bootstrap and readback |
-| `dagster-execution-evidence.json` | Dagster run id, events, materializations, failure step |
+| `dagster-execution-evidence.json` | Dagster run id, selected assets, materialization records, failure step |
 | `daily-refresh.json` | data-platform daily refresh evidence |
 | `data-platform-current-selection-tests.stdout.txt` | current-selection focused test stdout |
 | `orchestrator-dbt-compile.stdout.txt` | orchestrator dbt stub compile stdout |
@@ -126,87 +141,89 @@ Key full-proof artifacts:
 Full proof run id:
 
 ```text
-e33b8861-7b32-4b86-86c4-e2b15bcbf39c
+b78a94ef-b3c1-4668-b07f-0b4747baa778
 ```
 
 ## Phase Status
 
 | Area | Status | Artifact-backed evidence |
 |---|---|---|
-| Runtime preflight | PASS | `20260430T195759Z/production-daily-cycle-proof.json` |
-| Reasoner health/quota | PASS | `quota_status: ok` in preflight and full proof JSON |
-| Data-platform refresh/current selection | PASS | `20260430T200916Z/daily-refresh.json`; current-selection stdout |
+| Runtime preflight | PASS | `20260430T210918Z/production-daily-cycle-proof.json` |
+| Reasoner health/quota | PASS | `quota_status: ok` in full proof JSON |
+| Data-platform refresh/current selection | PASS | `20260430T210918Z/daily-refresh.json`; current-selection stdout |
 | Isolated PG bootstrap | PASS | `postgres_bootstrap` in `production-daily-cycle-proof.json` |
 | Graph status initialization | PASS | `graph-status-initialization.json`; ready row readback, `phase0_graph_delta_writes: 0` |
 | Phase 0 candidate freeze | PASS | Dagster materialization event for `candidate_freeze` |
 | Phase 0 dbt heartbeat | PASS | Dagster materialization event for `heartbeat` |
 | Phase 0 readiness ping | PASS | Dagster materialization event for `phase0_readiness_ping` |
-| Phase 0 graph status | PASS | Dagster materialization event for `graph_status`; asset check `neo4j_graph_consistency_check` has `passed: true` |
-| Phase 1 graph promotion/write-back | BLOCKED | failure step `graph_promotion` in `dagster-execution-evidence.json` |
-| Phase 1 graph snapshot | NOT REACHED | dependency failure after `graph_promotion` |
-| Phase 2 reasoner L1-L8 | NOT REACHED | dependency failure after `graph_promotion` |
+| Phase 0 graph status | PASS | Dagster materialization event for `graph_status`; graph consistency asset check passed |
+| Phase 1 graph promotion/write-back | PASS | Dagster materialization event for `graph_promotion` |
+| Phase 1 graph snapshot | BLOCKED | failure step `graph_snapshot`: Neo4j GDS procedure missing |
+| Phase 2 reasoner L1-L8 | NOT REACHED | dependency failure after `graph_snapshot` |
 | Phase 3 formal outputs/publish manifest | NOT REACHED | dependency failure after upstream graph/Phase 2 steps |
 | Audit/replay/retrospective hook | NOT REACHED | dependency failure after publish manifest |
 
 Dagster event/materialization evidence:
 
 ```text
-event_count: 68
-materialized_asset_count: 4
-selected_asset_count: 0
+event_count: 77
+materialized_asset_count: 5
+unique_materialized_asset_count: 5
+selected_asset_count: 17
 selected_materializations_complete: false
 unique_materialized_asset_keys:
   - candidate_freeze
+  - graph_promotion
   - graph_status
   - heartbeat
   - phase0_readiness_ping
-failure_step: graph_promotion
-15-asset claim supported: false
+failure_step: graph_snapshot
+full daily-cycle materialization claim supported: false
 artifact_backed_pass_claim: false
 ```
 
 ## Blocker Classification
 
-Primary blocker class: **Phase 1 graph promotion runtime dependencies**.
+Primary blocker class: **Phase 1 graph snapshot / Neo4j GDS availability**.
 
-The prior blocker is closed for this proof path:
+The prior blockers are closed for this proof path:
 
-- `graph-engine` now normalizes `postgresql+psycopg://...` to
-  `postgresql://...` before calling `psycopg.connect(...)`.
+- `graph-engine` normalizes SQLAlchemy-style PostgreSQL DSNs before direct
+  `psycopg` use.
 - The assembly proof runner seeds and verifies a proof-only ready
   `neo4j_graph_status` row in the isolated PostgreSQL database.
-- The Dagster rerun reached and passed the `graph_status` asset and graph
-  consistency check.
+- The proof runner now sets `GRAPH_PHASE1_SNAPSHOT_ARTIFACT_ROOT`.
+- Dagster reached and materialized `graph_promotion`, so the earlier
+  fail-closed missing Phase 1 runtime bundle is no longer the active failure.
 
 The active failure is later:
 
 ```text
-RuntimeError: Graph Phase 1 runtime dependencies are not configured; provide
-real candidate_reader, canonical_writer, Neo4j client/status, regime_reader,
-and formal artifact snapshot writer resources.
+RuntimeError: GDS plugin not available
 ```
 
-Current structured blocker list:
+Current structured blocker list includes:
 
 ```text
 full production daily_cycle_job Dagster proof has not passed
-Dagster failure step: graph_promotion
+Dagster failure step: graph_snapshot
 production provider status is blocked
-production provider runtime pending: configured_graph_phase1_runtime
 ```
 
 Recommended next repair round:
 
-1. Configure the production `graph_phase1_runtime` bundle for this proof path:
-   candidate reader, canonical writer, Neo4j client/status, regime reader, and
-   formal artifact snapshot writer.
+1. Decide the Lite-mode policy for graph snapshot propagation when Neo4j GDS is
+   unavailable: provide a GDS-enabled Neo4j proof image/config, or add an
+   explicitly approved non-GDS propagation fallback if that matches
+   `project_ult_v5_0_1.md`.
 2. Keep Phase 0 graph-status seeding proof-only for isolated proof databases;
    do not treat it as production graph delta writing.
 3. Rerun the same full proof command and require
-   `dagster-execution-evidence.json` to support the 15-materialization claim.
-4. Do not claim M2.6 pass until `daily_cycle_job.execute_in_process(...)`
-   succeeds and Phase 0-3 plus audit/replay/retrospective hook evidence are
-   captured.
+   `dagster-execution-evidence.json` to support the full selected-asset
+   materialization claim.
+4. Reconcile the historic "15 materializations" target with the current
+   `daily_cycle_job` selected asset set, which currently resolves to 17 asset
+   keys; do not claim pass while this count is unresolved.
 
 ## Explicit Non-Claims
 

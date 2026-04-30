@@ -1,0 +1,43 @@
+{
+  "artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260430T210918Z/graph-status-initialization.json",
+  "cycle_id": "CYCLE_20260415",
+  "dsn": "<redacted:set>",
+  "duration_ms": 107,
+  "generated_at_utc": "2026-04-30T21:09:33.376372+00:00",
+  "mode": "proof_only_minimal_ready_seed",
+  "previous_status": null,
+  "previous_status_present": false,
+  "readback_status": {
+    "checksum": "proof-only-minimal-ready",
+    "edge_count": 0,
+    "graph_generation_id": 0,
+    "graph_status": "ready",
+    "key_label_counts": {},
+    "last_reload_at": null,
+    "last_verified_at": "2026-04-30T21:09:33.436853+00:00",
+    "node_count": 0,
+    "writer_lock_token": null
+  },
+  "ready_for_graph_status_asset": true,
+  "row_action": "upserted_minimal_ready_status",
+  "schema_version": "project-ult.production-daily-cycle-proof.v2.graph-status-initialization.v1",
+  "seed_status": {
+    "checksum": "proof-only-minimal-ready",
+    "edge_count": 0,
+    "graph_generation_id": 0,
+    "graph_status": "ready",
+    "key_label_counts": {},
+    "last_reload_at": null,
+    "last_verified_at": "2026-04-30T21:09:33.436853Z",
+    "node_count": 0,
+    "writer_lock_token": null
+  },
+  "status": "passed",
+  "v5_0_1_semantics": {
+    "canonical_truth": "Layer A canonical stores, not Neo4j",
+    "neo4j_role": "hot_mirror",
+    "phase0_graph_delta_writes": 0,
+    "phase0_validates_only": true,
+    "proof_setup_step": true
+  }
+}

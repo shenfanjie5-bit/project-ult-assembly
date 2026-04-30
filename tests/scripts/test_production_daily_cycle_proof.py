@@ -93,6 +93,20 @@ def test_dagster_execution_evidence_rejects_incomplete_15_materialization_claim(
         "phase0_readiness_ping",
         "candidate_freeze",
     ]
+    assert evidence["materializations"] == [
+        {
+            "index": 0,
+            "step_key": "phase0_readiness_ping",
+            "asset_key": "phase0_readiness_ping",
+            "metadata": {"rows": 1},
+        },
+        {
+            "index": 1,
+            "step_key": "candidate_freeze",
+            "asset_key": "candidate_freeze",
+            "metadata": {"rows": 1},
+        },
+    ]
     assert evidence["materialization_count_against_claim_15"] == {
         "claim_count": 15,
         "actual_count": 2,
@@ -100,6 +114,7 @@ def test_dagster_execution_evidence_rejects_incomplete_15_materialization_claim(
         "has_at_least_15": False,
         "has_exactly_15": False,
     }
+    assert evidence["selected_asset_count_matches_claim"] is False
     assert evidence["missing_selected_asset_keys"] == ["graph_status"]
     assert evidence["terminal_observed_steps"] == []
 
@@ -232,9 +247,77 @@ def test_all_assets_selection_fallback_can_support_artifact_backed_pass_claim() 
     step = module._dagster_step_from_evidence(evidence)
 
     assert evidence["selected_asset_count"] == 15
+    assert evidence["selected_asset_count_matches_claim"] is True
     assert evidence["selected_materializations_complete"] is True
     assert step["status"] == "passed"
     assert step["artifact_backed_pass_claim"] is True
+
+
+def test_dagster_step_rejects_partial_selection_even_with_15_materializations() -> None:
+    module = _load_module()
+    materialized_asset_keys = [f"asset_{index}" for index in range(15)]
+    result = SimpleNamespace(
+        success=True,
+        run_id="run-partial-selection",
+        all_events=tuple(
+            _materialization_event(index, asset_name)
+            for index, asset_name in enumerate(materialized_asset_keys)
+        ),
+    )
+
+    evidence = module._dagster_execution_evidence_from_result(
+        result,
+        cycle_id="CYCLE_20260415",
+        job_name="daily_cycle_job",
+        selected_asset_keys=materialized_asset_keys[:14],
+        expected_materialization_count=15,
+    )
+    step = module._dagster_step_from_evidence(evidence)
+
+    assert evidence["materialization_count_against_claim_15"]["has_exactly_15"] is True
+    assert evidence["extra_materialized_asset_keys"] == ["asset_14"]
+    assert step["selected_asset_count_matches_claim"] is False
+    assert step["status"] == "failed"
+    assert step["artifact_backed_pass_claim"] is False
+
+
+def test_graph_promotion_materialization_record_is_artifact_backed() -> None:
+    module = _load_module()
+    result = SimpleNamespace(
+        success=True,
+        run_id="run-graph-promotion",
+        all_events=(
+            _materialization_event(0, "candidate_freeze"),
+            _materialization_event(1, "graph_status"),
+            _materialization_event(2, "graph_promotion"),
+        ),
+    )
+
+    evidence = module._dagster_execution_evidence_from_result(
+        result,
+        cycle_id="CYCLE_20260415",
+        job_name="daily_cycle_job",
+        selected_asset_keys=[
+            "candidate_freeze",
+            "graph_status",
+            "graph_promotion",
+        ],
+        expected_materialization_count=15,
+    )
+
+    graph_promotion_records = [
+        record
+        for record in evidence["materializations"]
+        if record["asset_key"] == "graph_promotion"
+    ]
+    assert graph_promotion_records == [
+        {
+            "index": 2,
+            "step_key": "graph_promotion",
+            "asset_key": "graph_promotion",
+            "metadata": {"rows": 1},
+        }
+    ]
 
 
 def test_asset_check_evidence_accepts_event_specific_data_evaluation_shape() -> None:
