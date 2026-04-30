@@ -173,8 +173,11 @@ across two repos:
 - `assembly` branch `m2-baseline-2026-04-29`: commit `8708850`
   first downgraded this evidence file to PARTIAL/PREFLIGHT, commit
   `4db82e1` persisted the M4.7a-vs-M4.7 milestone-table annotation,
-  and the current final-hygiene follow-up removes stale commit/command
-  wording from that persistent repair record.
+  and commit `0127db5` removed stale command wording during the M4.7
+  final-hygiene pass. The current version of this file at assembly HEAD
+  is the authoritative M4.7 repair wording; later assembly commits may
+  also carry unrelated evidence, such as `4c843b6` for M2.6 blocker
+  evidence.
 
 ### What M4.7 still requires for PASS (verbatim with the milestone)
 

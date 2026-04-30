@@ -9,8 +9,10 @@ fixture-only fake. Four new integration tests in main-core wire
 graph-engine's `FormalArtifactSnapshotWriter` + `ArtifactCanonicalReader`
 through a test-only `_ArtifactBackedGraphEnginePort` adapter into
 main-core's L3 + L4 consumers, and verify the GraphSnapshot identity
-(cycle_id + graph_snapshot_id) plus node/edge payload round-trip
-end-to-end.
+(cycle_id + graph_snapshot_id), node payload marker round-trip, and
+edge count/shape coverage end-to-end. Edge `properties_json` /
+`evidence_refs` payload consumption is not asserted by M3.2 and remains
+future production-adapter/M3.3 work unless a test explicitly asserts it.
 
 This preflight does **not** prove formal `GraphImpactSnapshot`
 consumption. The writer stores the companion `impact_snapshot` in the
@@ -156,12 +158,13 @@ include the following keys in each node's `properties` map:
 `properties_json` is the source-of-truth for the decoded
 `GraphEdgeRecord.properties` / `GraphNodeRecord.properties` map
 (`_canonical_properties` returns `json.loads(properties_json)` when
-present, otherwise filters `live_properties` by reserved keys). This
-means evidence_refs on propagatable edges MUST be embedded inside the
-JSON-encoded `properties_json` string, not as a sibling top-level
-property — that catches a future production adapter writing
-evidence_refs as a top-level property and finding the cold-reload
-reader reject the artifact at runtime.
+present, otherwise filters `live_properties` by reserved keys). For
+future production-adapter/M3.3 work, `evidence_refs` on propagatable
+edges should be embedded inside the JSON-encoded `properties_json`
+string, not as a sibling top-level property. M3.2 records this schema
+requirement from the reader behavior; it does not prove edge
+`properties_json` / `evidence_refs` payload consumption through L3/L4
+unless a test explicitly asserts that payload.
 
 This is documented inline in the test fixture builder
 (`_build_graph_snapshot_pair`).
@@ -178,8 +181,9 @@ This is documented inline in the test fixture builder
 | L4 fail-closed on cross-cycle (integration) | M3.1 PASS | M3.1 PASS (unchanged) |
 | Snapshot writer/reader round-trip (graph-engine) | covered by `test_live_closure.py` | unchanged |
 | **Cross-module write→read→consume round-trip** | **MISSING** | **PASS (GraphSnapshot preflight)** |
-| Snapshot ID + counts round-trip end-to-end | MISSING | PASS |
-| Node/edge payload marker round-trip end-to-end | MISSING | PASS |
+| Snapshot ID + node/edge counts/shapes round-trip end-to-end | MISSING | PASS |
+| Node payload marker round-trip end-to-end | MISSING | PASS |
+| Edge `properties_json` / `evidence_refs` payload consumption | MISSING | Future production-adapter/M3.3 work unless explicitly asserted |
 | Formal GraphImpactSnapshot consumption | MISSING | Future work |
 | Production same-cycle consumption proof | Blocked on M2.6 + production GraphEnginePort/orchestrator wiring | Unchanged |
 
@@ -193,12 +197,16 @@ question that M3.3 would otherwise need to answer from scratch.
 
 * It does NOT prove production same-cycle consumption (M3.3
   territory; needs `daily_cycle_job` execution + real Iceberg/Neo4j +
-  Codex quota for the LLM legs + production GraphEnginePort/orchestrator
+  reasoner runtime evidence for the LLM legs + production GraphEnginePort/orchestrator
   wiring).
 * It does NOT prove formal `GraphImpactSnapshot` consumption. The
   writer embeds the companion `impact_snapshot`, but the public
   cold-reload reader path used by this preflight exposes
   GraphSnapshot-derived metrics and node/edge records only.
+* It does NOT prove edge `properties_json` / `evidence_refs` payload
+  consumption through L3/L4. M3.2 covers edge count/shape round-trip
+  only; production adapter/M3.3 work must add an explicit test assertion
+  before claiming edge payload consumption.
 * It does NOT exercise a real production `GraphEnginePort` impl.
   None exists yet — main-core's L3 / L4 still use
   `FakeGraphEnginePort` in tests. The test introduces a local
