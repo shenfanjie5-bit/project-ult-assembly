@@ -144,3 +144,88 @@ declare subsystem-news out of scope.
 - Run real Docling parsing on 10-20 representative A-share documents, or
   explicitly downgrade the milestone requirement to a synthetic
   preflight-only criterion.
+
+## M4.7a vs M4.7 — milestone-table annotation
+
+This section pins, in pushed evidence, the same status delta carried
+by `ult_milestone.md` Section 4 (the M4.7a-vs-M4.7 annotation block
+appended after the M4 task table) and Section 6 (the
+`subsystem-announcement (m4-7-docling-llamaindex-preflight)` line).
+`ult_milestone.md` is a workspace-root local-handoff artifact and is
+**not** in any git repo; this section is the persistent record that
+survives the local checkout.
+
+### What M4.7a delivers
+
+`M4.7a synthetic offline preflight artifact` — committed and pushed
+across two repos:
+
+- `subsystem-announcement` branch `m4-7-docling-llamaindex-preflight`,
+  HEAD `c26ffad "M4.7 review fixes: mark preflight partial"`. Carries
+  `tests/integration/test_docling_llamaindex_offline_preflight.py`
+  with explicit PARTIAL / PREFLIGHT framing throughout the
+  module docstring + per-test docstrings. Focused-suite count
+  recorded at this round's verification: **6 passed, 1 skipped**
+  (the skip is the real Docling availability check; in this venv
+  the `docling` package is not installed because of the heavy
+  `deepsearch-glm` build dep, and the test explicitly skips with a
+  clear message rather than silently passing).
+- `assembly` branch `m2-baseline-2026-04-29`, HEAD `8708850 "Evidence
+  hygiene for M1-M4 review fixes"` (rewrote this very evidence file
+  to PARTIAL/PREFLIGHT). The append below adds this annotation
+  section as the next persistent record on top of that commit.
+
+### What M4.7 still requires for PASS (verbatim with the milestone)
+
+All three closure conditions must hold simultaneously; M4.7 is not
+PASS until each is independently satisfied:
+
+1. **M4.1 (Bridge strategy decision)** is closed by the milestone
+   owner, **or** the milestone owner explicitly de-couples M4.7
+   from M4.1. The milestone table still lists M4.7 as depending on
+   M4.1; this round does not change that.
+2. **subsystem-news scope decision.** Whether subsystem-news
+   requires its own M4.7 evidence or is formally out-of-scope for
+   M4.7 has been assumed but not decided. This evidence file
+   previously asserted "out of scope" — that assertion is hereby
+   downgraded to "unresolved pending milestone-owner decision".
+3. **Real Docling parse on 10-20 representative A-share documents**
+   (PDF / HTML / Word). The synthetic 80-260-byte fixtures in
+   `subsystem-announcement/tests/fixtures/announcements/` do not
+   satisfy this; the closure baseline forbids production fetch, so
+   a curated representative-document regression fixture set must
+   be made available in some other way before this can be proven.
+
+### Hard rules (verbatim from codex's repair plan)
+
+- Do NOT change M4.7's dependency on M4.1 in the milestone table.
+- Do NOT force a Docling install (the build broke last time on
+  `deepsearch-glm`).
+- Do NOT add new production fetch.
+- Do NOT fabricate representative documents.
+- Do NOT change subsystem-news source.
+- Do NOT change `/Users/fanjie/Desktop/BIG/FrontEnd/**`.
+
+### Cross-reference
+
+- `ult_milestone.md` Section 4 (M4 task table + the M4.7a-vs-M4.7
+  annotation block immediately after).
+- `ult_milestone.md` Section 6 (per-repo branch / status snapshot;
+  the `subsystem-announcement` line carries the same partial-status
+  framing).
+- This file's `## Status` block (top): `PARTIAL / PREFLIGHT
+  ARTIFACT`, `must not be recorded as PASS`.
+- This file's `## What This Does Not Prove` and `## Required
+  Follow-Up Before M4.7 PASS` blocks (above).
+
+### Verification at this round
+
+| Suite | Result |
+|---|---|
+| `subsystem-announcement` `pytest tests/integration/test_docling_llamaindex_offline_preflight.py` | 6 passed, 1 skipped (real Docling skip is the M4.7 status proof). |
+| `subsystem-announcement` full `pytest -p no:cacheprovider` | 316 passed, 7 skipped, 0 failed. |
+| `data-platform` `pytest tests/cycle/test_graph_phase1_adapters.py tests/integration/test_iceberg_canonical_graph_writer_live.py tests/ddl/test_iceberg_tables.py` | 42 passed, 0 failed (pythonpath rolled back to `["src"]`; `tests._graph_promotion_fakes` resolves via pytest rootdir-aware collection without needing a `tests/__init__.py`). |
+| `main-core` `pytest tests/integration/test_graph_readonly_consumption.py tests/integration/test_graph_snapshot_round_trip_preflight.py` | 8 passed, 0 failed. |
+
+These counts are recorded for traceability; they do **not**
+constitute M4.7 closure (per the three closure conditions above).
