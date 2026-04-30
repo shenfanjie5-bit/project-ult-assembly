@@ -170,10 +170,11 @@ across two repos:
   the `docling` package is not installed because of the heavy
   `deepsearch-glm` build dep, and the test explicitly skips with a
   clear message rather than silently passing).
-- `assembly` branch `m2-baseline-2026-04-29`, HEAD `8708850 "Evidence
-  hygiene for M1-M4 review fixes"` (rewrote this very evidence file
-  to PARTIAL/PREFLIGHT). The append below adds this annotation
-  section as the next persistent record on top of that commit.
+- `assembly` branch `m2-baseline-2026-04-29`: commit `8708850`
+  first downgraded this evidence file to PARTIAL/PREFLIGHT, commit
+  `4db82e1` persisted the M4.7a-vs-M4.7 milestone-table annotation,
+  and the current final-hygiene follow-up removes stale commit/command
+  wording from that persistent repair record.
 
 ### What M4.7 still requires for PASS (verbatim with the milestone)
 
@@ -224,7 +225,7 @@ PASS until each is independently satisfied:
 |---|---|
 | `subsystem-announcement` `pytest tests/integration/test_docling_llamaindex_offline_preflight.py` | 6 passed, 1 skipped (real Docling skip is the M4.7 status proof). |
 | `subsystem-announcement` full `pytest -p no:cacheprovider` | 316 passed, 7 skipped, 0 failed. |
-| `data-platform` `pytest tests/cycle/test_graph_phase1_adapters.py tests/integration/test_iceberg_canonical_graph_writer_live.py tests/ddl/test_iceberg_tables.py` | 42 passed, 0 failed (pythonpath rolled back to `["src"]`; `tests._graph_promotion_fakes` resolves via pytest rootdir-aware collection without needing a `tests/__init__.py`). |
+| `data-platform` `PYTHONPATH=src:../contracts/src PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -p no:cacheprovider tests/cycle/test_graph_phase1_adapters.py tests/integration/test_iceberg_canonical_graph_writer_live.py tests/ddl/test_iceberg_tables.py -q` | 42 passed, 0 failed. The sibling `../contracts/src` path is required in this workspace for `contracts.schemas`; pytest rootdir-aware collection resolves `tests._graph_promotion_fakes` without needing `tests/__init__.py`. |
 | `main-core` `pytest tests/integration/test_graph_readonly_consumption.py tests/integration/test_graph_snapshot_round_trip_preflight.py` | 8 passed, 0 failed. |
 
 These counts are recorded for traceability; they do **not**
