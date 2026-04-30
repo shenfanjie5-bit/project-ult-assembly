@@ -43,6 +43,7 @@ DEFAULT_SELECT = ("trade_cal", "stock_basic", "daily")
 SCHEMA_VERSION = "project-ult.production-daily-cycle-proof.v2"
 EVIDENCE_DATE = "2026-04-28"
 SUBMITTED_BY = "production-daily-cycle-proof-runner"
+EXPECTED_DAGSTER_MATERIALIZATION_CLAIM_COUNT = 15
 SECRET_ENV_KEYS = (
     "DP_TUSHARE_TOKEN",
     "DP_PG_DSN",
@@ -112,6 +113,14 @@ def main(argv: Sequence[str] | None = None) -> int:
         "preflight": {},
         "steps": {},
         "blockers": [],
+        "evidence_policy": {
+            "artifact_backed_pass_claims_only": True,
+            "terminal_observed_steps_policy": (
+                "terminal output is captured only as operator context and is "
+                "not promoted to PASS evidence unless the same fact is present "
+                "in a structured artifact listed by file_evidence_manifest"
+            ),
+        },
         "non_claims": [
             "not_p5_shadow_run_readiness",
             "not_sidecar_or_frontend_write_api",
@@ -173,6 +182,19 @@ def main(argv: Sequence[str] | None = None) -> int:
             symbols=symbols,
         )
         if args.run_dagster:
+            report["steps"]["graph_status_initialization"] = (
+                _initialize_proof_graph_status(
+                    pg_dsn=pg_dsn,
+                    cycle_id=str(report["steps"]["current_cycle_selection"]["cycle_id"]),
+                    artifact_dir=artifact_dir,
+                    isolated_proof_db=args.use_isolated_pg,
+                )
+            )
+            if report["steps"]["graph_status_initialization"].get("status") != "passed":
+                raise RuntimeError(
+                    "graph status initialization failed before graph_status "
+                    "could be consumed; see graph-status-initialization.json"
+                )
             report["steps"]["candidate_seed"] = _seed_current_cycle_candidates(
                 selection=report["steps"]["current_cycle_selection"],
                 symbols=symbols,
@@ -214,7 +236,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         }
         if args.include_traceback:
             report["error"]["traceback"] = _redact_text(traceback.format_exc())
-        report["blockers"] = _open_blockers(report) or [_redact_text(str(exc))]
+        report["blockers"] = _dedupe(
+            [*_open_blockers(report), _redact_text(str(exc))]
+        )
         exit_code = 1
         return exit_code
     finally:
@@ -531,6 +555,252 @@ def _apply_data_platform_migrations(pg_dsn: str) -> dict[str, Any]:
     }
 
 
+def _initialize_proof_graph_status(
+    *,
+    pg_dsn: str,
+    cycle_id: str,
+    artifact_dir: Path,
+    isolated_proof_db: bool,
+) -> dict[str, Any]:
+    artifact_path = artifact_dir / "graph-status-initialization.json"
+    started = perf_counter()
+    evidence: dict[str, Any] = {
+        "schema_version": f"{SCHEMA_VERSION}.graph-status-initialization.v1",
+        "status": "running",
+        "generated_at_utc": datetime.now(UTC).isoformat(),
+        "cycle_id": cycle_id,
+        "artifact": str(artifact_path),
+        "mode": "proof_only_minimal_ready_seed"
+        if isolated_proof_db
+        else "configured_database_readiness_check",
+        "dsn": "<redacted:set>",
+        "v5_0_1_semantics": {
+            "phase0_validates_only": True,
+            "phase0_graph_delta_writes": 0,
+            "neo4j_role": "hot_mirror",
+            "canonical_truth": "Layer A canonical stores, not Neo4j",
+            "proof_setup_step": True,
+        },
+    }
+    try:
+        from graph_engine.models import Neo4jGraphStatus
+
+        if isolated_proof_db:
+            seed_status = Neo4jGraphStatus(
+                graph_status="ready",
+                graph_generation_id=0,
+                node_count=0,
+                edge_count=0,
+                key_label_counts={},
+                checksum="proof-only-minimal-ready",
+                last_verified_at=datetime.now(UTC),
+                last_reload_at=None,
+                writer_lock_token=None,
+            )
+            before_status = _read_graph_status_row(pg_dsn)
+            _upsert_graph_status_row(pg_dsn, seed_status)
+            after_status = _read_graph_status_row(pg_dsn)
+            evidence.update(
+                {
+                    "status": "passed",
+                    "row_action": "upserted_minimal_ready_status",
+                    "previous_status_present": before_status is not None,
+                    "previous_status": before_status,
+                    "seed_status": _json_safe(seed_status),
+                    "readback_status": after_status,
+                    "ready_for_graph_status_asset": _graph_status_row_ready(after_status),
+                }
+            )
+        else:
+            existing_status = _read_graph_status_row(pg_dsn)
+            evidence.update(
+                {
+                    "status": "passed"
+                    if _graph_status_row_ready(existing_status)
+                    else "failed",
+                    "row_action": "validated_existing_status_only",
+                    "reason": (
+                        "--no-isolated-pg was set; proof runner does not seed "
+                        "neo4j_graph_status in a configured database"
+                    ),
+                    "readback_status": existing_status,
+                    "ready_for_graph_status_asset": _graph_status_row_ready(
+                        existing_status
+                    ),
+                }
+            )
+    except Exception as exc:  # noqa: BLE001 - proof evidence
+        evidence.update(
+            {
+                "status": "failed",
+                "error_type": type(exc).__name__,
+                "error": _redact_text(str(exc)),
+            }
+        )
+    evidence["duration_ms"] = _elapsed_ms(started)
+    _write_json_artifact(artifact_path, evidence)
+    return {
+        "status": evidence["status"],
+        "mode": evidence["mode"],
+        "artifact": str(artifact_path),
+        "ready_for_graph_status_asset": evidence.get("ready_for_graph_status_asset"),
+        "phase0_graph_delta_writes": 0,
+        "duration_ms": evidence["duration_ms"],
+    }
+
+
+def _upsert_graph_status_row(pg_dsn: str, status: Any) -> None:
+    from sqlalchemy import create_engine, text
+
+    from data_platform.ddl.runner import _sqlalchemy_postgres_uri
+
+    engine = create_engine(_sqlalchemy_postgres_uri(pg_dsn), pool_pre_ping=True)
+    try:
+        with engine.begin() as connection:
+            connection.execute(
+                text(
+                    """
+CREATE TABLE IF NOT EXISTS neo4j_graph_status (
+    status_key text PRIMARY KEY,
+    graph_status text NOT NULL CHECK (
+        graph_status IN ('ready', 'rebuilding', 'failed')
+    ),
+    graph_generation_id bigint NOT NULL CHECK (graph_generation_id >= 0),
+    node_count bigint NOT NULL CHECK (node_count >= 0),
+    edge_count bigint NOT NULL CHECK (edge_count >= 0),
+    key_label_counts jsonb NOT NULL CHECK (jsonb_typeof(key_label_counts) = 'object'),
+    checksum text NOT NULL CHECK (checksum <> ''),
+    last_verified_at timestamptz NULL,
+    last_reload_at timestamptz NULL,
+    writer_lock_token text NULL CHECK (
+        writer_lock_token IS NULL OR writer_lock_token <> ''
+    ),
+    updated_at timestamptz NOT NULL DEFAULT now()
+)
+"""
+                )
+            )
+            connection.execute(
+                text(
+                    """
+INSERT INTO neo4j_graph_status (
+    status_key,
+    graph_status,
+    graph_generation_id,
+    node_count,
+    edge_count,
+    key_label_counts,
+    checksum,
+    last_verified_at,
+    last_reload_at,
+    writer_lock_token
+)
+VALUES (
+    'current',
+    :graph_status,
+    :graph_generation_id,
+    :node_count,
+    :edge_count,
+    CAST(:key_label_counts AS jsonb),
+    :checksum,
+    :last_verified_at,
+    :last_reload_at,
+    :writer_lock_token
+)
+ON CONFLICT (status_key) DO UPDATE SET
+    graph_status = EXCLUDED.graph_status,
+    graph_generation_id = EXCLUDED.graph_generation_id,
+    node_count = EXCLUDED.node_count,
+    edge_count = EXCLUDED.edge_count,
+    key_label_counts = EXCLUDED.key_label_counts,
+    checksum = EXCLUDED.checksum,
+    last_verified_at = EXCLUDED.last_verified_at,
+    last_reload_at = EXCLUDED.last_reload_at,
+    writer_lock_token = EXCLUDED.writer_lock_token,
+    updated_at = now()
+"""
+                ),
+                {
+                    "graph_status": status.graph_status,
+                    "graph_generation_id": status.graph_generation_id,
+                    "node_count": status.node_count,
+                    "edge_count": status.edge_count,
+                    "key_label_counts": json.dumps(
+                        status.key_label_counts,
+                        sort_keys=True,
+                        separators=(",", ":"),
+                    ),
+                    "checksum": status.checksum,
+                    "last_verified_at": status.last_verified_at,
+                    "last_reload_at": status.last_reload_at,
+                    "writer_lock_token": status.writer_lock_token,
+                },
+            )
+    finally:
+        engine.dispose()
+
+
+def _read_graph_status_row(pg_dsn: str) -> dict[str, Any] | None:
+    from sqlalchemy import create_engine, text
+
+    from data_platform.ddl.runner import _sqlalchemy_postgres_uri
+
+    engine = create_engine(_sqlalchemy_postgres_uri(pg_dsn), pool_pre_ping=True)
+    try:
+        with engine.connect() as connection:
+            table_exists = connection.execute(
+                text("SELECT to_regclass('public.neo4j_graph_status')")
+            ).scalar_one()
+            if table_exists is None:
+                return None
+            row = (
+                connection.execute(
+                    text(
+                        """
+SELECT graph_status,
+       graph_generation_id,
+       node_count,
+       edge_count,
+       key_label_counts,
+       checksum,
+       last_verified_at,
+       last_reload_at,
+       writer_lock_token
+FROM neo4j_graph_status
+WHERE status_key = 'current'
+"""
+                    )
+                )
+                .mappings()
+                .first()
+            )
+            if row is None:
+                return None
+            payload = dict(row)
+            key_label_counts = payload.get("key_label_counts")
+            if isinstance(key_label_counts, str):
+                payload["key_label_counts"] = json.loads(key_label_counts)
+            elif isinstance(key_label_counts, Mapping):
+                payload["key_label_counts"] = dict(key_label_counts)
+            return _json_safe(payload)
+    finally:
+        engine.dispose()
+
+
+def _graph_status_row_ready(row: Mapping[str, Any] | None) -> bool:
+    if row is None:
+        return False
+    return (
+        row.get("graph_status") == "ready"
+        and row.get("writer_lock_token") is None
+        and isinstance(row.get("graph_generation_id"), int)
+        and isinstance(row.get("node_count"), int)
+        and isinstance(row.get("edge_count"), int)
+        and isinstance(row.get("key_label_counts"), Mapping)
+        and bool(row.get("checksum"))
+    )
+
+
 def _run_daily_refresh(
     *,
     cycle_date: date,
@@ -638,6 +908,8 @@ def _run_production_dagster(
     runtime_root: Path,
     artifact_dir: Path,
 ) -> dict[str, Any]:
+    started = perf_counter()
+    evidence_path = artifact_dir / "dagster-execution-evidence.json"
     policy_path = Path(
         os.environ.get(
             "ORCHESTRATOR_POLICY_PATH",
@@ -645,8 +917,40 @@ def _run_production_dagster(
         )
     )
     os.environ["ORCHESTRATOR_POLICY_PATH"] = str(policy_path)
-    _prepare_orchestrator_dbt_project(runtime_root, artifact_dir)
+    evidence: dict[str, Any] = {
+        "schema_version": f"{SCHEMA_VERSION}.dagster-execution-evidence.v1",
+        "status": "running",
+        "generated_at_utc": datetime.now(UTC).isoformat(),
+        "job_name": "daily_cycle_job",
+        "cycle_id": cycle_id,
+        "artifact": str(evidence_path),
+        "claim_target_materialization_count": EXPECTED_DAGSTER_MATERIALIZATION_CLAIM_COUNT,
+        "terminal_observed_steps": [],
+        "terminal_observed_policy": (
+            "terminal-observed progress is operator context only; PASS claims "
+            "must come from this structured Dagster event artifact"
+        ),
+    }
     previous_cwd = Path.cwd()
+    try:
+        evidence["dbt_prepare"] = _prepare_orchestrator_dbt_project(
+            runtime_root,
+            artifact_dir,
+        )
+    except Exception as exc:  # noqa: BLE001 - evidence before Dagster run
+        evidence.update(
+            {
+                "status": "failed",
+                "dagster_success": False,
+                "failure_step": "orchestrator_dbt_compile",
+                "error_type": type(exc).__name__,
+                "error": _redact_text(str(exc)),
+                "duration_ms": _elapsed_ms(started),
+            }
+        )
+        _write_json_artifact(evidence_path, evidence)
+        return _dagster_step_from_evidence(evidence)
+
     os.chdir(ORCHESTRATOR_ROOT)
     try:
         import dagster
@@ -659,20 +963,362 @@ def _run_production_dagster(
         provider = production_daily_cycle_provider()
         defs = build_definitions(module_factories=[provider], policy_path=policy_path)
         dagster.Definitions.validate_loadable(defs)
+        job_def = defs.get_job_def("daily_cycle_job")
+        selected_asset_keys = _selected_job_asset_keys(job_def, defs)
         with dagster.DagsterInstance.ephemeral() as instance:
-            result = defs.get_job_def("daily_cycle_job").execute_in_process(
+            result = job_def.execute_in_process(
                 instance=instance,
                 tags={"cycle_id": cycle_id},
+                raise_on_error=False,
             )
+        evidence.update(
+            _dagster_execution_evidence_from_result(
+                result,
+                cycle_id=cycle_id,
+                job_name="daily_cycle_job",
+                selected_asset_keys=selected_asset_keys,
+                expected_materialization_count=(
+                    EXPECTED_DAGSTER_MATERIALIZATION_CLAIM_COUNT
+                ),
+            )
+        )
+    except Exception as exc:  # noqa: BLE001 - Dagster evidence surface
+        evidence.update(
+            {
+                "status": "failed",
+                "dagster_success": False,
+                "failure_step": evidence.get("failure_step") or "dagster_setup",
+                "error_type": type(exc).__name__,
+                "error": _redact_text(str(exc)),
+            }
+        )
     finally:
         os.chdir(previous_cwd)
-    if not result.success:
-        raise RuntimeError("production daily_cycle_job failed")
+    evidence["duration_ms"] = _elapsed_ms(started)
+    _write_json_artifact(evidence_path, evidence)
+    return _dagster_step_from_evidence(evidence)
+
+
+def _dagster_step_from_evidence(evidence: Mapping[str, Any]) -> dict[str, Any]:
+    materialization_claim = evidence.get("materialization_count_against_claim_15")
+    if not isinstance(materialization_claim, Mapping):
+        materialization_claim = {}
+    selected_asset_count = int(evidence.get("selected_asset_count") or 0)
+    selected_materializations_complete = bool(
+        evidence.get("selected_materializations_complete")
+    )
+    exact_claim = bool(
+        materialization_claim.get("has_exactly_15") is True
+        and materialization_claim.get("actual_unique_count")
+        == materialization_claim.get("claim_count")
+    )
+    artifact_backed_pass = bool(
+        evidence.get("dagster_success") is True
+        and exact_claim
+        and selected_asset_count > 0
+        and selected_materializations_complete
+    )
     return {
-        "status": "passed",
-        "cycle_id": cycle_id,
-        "dagster_success": bool(result.success),
+        "status": "passed" if artifact_backed_pass else "failed",
+        "cycle_id": evidence.get("cycle_id"),
+        "run_id": evidence.get("run_id"),
+        "dagster_success": bool(evidence.get("dagster_success")),
+        "artifact": evidence.get("artifact"),
+        "artifact_backed_pass_claim": artifact_backed_pass,
+        "materialized_asset_count": evidence.get("materialized_asset_count", 0),
+        "materialized_asset_keys": evidence.get("materialized_asset_keys", []),
+        "selected_asset_count": selected_asset_count,
+        "selected_materializations_complete": selected_materializations_complete,
+        "failure_step": evidence.get("failure_step"),
+        "supports_15_materializations_claim": exact_claim,
     }
+
+
+def _selected_job_asset_keys(job_def: Any, defs: Any) -> list[str]:
+    try:
+        selection = getattr(job_def, "selection", None)
+        if selection is None:
+            return []
+        asset_keys = selection.resolve(getattr(defs, "assets", None) or ())
+    except Exception:  # noqa: BLE001 - best-effort evidence only
+        return []
+    return sorted(
+        key
+        for key in (_dagster_asset_key_to_string(asset_key) for asset_key in asset_keys)
+        if key is not None
+    )
+
+
+def _dagster_execution_evidence_from_result(
+    result: Any,
+    *,
+    cycle_id: str,
+    job_name: str,
+    selected_asset_keys: Sequence[str],
+    expected_materialization_count: int,
+) -> dict[str, Any]:
+    events = tuple(getattr(result, "all_events", ()) or ())
+    materializations: list[dict[str, Any]] = []
+    asset_checks: list[dict[str, Any]] = []
+    failures: list[dict[str, Any]] = []
+    event_sequence: list[dict[str, Any]] = []
+
+    for index, event in enumerate(events):
+        event_type = _dagster_event_type(event)
+        step_key = _optional_event_attr(event, "step_key")
+        asset_key = _dagster_asset_key_from_event(event)
+        asset_key_text = _dagster_asset_key_to_string(asset_key)
+        message = _optional_event_attr(event, "message")
+        event_record = {
+            "index": index,
+            "event_type": event_type,
+            "step_key": step_key,
+            "asset_key": asset_key_text,
+        }
+        if message:
+            event_record["message"] = _tail(str(message), limit=1000)
+        event_sequence.append(event_record)
+
+        if _is_dagster_materialization_event(event, event_type):
+            materializations.append(
+                {
+                    "index": index,
+                    "step_key": step_key,
+                    "asset_key": asset_key_text,
+                    "metadata": _dagster_materialization_metadata(event),
+                }
+            )
+        if _is_dagster_asset_check_event(event, event_type):
+            asset_checks.append(
+                {
+                    "index": index,
+                    "step_key": step_key,
+                    "asset_key": asset_key_text,
+                    "check_name": _dagster_asset_check_name(event),
+                    "passed": _dagster_asset_check_passed(event),
+                    "metadata": _dagster_asset_check_metadata(event),
+                }
+            )
+        if _is_dagster_failure_event(event, event_type):
+            failures.append(
+                {
+                    "index": index,
+                    "step_key": step_key,
+                    "event_type": event_type,
+                    "message": _tail(str(message or ""), limit=2000),
+                    "error": _dagster_failure_error(event),
+                }
+            )
+
+    materialized_asset_keys = [
+        str(record["asset_key"])
+        for record in materializations
+        if record.get("asset_key") is not None
+    ]
+    unique_materialized_asset_keys = sorted(set(materialized_asset_keys))
+    missing_selected_asset_keys = sorted(
+        set(selected_asset_keys).difference(unique_materialized_asset_keys)
+    )
+    extra_materialized_asset_keys = sorted(
+        set(unique_materialized_asset_keys).difference(selected_asset_keys)
+    )
+    materialization_claim = {
+        "claim_count": expected_materialization_count,
+        "actual_count": len(materialized_asset_keys),
+        "actual_unique_count": len(unique_materialized_asset_keys),
+        "has_at_least_15": len(materialized_asset_keys) >= expected_materialization_count,
+        "has_exactly_15": len(materialized_asset_keys) == expected_materialization_count,
+    }
+    failure_step = failures[0].get("step_key") if failures else None
+    dagster_success = bool(getattr(result, "success", False))
+    return {
+        "status": "passed" if dagster_success else "failed",
+        "dagster_success": dagster_success,
+        "run_id": getattr(result, "run_id", None),
+        "job_name": job_name,
+        "cycle_id": cycle_id,
+        "selected_asset_count": len(selected_asset_keys),
+        "selected_asset_keys": list(selected_asset_keys),
+        "materialized_asset_count": len(materialized_asset_keys),
+        "unique_materialized_asset_count": len(unique_materialized_asset_keys),
+        "materialized_asset_keys": materialized_asset_keys,
+        "unique_materialized_asset_keys": unique_materialized_asset_keys,
+        "materialization_order": materialized_asset_keys,
+        "materialization_count_against_claim_15": materialization_claim,
+        "selected_materializations_complete": (
+            bool(selected_asset_keys) and not missing_selected_asset_keys
+        ),
+        "missing_selected_asset_keys": missing_selected_asset_keys,
+        "extra_materialized_asset_keys": extra_materialized_asset_keys,
+        "asset_checks": asset_checks,
+        "failure_step": failure_step,
+        "failure_events": failures,
+        "terminal_observed_steps": [],
+        "event_count": len(events),
+        "event_sequence": event_sequence,
+    }
+
+
+def _dagster_event_type(event: Any) -> str:
+    event_type_value = getattr(event, "event_type_value", None)
+    if event_type_value:
+        return str(event_type_value)
+    event_type = getattr(event, "event_type", None)
+    value = getattr(event_type, "value", None)
+    if value:
+        return str(value)
+    return str(event_type or "")
+
+
+def _optional_event_attr(event: Any, attr: str) -> str | None:
+    value = getattr(event, attr, None)
+    if value is None:
+        return None
+    text = str(value)
+    return text if text else None
+
+
+def _is_dagster_materialization_event(event: Any, event_type: str) -> bool:
+    return bool(
+        getattr(event, "is_step_materialization", False)
+        or event_type == "ASSET_MATERIALIZATION"
+    )
+
+
+def _is_dagster_asset_check_event(event: Any, event_type: str) -> bool:
+    return bool(
+        getattr(event, "is_asset_check_evaluation", False)
+        or event_type == "ASSET_CHECK_EVALUATION"
+    )
+
+
+def _is_dagster_failure_event(event: Any, event_type: str) -> bool:
+    return bool(
+        getattr(event, "is_step_failure", False)
+        or event_type in {"STEP_FAILURE", "RUN_FAILURE"}
+    )
+
+
+def _dagster_asset_key_from_event(event: Any) -> Any:
+    asset_key = getattr(event, "asset_key", None)
+    if asset_key is not None:
+        return asset_key
+    event_specific_data = getattr(event, "event_specific_data", None)
+    materialization = getattr(event_specific_data, "materialization", None)
+    asset_key = getattr(materialization, "asset_key", None)
+    if asset_key is not None:
+        return asset_key
+    evaluation = _dagster_asset_check_evaluation(event)
+    check_key = getattr(evaluation, "check_key", None)
+    return getattr(check_key, "asset_key", None)
+
+
+def _dagster_asset_key_to_string(asset_key: Any) -> str | None:
+    if asset_key is None:
+        return None
+    to_user_string = getattr(asset_key, "to_user_string", None)
+    if callable(to_user_string):
+        return str(to_user_string())
+    path = getattr(asset_key, "path", None)
+    if isinstance(path, Sequence) and not isinstance(path, str):
+        return "/".join(str(part) for part in path)
+    return str(asset_key)
+
+
+def _dagster_materialization_metadata(event: Any) -> dict[str, Any]:
+    event_specific_data = getattr(event, "event_specific_data", None)
+    materialization = getattr(event_specific_data, "materialization", None)
+    metadata = getattr(materialization, "metadata", None)
+    if isinstance(metadata, Mapping):
+        return _dagster_metadata_mapping(metadata)
+    return {}
+
+
+def _dagster_asset_check_evaluation(event: Any) -> Any:
+    event_specific_data = getattr(event, "event_specific_data", None)
+    for attr in ("asset_check_evaluation", "evaluation"):
+        evaluation = getattr(event_specific_data, attr, None)
+        if evaluation is not None:
+            return evaluation
+    if _looks_like_asset_check_evaluation(event_specific_data):
+        return event_specific_data
+    return getattr(event, "asset_check_evaluation", None)
+
+
+def _looks_like_asset_check_evaluation(value: Any) -> bool:
+    return value is not None and any(
+        hasattr(value, attr)
+        for attr in ("passed", "check_name", "check_key", "metadata")
+    )
+
+
+def _dagster_asset_check_name(event: Any) -> str | None:
+    evaluation = _dagster_asset_check_evaluation(event)
+    check_name = getattr(evaluation, "check_name", None)
+    if check_name is not None:
+        return str(check_name)
+    check_key = getattr(evaluation, "check_key", None)
+    name = getattr(check_key, "name", None)
+    return str(name) if name is not None else None
+
+
+def _dagster_asset_check_passed(event: Any) -> bool | None:
+    evaluation = _dagster_asset_check_evaluation(event)
+    passed = getattr(evaluation, "passed", None)
+    return bool(passed) if passed is not None else None
+
+
+def _dagster_asset_check_metadata(event: Any) -> dict[str, Any]:
+    evaluation = _dagster_asset_check_evaluation(event)
+    metadata = getattr(evaluation, "metadata", None)
+    if isinstance(metadata, Mapping):
+        return _dagster_metadata_mapping(metadata)
+    return {}
+
+
+def _dagster_failure_error(event: Any) -> dict[str, Any] | None:
+    event_specific_data = getattr(event, "event_specific_data", None)
+    error = getattr(event_specific_data, "error", None)
+    if error is None:
+        return None
+    return {
+        "type": type(error).__name__,
+        "message": _redact_text(str(error)),
+    }
+
+
+def _dagster_metadata_mapping(metadata: Mapping[str, Any]) -> dict[str, Any]:
+    return {
+        str(key): _dagster_metadata_value(value)
+        for key, value in metadata.items()
+    }
+
+
+def _dagster_metadata_value(value: Any) -> Any:
+    for attr in ("value", "text", "path", "url"):
+        attr_value = getattr(value, attr, None)
+        if attr_value is not None:
+            return _json_safe(attr_value)
+    safe_value = _json_safe(value)
+    try:
+        json.dumps(safe_value)
+    except TypeError:
+        return str(safe_value)
+    return safe_value
+
+
+def _write_json_artifact(path: Path, payload: Mapping[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(
+            _redact_obj(_json_safe(payload)),
+            ensure_ascii=False,
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
 
 
 def _production_dagster_not_run() -> dict[str, Any]:
@@ -920,6 +1566,20 @@ def _raw_artifact_summary(result_payload: Mapping[str, Any]) -> list[dict[str, A
     return artifacts
 
 
+def _write_json_artifact(path: Path, payload: Mapping[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(
+            _json_safe(_redact_obj(payload)),
+            ensure_ascii=False,
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+
 def _open_blockers(report: Mapping[str, Any]) -> list[str]:
     blockers: list[str] = []
     for name in _failed_probe_names(report.get("preflight", {})):
@@ -927,15 +1587,22 @@ def _open_blockers(report: Mapping[str, Any]) -> list[str]:
     dagster_step = _mapping_get(report, "steps", "production_dagster")
     if dagster_step and dagster_step.get("status") != "passed":
         blockers.append("full production daily_cycle_job Dagster proof has not passed")
+        failure_step = dagster_step.get("failure_step")
+        if failure_step:
+            blockers.append(f"Dagster failure step: {failure_step}")
     provider_status = _mapping_get(report, "steps", "production_provider_status")
     if provider_status:
         if provider_status.get("status") != "passed":
             blockers.append("production provider status collection failed")
-        if provider_status.get("blocked") is True:
+        runtime_blockers = _active_provider_runtime_blockers(
+            report,
+            provider_status=provider_status,
+        )
+        if provider_status.get("blocked") is True and runtime_blockers:
             blockers.append("production provider status is blocked")
         for surface in provider_status.get("missing_surfaces", []):
             blockers.append(f"production provider surface missing: {surface}")
-        for blocker in provider_status.get("runtime_blockers", []):
+        for blocker in runtime_blockers:
             blockers.append(f"production provider runtime pending: {blocker}")
     else:
         blockers.append("production provider status is missing")
@@ -944,6 +1611,43 @@ def _open_blockers(report: Mapping[str, Any]) -> list[str]:
         if isinstance(error, Mapping):
             blockers.append(str(error.get("message", "runner blocked")))
     return _dedupe(blockers)
+
+
+def _active_provider_runtime_blockers(
+    report: Mapping[str, Any],
+    *,
+    provider_status: Mapping[str, Any],
+) -> list[str]:
+    raw_blockers = [
+        str(blocker)
+        for blocker in provider_status.get("runtime_blockers", [])
+        if str(blocker)
+    ]
+    dagster_step = _mapping_get(report, "steps", "production_dagster")
+    if not dagster_step or dagster_step.get("status") == "passed":
+        return raw_blockers
+
+    failure_step = str(dagster_step.get("failure_step") or "")
+    if failure_step == "graph_status":
+        return _filter_blockers(raw_blockers, {"configured_graph_phase0_status_runtime"})
+    if failure_step == "graph_promotion":
+        return _filter_blockers(raw_blockers, {"configured_graph_phase1_runtime"})
+    if failure_step in {"l1", "l2", "l3", "l4", "l5", "l6", "l7", "l8"}:
+        return _filter_blockers(raw_blockers, {"configured_reasoner_runtime"})
+    if failure_step in {
+        "formal_objects_commit",
+        "cycle_publish_manifest",
+        "retrospective_hook",
+    }:
+        return _filter_blockers(
+            raw_blockers,
+            {"configured_audit_eval_retrospective_hook_runtime"},
+        )
+    return raw_blockers
+
+
+def _filter_blockers(blockers: Sequence[str], allowed: set[str]) -> list[str]:
+    return [blocker for blocker in blockers if blocker in allowed]
 
 
 def _file_evidence_manifest(

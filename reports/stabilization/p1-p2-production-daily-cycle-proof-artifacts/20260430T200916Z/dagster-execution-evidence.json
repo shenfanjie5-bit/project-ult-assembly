@@ -1,0 +1,596 @@
+{
+  "artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260430T200916Z/dagster-execution-evidence.json",
+  "asset_checks": [
+    {
+      "asset_key": null,
+      "check_name": "not_null_heartbeat_heartbeat",
+      "index": 15,
+      "metadata": {
+        "Execution Duration": 0.015315,
+        "dagster_dbt/failed_row_count": 0,
+        "invocation_id": "1573f3a9-7617-45c4-8cee-218bc11a763b",
+        "status": "pass",
+        "unique_id": "test.orchestrator_stub.not_null_heartbeat_heartbeat.4d6b4a7935"
+      },
+      "passed": true,
+      "step_key": "dbt_phase0_assets"
+    },
+    {
+      "asset_key": null,
+      "check_name": "llm_health_check",
+      "index": 37,
+      "metadata": {
+        "all_critical_targets_available": "true",
+        "provider": "openai-codex",
+        "provider_models": "openai-codex/gpt-5.5",
+        "provider_statuses": "[{\"error\":null,\"latency_ms\":1509.0,\"model\":\"gpt-5.5\",\"provider\":\"openai-codex\",\"quota_status\":\"ok\",\"reachable\":true}]",
+        "providers": "openai-codex",
+        "summary": "all 1 critical provider/model target(s) available",
+        "target_count": "1",
+        "unavailable_provider_models": "",
+        "unavailable_target_count": "0"
+      },
+      "passed": true,
+      "step_key": "phase0_readiness_ping_llm_health_check"
+    },
+    {
+      "asset_key": null,
+      "check_name": "phase0_ping_check",
+      "index": 43,
+      "metadata": {},
+      "passed": true,
+      "step_key": "phase0_readiness_ping_phase0_ping_check"
+    },
+    {
+      "asset_key": null,
+      "check_name": "neo4j_graph_consistency_check",
+      "index": 51,
+      "metadata": {
+        "graph_status": "ready"
+      },
+      "passed": true,
+      "step_key": "graph_status_neo4j_graph_consistency_check"
+    }
+  ],
+  "claim_target_materialization_count": 15,
+  "cycle_id": "CYCLE_20260415",
+  "dagster_success": false,
+  "dbt_prepare": {
+    "compile_stdout": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260430T200916Z/orchestrator-dbt-compile.stdout.txt",
+    "manifest": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260430T200916Z/orchestrator_dbt_stub/target/manifest.json",
+    "project_dir": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260430T200916Z/orchestrator_dbt_stub"
+  },
+  "duration_ms": 6235,
+  "event_count": 68,
+  "event_sequence": [
+    {
+      "asset_key": null,
+      "event_type": "PIPELINE_START",
+      "index": 0,
+      "message": "Started execution of run for \"daily_cycle_job\".",
+      "step_key": null
+    },
+    {
+      "asset_key": null,
+      "event_type": "ENGINE_EVENT",
+      "index": 1,
+      "message": "Executing steps in process (pid: 90624)",
+      "step_key": null
+    },
+    {
+      "asset_key": null,
+      "event_type": "RESOURCE_INIT_STARTED",
+      "index": 2,
+      "message": "Starting initialization of resources [audit_eval_retrospective_hook_runtime, dbt, gate_policy, graph_phase1_runtime, graph_status_provider, io_manager, llm_health_probe, phase2_pool_failure_rate].",
+      "step_key": null
+    },
+    {
+      "asset_key": null,
+      "event_type": "RESOURCE_INIT_SUCCESS",
+      "index": 3,
+      "message": "Finished initialization of resources [audit_eval_retrospective_hook_runtime, dbt, gate_policy, graph_phase1_runtime, graph_status_provider, io_manager, llm_health_probe, phase2_pool_failure_rate].",
+      "step_key": null
+    },
+    {
+      "asset_key": null,
+      "event_type": "LOGS_CAPTURED",
+      "index": 4,
+      "message": "Started capturing logs in process (pid: 90624).",
+      "step_key": null
+    },
+    {
+      "asset_key": null,
+      "event_type": "STEP_START",
+      "index": 5,
+      "message": "Started execution of step \"candidate_freeze\".",
+      "step_key": "candidate_freeze"
+    },
+    {
+      "asset_key": null,
+      "event_type": "STEP_OUTPUT",
+      "index": 6,
+      "message": "Yielded output \"result\" of type \"dict\". (Type check passed).",
+      "step_key": "candidate_freeze"
+    },
+    {
+      "asset_key": "candidate_freeze",
+      "event_type": "ASSET_MATERIALIZATION",
+      "index": 7,
+      "message": "Materialized value candidate_freeze.",
+      "step_key": "candidate_freeze"
+    },
+    {
+      "asset_key": null,
+      "event_type": "HANDLED_OUTPUT",
+      "index": 8,
+      "message": "Handled output \"result\" using IO manager \"io_manager\"",
+      "step_key": "candidate_freeze"
+    },
+    {
+      "asset_key": null,
+      "event_type": "STEP_SUCCESS",
+      "index": 9,
+      "message": "Finished execution of step \"candidate_freeze\" in 93ms.",
+      "step_key": "candidate_freeze"
+    },
+    {
+      "asset_key": null,
+      "event_type": "HOOK_SKIPPED",
+      "index": 10,
+      "message": "Skipped the execution of hook \"phase3_manifest_failure_gate\". It did not meet its triggering condition during the execution of \"candidate_freeze\".",
+      "step_key": "candidate_freeze"
+    },
+    {
+      "asset_key": null,
+      "event_type": "HOOK_SKIPPED",
+      "index": 11,
+      "message": "Skipped the execution of hook \"phase1_graph_failure_gate\". It did not meet its triggering condition during the execution of \"candidate_freeze\".",
+      "step_key": "candidate_freeze"
+    },
+    {
+      "asset_key": null,
+      "event_type": "STEP_START",
+      "index": 12,
+      "message": "Started execution of step \"dbt_phase0_assets\".",
+      "step_key": "dbt_phase0_assets"
+    },
+    {
+      "asset_key": null,
+      "event_type": "STEP_OUTPUT",
+      "index": 13,
+      "message": "Yielded output \"heartbeat\" of type \"Nothing\". (Type check passed).",
+      "step_key": "dbt_phase0_assets"
+    },
+    {
+      "asset_key": "heartbeat",
+      "event_type": "ASSET_MATERIALIZATION",
+      "index": 14,
+      "message": "Materialized value heartbeat.",
+      "step_key": "dbt_phase0_assets"
+    },
+    {
+      "asset_key": null,
+      "event_type": "ASSET_CHECK_EVALUATION",
+      "index": 15,
+      "step_key": "dbt_phase0_assets"
+    },
+    {
+      "asset_key": null,
+      "event_type": "STEP_OUTPUT",
+      "index": 16,
+      "message": "Yielded output \"heartbeat_not_null_heartbeat_heartbeat\" of type \"Any\". (Type check passed).",
+      "step_key": "dbt_phase0_assets"
+    },
+    {
+      "asset_key": null,
+      "event_type": "STEP_SUCCESS",
+      "index": 17,
+      "message": "Finished execution of step \"dbt_phase0_assets\" in 1.43s.",
+      "step_key": "dbt_phase0_assets"
+    },
+    {
+      "asset_key": null,
+      "event_type": "HOOK_SKIPPED",
+      "index": 18,
+      "message": "Skipped the execution of hook \"phase3_manifest_failure_gate\". It did not meet its triggering condition during the execution of \"dbt_phase0_assets\".",
+      "step_key": "dbt_phase0_assets"
+    },
+    {
+      "asset_key": null,
+      "event_type": "HOOK_SKIPPED",
+      "index": 19,
+      "message": "Skipped the execution of hook \"phase1_graph_failure_gate\". It did not meet its triggering condition during the execution of \"dbt_phase0_assets\".",
+      "step_key": "dbt_phase0_assets"
+    },
+    {
+      "asset_key": null,
+      "event_type": "STEP_START",
+      "index": 20,
+      "message": "Started execution of step \"phase0_readiness_ping\".",
+      "step_key": "phase0_readiness_ping"
+    },
+    {
+      "asset_key": null,
+      "event_type": "STEP_OUTPUT",
+      "index": 21,
+      "message": "Yielded output \"result\" of type \"String\". (Type check passed).",
+      "step_key": "phase0_readiness_ping"
+    },
+    {
+      "asset_key": "phase0_readiness_ping",
+      "event_type": "ASSET_MATERIALIZATION",
+      "index": 22,
+      "message": "Materialized value phase0_readiness_ping.",
+      "step_key": "phase0_readiness_ping"
+    },
+    {
+      "asset_key": null,
+      "event_type": "HANDLED_OUTPUT",
+      "index": 23,
+      "message": "Handled output \"result\" using IO manager \"io_manager\"",
+      "step_key": "phase0_readiness_ping"
+    },
+    {
+      "asset_key": null,
+      "event_type": "STEP_SUCCESS",
+      "index": 24,
+      "message": "Finished execution of step \"phase0_readiness_ping\" in 1.91ms.",
+      "step_key": "phase0_readiness_ping"
+    },
+    {
+      "asset_key": null,
+      "event_type": "HOOK_SKIPPED",
+      "index": 25,
+      "message": "Skipped the execution of hook \"phase3_manifest_failure_gate\". It did not meet its triggering condition during the execution of \"phase0_readiness_ping\".",
+      "step_key": "phase0_readiness_ping"
+    },
+    {
+      "asset_key": null,
+      "event_type": "HOOK_SKIPPED",
+      "index": 26,
+      "message": "Skipped the execution of hook \"phase1_graph_failure_gate\". It did not meet its triggering condition during the execution of \"phase0_readiness_ping\".",
+      "step_key": "phase0_readiness_ping"
+    },
+    {
+      "asset_key": null,
+      "event_type": "STEP_START",
+      "index": 27,
+      "message": "Started execution of step \"graph_status\".",
+      "step_key": "graph_status"
+    },
+    {
+      "asset_key": null,
+      "event_type": "LOADED_INPUT",
+      "index": 28,
+      "message": "Loaded input \"candidate_freeze\" using input manager \"io_manager\", from output \"result\" of step \"candidate_freeze\"",
+      "step_key": "graph_status"
+    },
+    {
+      "asset_key": null,
+      "event_type": "STEP_INPUT",
+      "index": 29,
+      "message": "Got input \"candidate_freeze\" of type \"dict\". (Type check passed).",
+      "step_key": "graph_status"
+    },
+    {
+      "asset_key": null,
+      "event_type": "STEP_OUTPUT",
+      "index": 30,
+      "message": "Yielded output \"result\" of type \"object\". (Type check passed).",
+      "step_key": "graph_status"
+    },
+    {
+      "asset_key": "graph_status",
+      "event_type": "ASSET_MATERIALIZATION",
+      "index": 31,
+      "message": "Materialized value graph_status.",
+      "step_key": "graph_status"
+    },
+    {
+      "asset_key": null,
+      "event_type": "HANDLED_OUTPUT",
+      "index": 32,
+      "message": "Handled output \"result\" using IO manager \"io_manager\"",
+      "step_key": "graph_status"
+    },
+    {
+      "asset_key": null,
+      "event_type": "STEP_SUCCESS",
+      "index": 33,
+      "message": "Finished execution of step \"graph_status\" in 29ms.",
+      "step_key": "graph_status"
+    },
+    {
+      "asset_key": null,
+      "event_type": "HOOK_SKIPPED",
+      "index": 34,
+      "message": "Skipped the execution of hook \"phase3_manifest_failure_gate\". It did not meet its triggering condition during the execution of \"graph_status\".",
+      "step_key": "graph_status"
+    },
+    {
+      "asset_key": null,
+      "event_type": "HOOK_SKIPPED",
+      "index": 35,
+      "message": "Skipped the execution of hook \"phase1_graph_failure_gate\". It did not meet its triggering condition during the execution of \"graph_status\".",
+      "step_key": "graph_status"
+    },
+    {
+      "asset_key": null,
+      "event_type": "STEP_START",
+      "index": 36,
+      "message": "Started execution of step \"phase0_readiness_ping_llm_health_check\".",
+      "step_key": "phase0_readiness_ping_llm_health_check"
+    },
+    {
+      "asset_key": null,
+      "event_type": "ASSET_CHECK_EVALUATION",
+      "index": 37,
+      "step_key": "phase0_readiness_ping_llm_health_check"
+    },
+    {
+      "asset_key": null,
+      "event_type": "STEP_OUTPUT",
+      "index": 38,
+      "message": "Yielded output \"result\" of type \"Any\". (Type check passed).",
+      "step_key": "phase0_readiness_ping_llm_health_check"
+    },
+    {
+      "asset_key": null,
+      "event_type": "STEP_SUCCESS",
+      "index": 39,
+      "message": "Finished execution of step \"phase0_readiness_ping_llm_health_check\" in 1.52s.",
+      "step_key": "phase0_readiness_ping_llm_health_check"
+    },
+    {
+      "asset_key": null,
+      "event_type": "HOOK_SKIPPED",
+      "index": 40,
+      "message": "Skipped the execution of hook \"phase3_manifest_failure_gate\". It did not meet its triggering condition during the execution of \"phase0_readiness_ping_llm_health_check\".",
+      "step_key": "phase0_readiness_ping_llm_health_check"
+    },
+    {
+      "asset_key": null,
+      "event_type": "HOOK_SKIPPED",
+      "index": 41,
+      "message": "Skipped the execution of hook \"phase1_graph_failure_gate\". It did not meet its triggering condition during the execution of \"phase0_readiness_ping_llm_health_check\".",
+      "step_key": "phase0_readiness_ping_llm_health_check"
+    },
+    {
+      "asset_key": null,
+      "event_type": "STEP_START",
+      "index": 42,
+      "message": "Started execution of step \"phase0_readiness_ping_phase0_ping_check\".",
+      "step_key": "phase0_readiness_ping_phase0_ping_check"
+    },
+    {
+      "asset_key": null,
+      "event_type": "ASSET_CHECK_EVALUATION",
+      "index": 43,
+      "step_key": "phase0_readiness_ping_phase0_ping_check"
+    },
+    {
+      "asset_key": null,
+      "event_type": "STEP_OUTPUT",
+      "index": 44,
+      "message": "Yielded output \"result\" of type \"Any\". (Type check passed).",
+      "step_key": "phase0_readiness_ping_phase0_ping_check"
+    },
+    {
+      "asset_key": null,
+      "event_type": "STEP_SUCCESS",
+      "index": 45,
+      "message": "Finished execution of step \"phase0_readiness_ping_phase0_ping_check\" in 4.88ms.",
+      "step_key": "phase0_readiness_ping_phase0_ping_check"
+    },
+    {
+      "asset_key": null,
+      "event_type": "HOOK_SKIPPED",
+      "index": 46,
+      "message": "Skipped the execution of hook \"phase3_manifest_failure_gate\". It did not meet its triggering condition during the execution of \"phase0_readiness_ping_phase0_ping_check\".",
+      "step_key": "phase0_readiness_ping_phase0_ping_check"
+    },
+    {
+      "asset_key": null,
+      "event_type": "HOOK_SKIPPED",
+      "index": 47,
+      "message": "Skipped the execution of hook \"phase1_graph_failure_gate\". It did not meet its triggering condition during the execution of \"phase0_readiness_ping_phase0_ping_check\".",
+      "step_key": "phase0_readiness_ping_phase0_ping_check"
+    },
+    {
+      "asset_key": null,
+      "event_type": "STEP_START",
+      "index": 48,
+      "message": "Started execution of step \"graph_status_neo4j_graph_consistency_check\".",
+      "step_key": "graph_status_neo4j_graph_consistency_check"
+    },
+    {
+      "asset_key": null,
+      "event_type": "LOADED_INPUT",
+      "index": 49,
+      "message": "Loaded input \"graph_status\" using input manager \"io_manager\", from output \"result\" of step \"graph_status\"",
+      "step_key": "graph_status_neo4j_graph_consistency_check"
+    },
+    {
+      "asset_key": null,
+      "event_type": "STEP_INPUT",
+      "index": 50,
+      "message": "Got input \"graph_status\" of type \"object\". (Type check passed).",
+      "step_key": "graph_status_neo4j_graph_consistency_check"
+    },
+    {
+      "asset_key": null,
+      "event_type": "ASSET_CHECK_EVALUATION",
+      "index": 51,
+      "step_key": "graph_status_neo4j_graph_consistency_check"
+    },
+    {
+      "asset_key": null,
+      "event_type": "STEP_OUTPUT",
+      "index": 52,
+      "message": "Yielded output \"result\" of type \"Any\". (Type check passed).",
+      "step_key": "graph_status_neo4j_graph_consistency_check"
+    },
+    {
+      "asset_key": null,
+      "event_type": "STEP_SUCCESS",
+      "index": 53,
+      "message": "Finished execution of step \"graph_status_neo4j_graph_consistency_check\" in 3.92ms.",
+      "step_key": "graph_status_neo4j_graph_consistency_check"
+    },
+    {
+      "asset_key": null,
+      "event_type": "HOOK_SKIPPED",
+      "index": 54,
+      "message": "Skipped the execution of hook \"phase3_manifest_failure_gate\". It did not meet its triggering condition during the execution of \"graph_status_neo4j_graph_consistency_check\".",
+      "step_key": "graph_status_neo4j_graph_consistency_check"
+    },
+    {
+      "asset_key": null,
+      "event_type": "HOOK_SKIPPED",
+      "index": 55,
+      "message": "Skipped the execution of hook \"phase1_graph_failure_gate\". It did not meet its triggering condition during the execution of \"graph_status_neo4j_graph_consistency_check\".",
+      "step_key": "graph_status_neo4j_graph_consistency_check"
+    },
+    {
+      "asset_key": null,
+      "event_type": "STEP_START",
+      "index": 56,
+      "message": "Started execution of step \"graph_promotion\".",
+      "step_key": "graph_promotion"
+    },
+    {
+      "asset_key": null,
+      "event_type": "LOADED_INPUT",
+      "index": 57,
+      "message": "Loaded input \"candidate_freeze\" using input manager \"io_manager\", from output \"result\" of step \"candidate_freeze\"",
+      "step_key": "graph_promotion"
+    },
+    {
+      "asset_key": null,
+      "event_type": "LOADED_INPUT",
+      "index": 58,
+      "message": "Loaded input \"graph_status\" using input manager \"io_manager\", from output \"result\" of step \"graph_status\"",
+      "step_key": "graph_promotion"
+    },
+    {
+      "asset_key": null,
+      "event_type": "LOADED_INPUT",
+      "index": 59,
+      "message": "Loaded input \"phase0_readiness_ping\" using input manager \"io_manager\", from output \"result\" of step \"phase0_readiness_ping\"",
+      "step_key": "graph_promotion"
+    },
+    {
+      "asset_key": null,
+      "event_type": "STEP_INPUT",
+      "index": 60,
+      "message": "Got input \"candidate_freeze\" of type \"object\". (Type check passed).",
+      "step_key": "graph_promotion"
+    },
+    {
+      "asset_key": null,
+      "event_type": "STEP_INPUT",
+      "index": 61,
+      "message": "Got input \"graph_status\" of type \"object\". (Type check passed).",
+      "step_key": "graph_promotion"
+    },
+    {
+      "asset_key": null,
+      "event_type": "STEP_INPUT",
+      "index": 62,
+      "message": "Got input \"phase0_readiness_ping\" of type \"object\". (Type check passed).",
+      "step_key": "graph_promotion"
+    },
+    {
+      "asset_key": null,
+      "event_type": "STEP_FAILURE",
+      "index": 63,
+      "message": "Execution of step \"graph_promotion\" failed.",
+      "step_key": "graph_promotion"
+    },
+    {
+      "asset_key": null,
+      "event_type": "HOOK_COMPLETED",
+      "index": 64,
+      "message": "Finished the execution of hook \"phase3_manifest_failure_gate\" triggered for \"graph_promotion\".",
+      "step_key": "graph_promotion"
+    },
+    {
+      "asset_key": null,
+      "event_type": "HOOK_COMPLETED",
+      "index": 65,
+      "message": "Finished the execution of hook \"phase1_graph_failure_gate\" triggered for \"graph_promotion\".",
+      "step_key": "graph_promotion"
+    },
+    {
+      "asset_key": null,
+      "event_type": "ENGINE_EVENT",
+      "index": 66,
+      "message": "Finished steps in process (pid: 90624) in 3.11s",
+      "step_key": null
+    },
+    {
+      "asset_key": null,
+      "event_type": "PIPELINE_FAILURE",
+      "index": 67,
+      "message": "Execution of run for \"daily_cycle_job\" failed. Steps failed: ['graph_promotion'].",
+      "step_key": null
+    }
+  ],
+  "extra_materialized_asset_keys": [
+    "candidate_freeze",
+    "graph_status",
+    "heartbeat",
+    "phase0_readiness_ping"
+  ],
+  "failure_events": [
+    {
+      "error": {
+        "message": "dagster._core.errors.DagsterExecutionStepExecutionError: Error occurred while executing op \"graph_promotion\":\n\nStack Trace:\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/dagster/_core/execution/plan/execute_plan.py\", line 245, in dagster_event_sequence_for_step\n    yield from check.generator(step_events)\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/dagster/_core/execution/plan/execute_step.py\", line 501, in core_dagster_event_sequence_for_step\n    for user_event in _step_output_error_checked_user_event_sequence(\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/dagster/_core/execution/plan/execute_step.py\", line 184, in _step_output_error_checked_user_event_sequence\n    for user_event in user_event_sequence:\n                      ^^^^^^^^^^^^^^^^^^^\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/dagster/_core/execution/plan/execute_step.py\", line 88, in _process_asset_results_to_events\n    for user_event in user_event_sequence:\n                      ^^^^^^^^^^^^^^^^^^^\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/dagster/_core/execution/plan/compute.py\", line 190, in execute_core_compute\n    for step_output in _yield_compute_results(step_context, inputs, compute_fn, compute_context):\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/dagster/_core/execution/plan/compute.py\", line 159, in _yield_compute_results\n    for event in iterate_with_context(\n                 ^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/dagster/_utils/__init__.py\", line 478, in iterate_with_context\n    with context_fn():\n         ^^^^^^^^^^^^\n  File \"/Users/fanjie/.local/share/uv/python/cpython-3.12.12-macos-aarch64-none/lib/python3.12/contextlib.py\", line 158, in __exit__\n    self.gen.throw(value)\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/dagster/_core/execution/plan/utils.py\", line 86, in op_execution_error_boundary\n    raise error_cls(\n\nThe above exception was caused by the following exception:\nRuntimeError: Graph Phase 1 runtime dependencies are not configured; provide real candidate_reader, canonical_writer, Neo4j client/status, regime_reader, and formal artifact snapshot writer resources.\n\nStack Trace:\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/dagster/_core/execution/plan/utils.py\", line 56, in op_execution_error_boundary\n    yield\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/dagster/_utils/__init__.py\", line 480, in iterate_with_context\n    next_output = next(iterator)\n                  ^^^^^^^^^^^^^^\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/dagster/_core/execution/plan/compute_generator.py\", line 127, in _coerce_op_compute_fn_to_iterator\n    result = invoke_compute_fn(\n             ^^^^^^^^^^^^^^^^^^\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/dagster/_core/execution/plan/compute_generator.py\", line 115, in invoke_compute_fn\n    return fn(context, **args_to_pass) if context_arg_provided else fn(**args_to_pass)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/graph-engine/graph_engine/providers/phase1.py\", line 246, in graph_promotion\n    return runtime.promote_graph(\n           ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/graph-engine/graph_engine/providers/phase1.py\", line 553, in promote_graph\n    raise RuntimeError(_FAIL_CLOSED_RUNTIME_MESSAGE)\n",
+        "type": "SerializableErrorInfo"
+      },
+      "event_type": "STEP_FAILURE",
+      "index": 63,
+      "message": "Execution of step \"graph_promotion\" failed.",
+      "step_key": "graph_promotion"
+    }
+  ],
+  "failure_step": "graph_promotion",
+  "generated_at_utc": "2026-04-30T20:09:31.942509+00:00",
+  "job_name": "daily_cycle_job",
+  "materialization_count_against_claim_15": {
+    "actual_count": 4,
+    "actual_unique_count": 4,
+    "claim_count": 15,
+    "has_at_least_15": false,
+    "has_exactly_15": false
+  },
+  "materialization_order": [
+    "candidate_freeze",
+    "heartbeat",
+    "phase0_readiness_ping",
+    "graph_status"
+  ],
+  "materialized_asset_count": 4,
+  "materialized_asset_keys": [
+    "candidate_freeze",
+    "heartbeat",
+    "phase0_readiness_ping",
+    "graph_status"
+  ],
+  "missing_selected_asset_keys": [],
+  "run_id": "e33b8861-7b32-4b86-86c4-e2b15bcbf39c",
+  "schema_version": "project-ult.production-daily-cycle-proof.v2.dagster-execution-evidence.v1",
+  "selected_asset_count": 0,
+  "selected_asset_keys": [],
+  "selected_materializations_complete": false,
+  "status": "failed",
+  "terminal_observed_policy": "terminal-observed progress is operator context only; PASS claims must come from this structured Dagster event artifact",
+  "terminal_observed_steps": [],
+  "unique_materialized_asset_count": 4,
+  "unique_materialized_asset_keys": [
+    "candidate_freeze",
+    "graph_status",
+    "heartbeat",
+    "phase0_readiness_ping"
+  ]
+}
