@@ -1,0 +1,7 @@
+[0m15:05:22  Running with dbt=1.9.8
+[0m15:05:22  Registered adapter: duckdb=1.10.1
+[0m15:05:22  Unable to do partial parsing because saved manifest not found. Starting full parse.
+[0m15:05:23  Found 1 model, 1 test, 1 source, 445 macros
+[0m15:05:23
+[0m15:05:23  Concurrency: 1 threads (target='dev')
+[0m15:05:23

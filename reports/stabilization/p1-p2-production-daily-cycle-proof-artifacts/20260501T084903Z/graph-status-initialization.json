@@ -1,0 +1,55 @@
+{
+  "artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T084903Z/graph-status-initialization.json",
+  "cycle_id": "CYCLE_20260415",
+  "dsn": "<redacted:set>",
+  "duration_ms": 43,
+  "generated_at_utc": "2026-05-01T08:49:20.311770+00:00",
+  "live_metric_seed": {
+    "checksum": "9cef73ef8d0112918492580ed590568c96c1d2e65c9eb5d01320828cf4767fda",
+    "edge_count": 0,
+    "key_label_counts": {
+      "Entity": 2
+    },
+    "node_count": 2
+  },
+  "mode": "proof_only_live_metric_ready_seed",
+  "previous_status": null,
+  "previous_status_present": false,
+  "readback_status": {
+    "checksum": "9cef73ef8d0112918492580ed590568c96c1d2e65c9eb5d01320828cf4767fda",
+    "edge_count": 0,
+    "graph_generation_id": 0,
+    "graph_status": "ready",
+    "key_label_counts": {
+      "Entity": 2
+    },
+    "last_reload_at": null,
+    "last_verified_at": "2026-05-01T08:49:20.318195+00:00",
+    "node_count": 2,
+    "writer_lock_token": null
+  },
+  "ready_for_graph_status_asset": true,
+  "row_action": "upserted_live_metric_ready_status",
+  "schema_version": "project-ult.production-daily-cycle-proof.v2.graph-status-initialization.v1",
+  "seed_status": {
+    "checksum": "9cef73ef8d0112918492580ed590568c96c1d2e65c9eb5d01320828cf4767fda",
+    "edge_count": 0,
+    "graph_generation_id": 0,
+    "graph_status": "ready",
+    "key_label_counts": {
+      "Entity": 2
+    },
+    "last_reload_at": null,
+    "last_verified_at": "2026-05-01T08:49:20.318195Z",
+    "node_count": 2,
+    "writer_lock_token": null
+  },
+  "status": "passed",
+  "v5_0_1_semantics": {
+    "canonical_truth": "Layer A canonical stores, not Neo4j",
+    "neo4j_role": "hot_mirror",
+    "phase0_graph_delta_writes": 0,
+    "phase0_validates_only": true,
+    "proof_setup_step": true
+  }
+}

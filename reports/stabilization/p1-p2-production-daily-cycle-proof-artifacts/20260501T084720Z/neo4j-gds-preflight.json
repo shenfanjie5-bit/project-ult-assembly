@@ -1,0 +1,27 @@
+{
+  "artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T084720Z/neo4j-gds-preflight.json",
+  "blocker": null,
+  "duration_ms": 112,
+  "gds_graph_exists_probe": {
+    "graph_name": "__graph_engine_gds_probe__",
+    "procedure_available": true
+  },
+  "gds_version": "2.13.9",
+  "generated_at_utc": "2026-05-01T08:47:21.786077+00:00",
+  "neo4j_database": "neo4j",
+  "neo4j_uri": "bolt://localhost:7687",
+  "neo4j_user": "set",
+  "required_probes": [
+    "CALL gds.version() YIELD gdsVersion RETURN gdsVersion",
+    "CALL gds.graph.exists($graph_name) YIELD exists RETURN exists"
+  ],
+  "required_runtime": "Neo4j Graph Data Science plugin",
+  "schema_version": "project-ult.production-daily-cycle-proof.v2.neo4j-gds-preflight.v1",
+  "status": "passed",
+  "v5_0_1_semantics": {
+    "canonical_truth": "Layer A canonical stores, not Neo4j",
+    "gds_required_for_layer_c_graph_snapshot": true,
+    "neo4j_role": "hot_mirror",
+    "no_graph_delta_writes": true
+  }
+}

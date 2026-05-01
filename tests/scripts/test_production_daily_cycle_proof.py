@@ -98,6 +98,57 @@ def _materialization_event(index: int, asset_name: str) -> SimpleNamespace:
     )
 
 
+def _asset_check_event(
+    index: int,
+    check_name: str,
+    *,
+    passed: bool | None = True,
+) -> SimpleNamespace:
+    return SimpleNamespace(
+        event_type_value="ASSET_CHECK_EVALUATION",
+        step_key=f"{check_name}_step",
+        is_asset_check_evaluation=True,
+        event_specific_data=SimpleNamespace(
+            passed=passed,
+            check_name=check_name,
+            metadata={"check_index": SimpleNamespace(value=index)},
+        ),
+    )
+
+
+def _asset_check_record(
+    check_name: str,
+    *,
+    passed: bool | None = True,
+) -> dict[str, Any]:
+    return {
+        "check_name": check_name,
+        "passed": passed,
+        "metadata": {},
+    }
+
+
+def _passing_asset_check_records(module: Any) -> list[dict[str, Any]]:
+    return [
+        _asset_check_record(check_name)
+        for check_name in module.EXPECTED_DAGSTER_ASSET_CHECK_NAMES
+    ]
+
+
+def _passing_asset_check_events(
+    module: Any,
+    *,
+    start_index: int,
+) -> tuple[SimpleNamespace, ...]:
+    return tuple(
+        _asset_check_event(index, check_name)
+        for index, check_name in enumerate(
+            module.EXPECTED_DAGSTER_ASSET_CHECK_NAMES,
+            start=start_index,
+        )
+    )
+
+
 def test_neo4j_gds_preflight_writes_pass_artifact(tmp_path: Path, monkeypatch: Any) -> None:
     module = _load_module()
 
@@ -184,6 +235,56 @@ def test_neo4j_gds_preflight_writes_blocker_artifact(
     assert result["blocker"] == "configured_neo4j_gds_runtime"
     assert payload["status"] == "failed"
     assert payload["error"] == "GDS plugin not available"
+
+
+def test_proof_graph_delta_payload_is_valid_ex3_contract() -> None:
+    module = _load_module()
+
+    nodes = module._proof_graph_nodes(("600519.SH", "000001.SZ"))
+    payload = module._proof_graph_delta_payload(
+        cycle_id="CYCLE_20260415",
+        nodes=nodes,
+    )
+
+    from contracts.schemas import CandidateGraphDelta
+
+    contract_payload = {
+        key: value
+        for key, value in payload.items()
+        if key not in {"payload_type", "submitted_by"}
+    }
+    delta = CandidateGraphDelta.model_validate(contract_payload)
+
+    assert payload["payload_type"] == "Ex-3"
+    assert payload["submitted_by"] == module.SUBMITTED_BY
+    assert delta.delta_type == "upsert_edge"
+    assert delta.relation_type == "SUPPLY_CHAIN"
+    assert delta.properties["propagation_channel"] == "fundamental"
+    assert [node["node_id"] for node in nodes] == [
+        "proof-node-600519_SH",
+        "proof-node-000001_SZ",
+    ]
+
+
+def test_proof_graph_nodes_require_two_symbols() -> None:
+    module = _load_module()
+
+    import pytest
+
+    with pytest.raises(RuntimeError, match="at least two current-cycle symbols"):
+        module._proof_graph_nodes(("600519.SH",))
+
+
+def test_proof_report_dates_use_run_date_not_baseline_date() -> None:
+    module = _load_module()
+
+    dates = module._proof_report_dates(module.datetime(2026, 5, 1, tzinfo=module.UTC))
+
+    assert dates == {
+        "baseline_evidence_date": "2026-04-28",
+        "evidence_date": "2026-05-01",
+        "proof_run_date": "2026-05-01",
+    }
 
 
 def test_dagster_execution_evidence_rejects_incomplete_15_materialization_claim() -> None:
@@ -348,6 +449,7 @@ def test_dagster_step_pass_claim_requires_artifact_backed_materializations() -> 
             "cycle_id": "CYCLE_20260415",
             "dagster_success": True,
             "run_id": "run-456",
+            "asset_checks": _passing_asset_check_records(module),
             "materialized_asset_keys": [f"asset_{index}" for index in range(15)],
             "materialized_asset_count": 15,
             "selected_asset_count": 15,
@@ -429,9 +531,15 @@ def test_all_assets_selection_fallback_can_support_artifact_backed_pass_claim() 
     result = SimpleNamespace(
         success=True,
         run_id="run-all-assets",
-        all_events=tuple(
-            _materialization_event(index, asset_name)
-            for index, asset_name in enumerate(selected_asset_keys)
+        all_events=(
+            *tuple(
+                _materialization_event(index, asset_name)
+                for index, asset_name in enumerate(selected_asset_keys)
+            ),
+            *_passing_asset_check_events(
+                module,
+                start_index=len(selected_asset_keys),
+            ),
         ),
     )
 
@@ -458,6 +566,50 @@ def test_all_assets_selection_fallback_can_support_artifact_backed_pass_claim() 
     assert step["status"] == "passed"
     assert step["artifact_backed_pass_claim"] is True
     assert step["supports_legacy_15_materializations_claim"] is False
+
+
+def test_dagster_step_rejects_failed_asset_check_even_with_all_materializations() -> None:
+    module = _load_module()
+    selected_asset_keys = [f"asset_{index}" for index in range(17)]
+    failed_check = module.EXPECTED_DAGSTER_ASSET_CHECK_NAMES[0]
+    check_events = tuple(
+        _asset_check_event(
+            index,
+            check_name,
+            passed=False if check_name == failed_check else True,
+        )
+        for index, check_name in enumerate(
+            module.EXPECTED_DAGSTER_ASSET_CHECK_NAMES,
+            start=len(selected_asset_keys),
+        )
+    )
+    result = SimpleNamespace(
+        success=True,
+        run_id="run-failed-check",
+        all_events=(
+            *tuple(
+                _materialization_event(index, asset_name)
+                for index, asset_name in enumerate(selected_asset_keys)
+            ),
+            *check_events,
+        ),
+    )
+
+    evidence = module._dagster_execution_evidence_from_result(
+        result,
+        cycle_id="CYCLE_20260415",
+        job_name="daily_cycle_job",
+        selected_asset_keys=selected_asset_keys,
+        legacy_materialization_claim_count=15,
+    )
+    step = module._dagster_step_from_evidence(evidence)
+
+    assert evidence["dagster_success"] is True
+    assert evidence["selected_materializations_complete"] is True
+    assert step["status"] == "failed"
+    assert step["artifact_backed_pass_claim"] is False
+    assert step["asset_checks_complete"] is False
+    assert step["failed_asset_check_names"] == [failed_check]
 
 
 def test_dagster_step_rejects_partial_selection_even_with_15_materializations() -> None:
@@ -489,6 +641,72 @@ def test_dagster_step_rejects_partial_selection_even_with_15_materializations() 
     assert step["selected_asset_count_matches_materialization_basis"] is True
     assert step["status"] == "failed"
     assert step["artifact_backed_pass_claim"] is False
+
+
+def test_artifact_backed_dagster_pass_satisfies_provider_runtime_blockers() -> None:
+    module = _load_module()
+    report = {
+        "preflight": {},
+        "steps": {
+            "production_dagster": {
+                "status": "passed",
+                "artifact_backed_pass_claim": True,
+            },
+            "production_provider_status": {
+                "status": "passed",
+                "blocked": True,
+                "missing_surfaces": [],
+                "runtime_blockers": [
+                    "configured_data_platform_current_cycle_runtime",
+                    "configured_graph_phase0_status_runtime",
+                    "configured_graph_phase1_runtime",
+                    "configured_reasoner_runtime",
+                    "configured_audit_eval_retrospective_hook_runtime",
+                    "production_current_cycle_dagster_run_evidence",
+                ],
+            },
+        },
+    }
+
+    module._apply_effective_provider_status(report)
+
+    provider_status = report["steps"]["production_provider_status"]
+    assert provider_status["static_blocked"] is True
+    assert provider_status["effective_blocked"] is False
+    assert provider_status["resolved_by_artifact_backed_run"] is True
+    assert provider_status["effective_runtime_blockers"] == []
+    assert module._open_blockers(report) == []
+
+
+def test_provider_runtime_blockers_remain_when_dagster_pass_is_not_artifact_backed() -> None:
+    module = _load_module()
+    report = {
+        "preflight": {},
+        "steps": {
+            "production_dagster": {
+                "status": "failed",
+                "artifact_backed_pass_claim": False,
+                "failure_step": "graph_snapshot",
+            },
+            "production_provider_status": {
+                "status": "passed",
+                "blocked": True,
+                "missing_surfaces": [],
+                "runtime_blockers": [
+                    "configured_data_platform_current_cycle_runtime",
+                    "configured_graph_phase1_runtime",
+                    "configured_reasoner_runtime",
+                ],
+            },
+        },
+    }
+
+    assert module._open_blockers(report) == [
+        "full production daily_cycle_job Dagster proof has not passed",
+        "Dagster failure step: graph_snapshot",
+        "production provider status is blocked",
+        "production provider runtime pending: configured_graph_phase1_runtime",
+    ]
 
 
 def test_graph_promotion_materialization_record_is_artifact_backed() -> None:

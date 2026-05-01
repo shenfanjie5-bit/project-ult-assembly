@@ -1,0 +1,532 @@
+{
+  "artifact_dir": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T084903Z",
+  "blockers": [
+    "full production daily_cycle_job Dagster proof has not passed",
+    "Dagster failure step: l1",
+    "Dagster failure root cause:        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/serving/reader.py\", line 170, in canonical_snapshot_id_for_dataset\n    return canonical_snapshot_id(mapping.table_name)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/serving/reader.py\", line 155, in canonical_snapshot_id\n    raise CanonicalTableNotFound(table)\n",
+    "production provider status is blocked",
+    "production provider runtime pending: configured_reasoner_runtime"
+  ],
+  "clock_note": "Timestamps may come from Python, PostgreSQL, and file-system clocks; reviewers should use step status and IDs as ordering evidence.",
+  "command": {
+    "argv": [
+      "--run-dagster",
+      "--run-current-selection-tests"
+    ],
+    "cwd": "/Users/fanjie/Desktop/Cowork/project-ult/assembly",
+    "env_file": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/.env",
+    "python_executable": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python",
+    "script": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/scripts/production_daily_cycle_proof.py"
+  },
+  "env": {
+    "AUDIT_EVAL_DUCKDB_PATH": "set",
+    "DATABASE_URL": "set",
+    "DP_PG_DSN": "set",
+    "DP_TUSHARE_TOKEN": "set",
+    "GRAPH_PHASE1_SNAPSHOT_ARTIFACT_ROOT": "set",
+    "NEO4J_PASSWORD": "set",
+    "NEO4J_URI": "set",
+    "NEO4J_USER": "set",
+    "OPENAI_API_KEY": "missing",
+    "ORCHESTRATOR_MODULE_FACTORIES": "set",
+    "ORCHESTRATOR_POLICY_PATH": "set",
+    "P2_REASONER_MODEL": "set",
+    "P2_REASONER_PROVIDER": "set",
+    "REASONER_RUNTIME_ENABLE_CODEX_OAUTH": "set"
+  },
+  "evidence_date": "2026-04-28",
+  "evidence_policy": {
+    "artifact_backed_pass_claims_only": true,
+    "terminal_observed_steps_policy": "terminal output is captured only as operator context and is not promoted to PASS evidence unless the same fact is present in a structured artifact listed by file_evidence_manifest"
+  },
+  "file_evidence_manifest": [
+    {
+      "exists_at_write_time": true,
+      "git_tracked_at_write_time": false,
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T084903Z",
+      "under_report_artifact_dir": true
+    },
+    {
+      "exists_at_write_time": true,
+      "git_tracked_at_write_time": false,
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T084903Z/dagster-execution-evidence.json",
+      "sha256": "98241d7d87c4f68bc5cbcff066ed91c7e82d2e341215a771d6a11c832426d929",
+      "size_bytes": 46823,
+      "under_report_artifact_dir": true
+    },
+    {
+      "exists_at_write_time": true,
+      "git_tracked_at_write_time": false,
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T084903Z/daily-refresh.json",
+      "sha256": "57e09c2beed74342c10585ec718d5f70ec1f60709dd72e6269b4eea840f87dfb",
+      "size_bytes": 14867,
+      "under_report_artifact_dir": true
+    },
+    {
+      "exists_at_write_time": true,
+      "git_tracked_at_write_time": false,
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T084903Z/data-platform-current-selection-tests.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0,
+      "under_report_artifact_dir": true
+    },
+    {
+      "exists_at_write_time": true,
+      "git_tracked_at_write_time": false,
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T084903Z/data-platform-current-selection-tests.stdout.txt",
+      "sha256": "7040371af15613c02e821ec0eecc1d1330f691ace4cef93a41bfa358822c4103",
+      "size_bytes": 80,
+      "under_report_artifact_dir": true
+    },
+    {
+      "exists_at_write_time": true,
+      "git_tracked_at_write_time": false,
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T084903Z/graph-status-initialization.json",
+      "sha256": "afed2238c49ff219a64769bb89ebc9f55c185e5580a28d1803b95e444580ee48",
+      "size_bytes": 1831,
+      "under_report_artifact_dir": true
+    },
+    {
+      "exists_at_write_time": true,
+      "git_tracked_at_write_time": false,
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T084903Z/neo4j-gds-preflight.json",
+      "sha256": "08442d882ffa169276679b8f0ed862e48f314105652f9466582c12dbf503d218",
+      "size_bytes": 1047,
+      "under_report_artifact_dir": true
+    },
+    {
+      "exists_at_write_time": true,
+      "git_tracked_at_write_time": false,
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T084903Z",
+      "under_report_artifact_dir": false
+    },
+    {
+      "exists_at_write_time": true,
+      "git_tracked_at_write_time": false,
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T084903Z/audit/preflight_audit_eval.duckdb",
+      "sha256": "f4e4599fde0b96aa76ae29b792f496353a94ae3a3eb48e7131117923ade81e0e",
+      "size_bytes": 1323008,
+      "under_report_artifact_dir": false
+    },
+    {
+      "exists_at_write_time": true,
+      "git_tracked_at_write_time": false,
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T084903Z/raw",
+      "under_report_artifact_dir": false
+    },
+    {
+      "exists_at_write_time": true,
+      "git_tracked_at_write_time": false,
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T084903Z/raw/tushare/daily/dt=20260415/60f105c9-011d-404e-aca9-90d7cd74d058.parquet",
+      "sha256": "e0b6d731721e7524f7bf4cb75c72b02daf6889aeda41975cfa9a372f1a0a14e9",
+      "size_bytes": 315178,
+      "under_report_artifact_dir": false
+    },
+    {
+      "exists_at_write_time": true,
+      "git_tracked_at_write_time": false,
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T084903Z/raw/tushare/stock_basic/dt=20260415/c3f9e81d-9c77-4b9f-b9d2-1f78a7352c0d.parquet",
+      "sha256": "e5a008501187763e14b6fadb4b33e0cefbfec57b2f0bd515e2cf7fb1627a1166",
+      "size_bytes": 458486,
+      "under_report_artifact_dir": false
+    },
+    {
+      "exists_at_write_time": true,
+      "git_tracked_at_write_time": false,
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T084903Z/raw/tushare/trade_cal/dt=20260415/4351e7a3-a7a1-4a14-b71b-0d1bbabab66b.parquet",
+      "sha256": "79a5b4293058f12214ec23c986636097c36521aa972f66ce9ceae37a983a8525",
+      "size_bytes": 1198,
+      "under_report_artifact_dir": false
+    }
+  ],
+  "finished_at_utc": "2026-05-01T08:49:27.644759+00:00",
+  "generated_at_utc": "2026-05-01T08:49:03.025404+00:00",
+  "inputs": {
+    "requested_partition_date": "2026-04-15",
+    "run_dagster": true,
+    "selected_assets": [
+      "trade_cal",
+      "stock_basic",
+      "daily"
+    ],
+    "symbols": [
+      "600519.SH",
+      "000001.SZ"
+    ],
+    "tushare_mode": "live"
+  },
+  "mode": "bounded_runner",
+  "non_claims": [
+    "not_p5_shadow_run_readiness",
+    "not_sidecar_or_frontend_write_api",
+    "not_api6_news_or_polymarket_flow",
+    "not_production_daily_cycle_pass_certificate_unless_dagster_passed"
+  ],
+  "preflight": {
+    "audit_duckdb_write_read": {
+      "audit_ids": [
+        "audit-runtime-preflight-L4"
+      ],
+      "duckdb_path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T084903Z/audit/preflight_audit_eval.duckdb",
+      "duration_ms": 17,
+      "replay_ids": [
+        "replay-runtime-preflight-runtime_preflight"
+      ],
+      "status": "passed"
+    },
+    "codex_reasoner_health": {
+      "all_critical_targets_available": true,
+      "duration_ms": 1691,
+      "model": "gpt-5.5",
+      "provider": "openai-codex",
+      "provider_statuses": [
+        {
+          "error": null,
+          "latency_ms": 1690,
+          "model": "gpt-5.5",
+          "provider": "openai-codex",
+          "quota_status": "ok",
+          "reachable": true
+        }
+      ],
+      "status": "passed",
+      "summary": "all 1 critical provider/model target(s) available"
+    },
+    "data_platform_current_selection_tests": {
+      "duration_ms": 1952,
+      "returncode": 0,
+      "status": "passed",
+      "stderr": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T084903Z/data-platform-current-selection-tests.stderr.txt",
+      "stderr_tail": "",
+      "stdout": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T084903Z/data-platform-current-selection-tests.stdout.txt",
+      "stdout_tail": "..........                                                               [100%]\n"
+    },
+    "imports": {
+      "imported": [
+        "data_platform.cycle.current_selection",
+        "data_platform.daily_refresh",
+        "orchestrator_adapters.production_daily_cycle",
+        "audit_eval.audit",
+        "reasoner_runtime"
+      ],
+      "status": "passed"
+    },
+    "neo4j_gds": {
+      "artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T084903Z/neo4j-gds-preflight.json",
+      "blocker": null,
+      "duration_ms": 97,
+      "gds_version": "2.13.9",
+      "status": "passed"
+    },
+    "pg_connect": {
+      "dsn": "<redacted:set>",
+      "duration_ms": 52,
+      "result": 1,
+      "status": "passed"
+    }
+  },
+  "redaction": {
+    "dsn_values": "<redacted:set>",
+    "secret_values": "<redacted:set>"
+  },
+  "repo_revisions": {
+    "assembly": {
+      "branch": "m2-baseline-2026-04-29",
+      "dirty": "yes",
+      "head": "cd1d846"
+    },
+    "audit-eval": {
+      "branch": "m2-5-live-pg-roundtrip",
+      "dirty": "no",
+      "head": "0a94ec6"
+    },
+    "data-platform": {
+      "branch": "m2-6f1-iceberg-canonical-graph-writer-v2",
+      "dirty": "yes",
+      "head": "84ccedf"
+    },
+    "graph-engine": {
+      "branch": "m2-6f1-real-canonical-writer",
+      "dirty": "no",
+      "head": "17b5699"
+    },
+    "main-core": {
+      "branch": "m2-3a-2-regime-reader",
+      "dirty": "no",
+      "head": "b181735"
+    },
+    "orchestrator": {
+      "branch": "m2-3a-2-phase1-wiring",
+      "dirty": "yes",
+      "head": "41c11d2"
+    },
+    "reasoner-runtime": {
+      "branch": "main",
+      "dirty": "no",
+      "head": "72c4b11"
+    }
+  },
+  "runner_exit_code": 2,
+  "runtime_root": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T084903Z",
+  "schema_version": "project-ult.production-daily-cycle-proof.v2",
+  "steps": {
+    "candidate_seed": {
+      "cycle_created": true,
+      "cycle_status": "pending",
+      "proof_graph_bootstrap": {
+        "candidate_delta_id": "proof-delta-CYCLE_20260415-600519_SH-000001_SZ",
+        "candidate_payload_type": "Ex-3",
+        "candidate_relation_type": "SUPPLY_CHAIN",
+        "canonical_entity_ids": [
+          "proof-entity-600519_SH",
+          "proof-entity-000001_SZ"
+        ],
+        "entity_aliases": [
+          "proof-node-600519_SH",
+          "proof-node-000001_SZ"
+        ],
+        "live_node_seed": {
+          "deleted_prior_proof_nodes": 2,
+          "node_ids": [
+            "proof-node-600519_SH",
+            "proof-node-000001_SZ"
+          ],
+          "seeded_node_count": 2
+        },
+        "mode": "isolated_proof_graph_input_seed",
+        "proof_setup_step": true,
+        "v5_0_1_semantics": {
+          "canonical_truth": "Layer A Iceberg",
+          "graph_delta_source": "candidate_queue Ex-3 proof input",
+          "neo4j_role": "hot_mirror",
+          "phase0_graph_delta_write": false
+        }
+      },
+      "status": "passed",
+      "submitted_candidate_ids": [
+        1,
+        2,
+        3
+      ],
+      "validation": {
+        "accepted": 3,
+        "duration_ms": 10,
+        "rejected": 0,
+        "scanned": 3
+      }
+    },
+    "current_cycle_selection": {
+      "cycle_id": "CYCLE_20260415",
+      "evidence": {
+        "cycle_id": "CYCLE_20260415",
+        "input_artifact_refs": {
+          "daily": [
+            {
+              "dataset": "daily",
+              "input_table": "main.stg_daily",
+              "partition_date": "2026-04-15",
+              "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T084903Z/raw/tushare/daily/dt=20260415/60f105c9-011d-404e-aca9-90d7cd74d058.parquet",
+              "row_count": 5494,
+              "run_id": "60f105c9-011d-404e-aca9-90d7cd74d058",
+              "source_id": "tushare",
+              "written_at": "2026-05-01T08:49:12.505195+00:00"
+            }
+          ],
+          "stock_basic": [
+            {
+              "dataset": "stock_basic",
+              "input_table": "main.stg_stock_basic",
+              "partition_date": "2026-04-15",
+              "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T084903Z/raw/tushare/stock_basic/dt=20260415/c3f9e81d-9c77-4b9f-b9d2-1f78a7352c0d.parquet",
+              "row_count": 5512,
+              "run_id": "c3f9e81d-9c77-4b9f-b9d2-1f78a7352c0d",
+              "source_id": "tushare",
+              "written_at": "2026-05-01T08:49:10.813456+00:00"
+            }
+          ],
+          "trade_cal": [
+            {
+              "dataset": "trade_cal",
+              "input_table": "main.stg_trade_cal",
+              "partition_date": "2026-04-15",
+              "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T084903Z/raw/tushare/trade_cal/dt=20260415/4351e7a3-a7a1-4a14-b71b-0d1bbabab66b.parquet",
+              "row_count": 1,
+              "run_id": "4351e7a3-a7a1-4a14-b71b-0d1bbabab66b",
+              "source_id": "tushare",
+              "written_at": "2026-05-01T08:49:09.012558+00:00"
+            }
+          ]
+        },
+        "input_tables": [
+          "main.stg_trade_cal",
+          "main.stg_daily",
+          "main.stg_stock_basic"
+        ],
+        "raw_zone_path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T084903Z/raw",
+        "scan_metadata": {
+          "daily_partition_date": "2026-04-15",
+          "source_id": "tushare",
+          "stock_basic_partition_mode": "static_latest",
+          "trade_cal_latest_partition_artifact_count": 1
+        },
+        "selected_trade_date": "2026-04-15",
+        "symbols": [
+          "600519.SH",
+          "000001.SZ"
+        ]
+      },
+      "input_tables": [
+        "main.stg_trade_cal",
+        "main.stg_daily",
+        "main.stg_stock_basic"
+      ],
+      "status": "passed",
+      "symbols": [
+        "600519.SH",
+        "000001.SZ"
+      ],
+      "trade_date": "2026-04-15"
+    },
+    "data_platform_migrations": {
+      "applied_versions": [
+        "0001",
+        "0002",
+        "0003",
+        "0004",
+        "0005"
+      ],
+      "dsn": "<redacted:set>",
+      "status": "passed"
+    },
+    "graph_status_initialization": {
+      "artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T084903Z/graph-status-initialization.json",
+      "duration_ms": 43,
+      "mode": "proof_only_live_metric_ready_seed",
+      "phase0_graph_delta_writes": 0,
+      "ready_for_graph_status_asset": true,
+      "status": "passed"
+    },
+    "postgres_bootstrap": {
+      "database": "dp_prod_cycle_proof_20260501t084903z_b238fa66",
+      "dsn": "<redacted:set>",
+      "mode": "isolated_database",
+      "status": "passed"
+    },
+    "production_dagster": {
+      "artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T084903Z/dagster-execution-evidence.json",
+      "artifact_backed_pass_claim": false,
+      "cycle_id": "CYCLE_20260415",
+      "dagster_success": false,
+      "expected_materialized_asset_count": 17,
+      "failure_error": {
+        "message": "dagster._core.errors.DagsterExecutionStepExecutionError: Error occurred while executing op \"l1\":\n\nStack Trace:\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/dagster/_core/execution/plan/execute_plan.py\", line 245, in dagster_event_sequence_for_step\n    yield from check.generator(step_events)\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/dagster/_core/execution/plan/execute_step.py\", line 501, in core_dagster_event_sequence_for_step\n    for user_event in _step_output_error_checked_user_event_sequence(\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/dagster/_core/execution/plan/execute_step.py\", line 184, in _step_output_error_checked_user_event_sequence\n    for user_event in user_event_sequence:\n                      ^^^^^^^^^^^^^^^^^^^\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/dagster/_core/execution/plan/execute_step.py\", line 88, in _process_asset_results_to_events\n    for user_event in user_event_sequence:\n                      ^^^^^^^^^^^^^^^^^^^\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/dagster/_core/execution/plan/compute.py\", line 190, in execute_core_compute\n    for step_output in _yield_compute_results(step_context, inputs, compute_fn, compute_context):\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/dagster/_core/execution/plan/compute.py\", line 159, in _yield_compute_results\n    for event in iterate_with_context(\n                 ^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/dagster/_utils/__init__.py\", line 478, in iterate_with_context\n    with context_fn():\n         ^^^^^^^^^^^^\n  File \"/Users/fanjie/.local/share/uv/python/cpython-3.12.12-macos-aarch64-none/lib/python3.12/contextlib.py\", line 158, in __exit__\n    self.gen.throw(value)\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/dagster/_core/execution/plan/utils.py\", line 86, in op_execution_error_boundary\n    raise error_cls(\n\nThe above exception was caused by the following exception:\ndata_platform.cycle.current_cycle_inputs.CurrentCycleInputsUnavailable: canonical_snapshot_missing: required canonical mart snapshot is unavailable\n\nStack Trace:\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/dagster/_core/execution/plan/utils.py\", line 56, in op_execution_error_boundary\n    yield\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/dagster/_utils/__init__.py\", line 480, in iterate_with_context\n    next_output = next(iterator)\n                  ^^^^^^^^^^^^^^\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/dagster/_core/execution/plan/compute_generator.py\", line 127, in _coerce_op_compute_fn_to_iterator\n    result = invoke_compute_fn(\n             ^^^^^^^^^^^^^^^^^^\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/lib/python3.12/site-packages/dagster/_core/execution/plan/compute_generator.py\", line 115, in invoke_compute_fn\n    return fn(context, **args_to_pass) if context_arg_provided else fn(**args_to_pass)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/orchestrator/src/orchestrator_adapters/p2_dry_run.py\", line 690, in l1\n    return input_provider.load_current_cycle_inputs(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/orchestrator/src/orchestrator_adapters/p2_dry_run.py\", line 463, in load_current_cycle_inputs\n    rows = load_current_cycle_inputs(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/cycle/current_cycle_inputs.py\", line 193, in load_current_cycle_inputs\n    return current_cycle_inputs(\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/cycle/current_cycle_inputs.py\", line 70, in current_cycle_inputs\n    snapshot_ids = _canonical_snapshot_ids(snapshot_spec, cycle_id=cycle_id)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/cycle/current_cycle_inputs.py\", line 346, in _canonical_snapshot_ids\n    raise CurrentCycleInputsUnavailable(\n\nThe above exception was caused by the following exception:\ndata_platform.serving.reader.CanonicalTableNotFound: canonical table not found: fact_price_bar\n\nStack Trace:\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/cycle/current_cycle_inputs.py\", line 342, in _canonical_snapshot_ids\n    dataset_id: canonical_reader.canonical_snapshot_id_for_dataset(dataset_id)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/serving/reader.py\", line 170, in canonical_snapshot_id_for_dataset\n    return canonical_snapshot_id(mapping.table_name)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/serving/reader.py\", line 155, in canonical_snapshot_id\n    raise CanonicalTableNotFound(table)\n",
+        "type": "SerializableErrorInfo"
+      },
+      "failure_message": "Execution of step \"l1\" failed.",
+      "failure_root_cause": "       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/serving/reader.py\", line 170, in canonical_snapshot_id_for_dataset\n    return canonical_snapshot_id(mapping.table_name)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/serving/reader.py\", line 155, in canonical_snapshot_id\n    raise CanonicalTableNotFound(table)\n",
+      "failure_step": "l1",
+      "legacy_claim_count": 15,
+      "materialized_asset_count": 6,
+      "materialized_asset_keys": [
+        "candidate_freeze",
+        "heartbeat",
+        "phase0_readiness_ping",
+        "graph_status",
+        "graph_promotion",
+        "graph_snapshot"
+      ],
+      "run_id": "536e87db-44bb-41cc-81f0-a8680852fdce",
+      "selected_asset_count": 17,
+      "selected_asset_count_matches_materialization_basis": true,
+      "selected_materializations_complete": false,
+      "status": "failed",
+      "supports_legacy_15_materializations_claim": false,
+      "supports_selected_asset_materialization_claim": false
+    },
+    "production_provider_status": {
+      "blocked": true,
+      "blocker_code": "ORCH_PRODUCTION_DAILY_CYCLE_PROVIDER_BLOCKED",
+      "current_cycle_binding": "dagster_run_tag:cycle_id",
+      "factory": "orchestrator_adapters.production_daily_cycle:production_daily_cycle_provider",
+      "missing_surfaces": [],
+      "non_claims": [
+        "not_p5_shadow_run_readiness",
+        "not_full_production_dagster_current_cycle_freeze_proof",
+        "not_production_daily_cycle_pass_certificate",
+        "not_fixed_cycle_20260415_replay"
+      ],
+      "runtime_blockers": [
+        "configured_data_platform_current_cycle_runtime",
+        "configured_graph_phase0_status_runtime",
+        "configured_graph_phase1_runtime",
+        "configured_reasoner_runtime",
+        "configured_audit_eval_retrospective_hook_runtime",
+        "production_current_cycle_dagster_run_evidence"
+      ],
+      "status": "passed",
+      "supported_surfaces": [
+        "phase0_current_cycle_selection",
+        "phase0_data_platform_candidate_freeze_asset",
+        "phase0_data_readiness_resource",
+        "phase0_graph_status_asset",
+        "phase0_neo4j_graph_consistency_check",
+        "phase1_graph_promotion_asset",
+        "phase1_graph_snapshot_asset",
+        "phase2_current_cycle_canonical_inputs",
+        "phase2_main_core_l1_l8",
+        "phase3_formal_objects_commit",
+        "phase3_cycle_publish_manifest",
+        "audit_eval_formal_audit_replay_persistence",
+        "audit_eval_retrospective_hook_asset"
+      ]
+    },
+    "tushare_refresh": {
+      "mock": false,
+      "raw_artifacts": [
+        {
+          "dataset": "trade_cal",
+          "partition_date": "2026-04-15",
+          "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T084903Z/raw/tushare/trade_cal/dt=20260415/4351e7a3-a7a1-4a14-b71b-0d1bbabab66b.parquet",
+          "row_count": 1
+        },
+        {
+          "dataset": "stock_basic",
+          "partition_date": "2026-04-15",
+          "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T084903Z/raw/tushare/stock_basic/dt=20260415/c3f9e81d-9c77-4b9f-b9d2-1f78a7352c0d.parquet",
+          "row_count": 5512
+        },
+        {
+          "dataset": "daily",
+          "partition_date": "2026-04-15",
+          "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T084903Z/raw/tushare/daily/dt=20260415/60f105c9-011d-404e-aca9-90d7cd74d058.parquet",
+          "row_count": 5494
+        }
+      ],
+      "report": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T084903Z/daily-refresh.json",
+      "status": "passed",
+      "steps": [
+        {
+          "name": "adapter",
+          "status": "ok"
+        },
+        {
+          "name": "dbt_run",
+          "status": "ok"
+        },
+        {
+          "name": "dbt_test",
+          "status": "ok"
+        },
+        {
+          "name": "canonical",
+          "status": "ok"
+        },
+        {
+          "name": "raw_health",
+          "status": "ok"
+        }
+      ]
+    }
+  },
+  "verdict": "PARTIAL_PASS_BLOCKED"
+}
