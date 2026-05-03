@@ -12,7 +12,7 @@ Source of truth:
 - `CLAUDE.md` (project-specific guardrails — boundary rules, blocker
   triggers, KPI baselines)
 
-## Current state — stabilization gate passed + frontend-api promotion planned
+## Current state — stabilization gate passed + M4 bridge live proof produced
 
 - 13 of 15 module slots are `integration_status: verified` per
   `module-registry.yaml`. The two frozen slots (`feature-store`,
@@ -29,6 +29,11 @@ Source of truth:
   The plan keeps old verified rows intact and requires a fresh
   frontend-api-inclusive matrix context with matching smoke/e2e/contract
   evidence.
+- M4.3/M4.4 live PostgreSQL bridge evidence was produced on 2026-05-03:
+  `make smoke-p1c` passed against an isolated PG database and
+  `scripts/m4_ex3_queue_promotion_proof.py` proved a real Ex-3
+  `candidate_queue` row through graph-engine `PromotionPlan`. Closeout:
+  `reports/stabilization/m4-bridge-live-proof-20260503.md`.
 - Compatibility matrix records 3 verified rows:
   - `lite-local` (default): `verified_at: 2026-04-24T05:24:14Z` (Stage
     5 re-verification after audit-eval pin sync 0.2.2 → 0.2.5;
@@ -46,6 +51,32 @@ Source of truth:
 - Current stabilization gate on this workspace:
   `tests/release/test_docs.py tests/smoke tests/registry tests/compat`
   passed on 2026-04-27.
+
+## Production bridge closure plan
+
+Next assembly-owned planning focus is M4 production bridge closure. Keep the
+existing verified compatibility matrix rows intact; frontend-api matrix
+promotion remains planned until a fresh frontend-api-inclusive matrix context
+has its own smoke/e2e/contract evidence.
+
+M4 priority order:
+
+1. **M4.1 bridge strategy decision**: choose direct
+   `data_platform.queue.api.submit_candidate(...)`, a tested transfer
+   worker, or retirement of the SDK-local queue. SDK-local-only queueing is
+   non-production until bridged.
+2. **M4.2/M4.3 bridge proof + live PG freeze smoke**: direct
+   `data_platform_queue` bridge tests exist, and live `make smoke-p1c`
+   evidence now proves non-skipped PG queue/freeze behavior.
+3. **M4.4 Ex-3 graph bridge**: live proof now shows `payload_type='Ex-3'`
+   rows validate as `CandidateGraphDelta` and become graph-engine promotion
+   input with edge output.
+4. **M4.7/M4.8 validation gates**: keep Docling/LlamaIndex at partial until
+   10-20 representative A-share documents parse successfully; keep entity
+   resolution proof fail-closed with unresolved cases audited.
+5. **M4.9 subsystem scope decision**: explicitly record that
+   subsystem-holdings is the next P0 domain extension and
+   subsystem-financial-doc remains gated behind M4.7 and holdings evidence.
 
 ## Lite stack quickstart
 
@@ -141,6 +172,10 @@ fails the test suite if MD ⇄ YAML drifts.
 
 ## Next steps
 
+- **M4 production bridge closure** — review and land the existing M4.1-M4.4
+  bridge diff and live proof evidence before any new subsystem is treated as
+  production-relevant. M4.7 and M4.8 remain the follow-on validation gates
+  for documents and entity resolution.
 - **frontend-api verified matrix promotion** — use the recorded plan in
   `reports/stabilization/frontend-api-matrix-promotion-plan-20260427.md`.
   Do not mutate old verified rows. Add an explicit read-only UI profile
