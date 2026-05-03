@@ -18,26 +18,31 @@ Source of truth:
   `module-registry.yaml`. The two frozen slots (`feature-store`,
   `stream-layer`) stay `not_started` per master plan §1.1.
 - `frontend-api` is registered with standard public entrypoints and
-  read-only API-1 through API-5C smoke/release-readiness evidence, but
-  is not folded into the existing verified compatibility matrix rows.
+  read-only API-1 through API-5C smoke/release-readiness evidence. It is
+  folded only into the frontend-api-inclusive `lite-local-readonly-ui`
+  verified matrix row; the historical `lite-local`/`full-dev` rows keep
+  their original evidence identities.
 - Stabilization final gate passed on 2026-04-27. Batch 1
   contract/schema cleanup, Batch 2 LLM/replay hardening, Batch 3
   execution/write-boundary hardening, and FrontEnd read-only polish are
   closed in `reports/stabilization/stabilization-master-checklist-20260427.md`.
-- `frontend-api` matrix promotion is planned in
-  `reports/stabilization/frontend-api-matrix-promotion-plan-20260427.md`.
-  The plan keeps old verified rows intact and requires a fresh
-  frontend-api-inclusive matrix context with matching smoke/e2e/contract
+- `frontend-api` matrix promotion evidence is recorded in
+  `reports/stabilization/frontend-api-readonly-ui-promotion-20260427.md`.
+  The promoted row keeps old verified rows intact and binds the
+  frontend-api-inclusive matrix context to matching smoke/e2e/contract
   evidence.
 - M4.3/M4.4 live PostgreSQL bridge evidence was produced on 2026-05-03:
   `make smoke-p1c` passed against an isolated PG database and
   `scripts/m4_ex3_queue_promotion_proof.py` proved a real Ex-3
   `candidate_queue` row through graph-engine `PromotionPlan`. Closeout:
   `reports/stabilization/m4-bridge-live-proof-20260503.md`.
-- Compatibility matrix records 3 verified rows:
+- Compatibility matrix records 4 verified rows:
   - `lite-local` (default): `verified_at: 2026-04-24T05:24:14Z` (Stage
     5 re-verification after audit-eval pin sync 0.2.2 → 0.2.5;
     original Stage 4 §4.3 PASS was `2026-04-22T06:08:55Z`).
+  - `lite-local-readonly-ui` (frontend-api-inclusive): `verified_at:
+    2026-04-27T05:34:25.425611Z` (fresh read-only UI
+    contract/smoke/e2e evidence bound to this exact matrix context).
   - `full-dev` (default, no extras): `verified_at:
     2026-04-24T05:24:14Z` (Stage 5 full-dev parallel, driven against
     the same 4-service Lite stack since both profiles resolve the
@@ -55,9 +60,9 @@ Source of truth:
 ## Production bridge closure plan
 
 Next assembly-owned planning focus is M4 production bridge closure. Keep the
-existing verified compatibility matrix rows intact; frontend-api matrix
-promotion remains planned until a fresh frontend-api-inclusive matrix context
-has its own smoke/e2e/contract evidence.
+historical verified compatibility matrix rows intact; the frontend-api-inclusive
+row already has its own smoke/e2e/contract evidence, and any future
+frontend-api matrix change needs a fresh context-bound evidence set.
 
 M4 priority order:
 
@@ -176,13 +181,13 @@ fails the test suite if MD ⇄ YAML drifts.
   bridge diff and live proof evidence before any new subsystem is treated as
   production-relevant. M4.7 and M4.8 remain the follow-on validation gates
   for documents and entity resolution.
-- **frontend-api verified matrix promotion** — use the recorded plan in
-  `reports/stabilization/frontend-api-matrix-promotion-plan-20260427.md`.
-  Do not mutate old verified rows. Add an explicit read-only UI profile
-  variant and draft row, then produce fresh smoke/e2e/contract-suite
-  evidence for that exact matrix context.
-- **Real-data mini cycle** — only after the frontend-api promotion plan
-  is implemented cleanly or explicitly deferred.
+- **frontend-api matrix evidence upkeep** — keep the
+  `lite-local-readonly-ui` verified row bound to its recorded
+  smoke/e2e/contract-suite evidence. Do not mutate historical verified
+  rows; future frontend-api-inclusive matrix changes require fresh
+  evidence for that exact context.
+- **Real-data mini cycle** — only after the M4 bridge review lands cleanly
+  or explicitly defers follow-on validation gates.
 - **Remaining 5 optional bundles** (Grafana, Superset, Temporal, Feast,
   Kafka-Flink) — each follows the MinIO pilot template:
   1. Bring bundle service up in the `fulldev` compose project,

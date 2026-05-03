@@ -7,9 +7,14 @@ from pathlib import Path
 from types import ModuleType, SimpleNamespace
 from typing import Any
 
+import pytest
+
 
 ASSEMBLY_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT_PATH = ASSEMBLY_ROOT / "scripts" / "production_daily_cycle_proof.py"
+MISSING_CONTRACTS_REASON = (
+    "contracts.schemas unavailable; M4 Ex-3 contract validation blocked"
+)
 
 
 def _load_module() -> Any:
@@ -22,6 +27,17 @@ def _load_module() -> Any:
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def _candidate_graph_delta_model() -> type[Any]:
+    try:
+        from contracts.schemas import CandidateGraphDelta
+    except ModuleNotFoundError as exc:
+        if exc.name in {"contracts", "contracts.schemas"}:
+            pytest.skip(MISSING_CONTRACTS_REASON)
+        raise
+
+    return CandidateGraphDelta
 
 
 class FakeAssetKey:
@@ -246,7 +262,7 @@ def test_proof_graph_delta_payload_is_valid_ex3_contract() -> None:
         nodes=nodes,
     )
 
-    from contracts.schemas import CandidateGraphDelta
+    CandidateGraphDelta = _candidate_graph_delta_model()
 
     contract_payload = {
         key: value

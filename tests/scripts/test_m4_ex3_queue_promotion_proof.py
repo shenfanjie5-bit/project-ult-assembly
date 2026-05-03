@@ -10,6 +10,9 @@ import pytest
 
 ASSEMBLY_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT_PATH = ASSEMBLY_ROOT / "scripts" / "m4_ex3_queue_promotion_proof.py"
+MISSING_CONTRACTS_REASON = (
+    "contracts.schemas unavailable; M4 Ex-3 contract validation blocked"
+)
 
 
 def _load_module() -> Any:
@@ -24,11 +27,22 @@ def _load_module() -> Any:
     return module
 
 
+def _candidate_graph_delta_model() -> type[Any]:
+    try:
+        from contracts.schemas import CandidateGraphDelta
+    except ModuleNotFoundError as exc:
+        if exc.name in {"contracts", "contracts.schemas"}:
+            pytest.skip(MISSING_CONTRACTS_REASON)
+        raise
+
+    return CandidateGraphDelta
+
+
 def test_ex3_queue_payload_matches_contract_and_promotion_plan() -> None:
     module = _load_module()
     module._ensure_project_paths()
 
-    from contracts.schemas import CandidateGraphDelta
+    CandidateGraphDelta = _candidate_graph_delta_model()
 
     payload = module._ex3_queue_payload()
     contract_payload = {
