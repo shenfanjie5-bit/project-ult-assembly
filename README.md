@@ -35,8 +35,11 @@ Source of truth:
   `make smoke-p1c` passed against an isolated PG database and
   `scripts/m4_ex3_queue_promotion_proof.py` proved public data-platform
   queue/freeze output for a real Ex-3 candidate through graph-engine
-  `PromotionPlan`. Closeout:
-  `reports/stabilization/m4-bridge-live-proof-20260503.md`.
+  `PromotionPlan`. Closeout evidence:
+  `reports/stabilization/m4-bridge-live-proof-20260503.md` and
+  `reports/stabilization/m4-ex3-queue-promotion-proof-20260503.json`.
+  The proof uses public queue/freeze/graph-reader outputs and artifacts;
+  assembly does not read private data-platform tables.
 - Compatibility matrix records 4 verified rows:
   - `lite-local` (default): `verified_at: 2026-04-24T05:24:14Z` (Stage
     5 re-verification after audit-eval pin sync 0.2.2 → 0.2.5;
@@ -67,20 +70,19 @@ frontend-api matrix change needs a fresh context-bound evidence set.
 
 M4 priority order:
 
-1. **M4.1 bridge strategy decision**: choose direct
-   `data_platform.queue.api.submit_candidate(...)`, a tested transfer
-   worker, or retirement of the SDK-local queue. SDK-local-only queueing is
-   non-production until bridged.
-2. **M4.2/M4.3 bridge proof + live PG freeze smoke**: direct
-   `data_platform_queue` bridge tests exist, and live `make smoke-p1c`
-   evidence now proves non-skipped PG queue/freeze behavior.
-3. **M4.4 Ex-3 graph bridge**: live proof now shows `payload_type='Ex-3'`
-   candidates validate through public queue/freeze outputs and become
-   graph-engine promotion input with edge output.
-4. **M4.7/M4.8 validation gates**: keep Docling/LlamaIndex at partial until
+1. **M4.1-M4.4 bridge closeout**: the direct SDK
+   `data_platform_queue` backend is the selected bridge. Live
+   `make smoke-p1c` evidence proves non-skipped PG queue/freeze behavior,
+   and the Ex-3 proof shows `payload_type='Ex-3'` candidates validate
+   through public queue/freeze outputs and become graph-engine promotion
+   input with edge output.
+2. **Companion PR sequencing**: land the SDK/data-platform/graph-engine/
+   assembly bridge diffs and evidence together before any holdings subsystem
+   work is treated as production-relevant.
+3. **M4.7/M4.8 validation gates**: keep Docling/LlamaIndex at partial until
    10-20 representative A-share documents parse successfully; keep entity
    resolution proof fail-closed with unresolved cases audited.
-5. **M4.9 subsystem scope decision**: explicitly record that
+4. **M4.9 subsystem scope decision**: explicitly record that
    subsystem-holdings is the next P0 domain extension and
    subsystem-financial-doc remains gated behind M4.7 and holdings evidence.
 
@@ -179,9 +181,9 @@ fails the test suite if MD ⇄ YAML drifts.
 ## Next steps
 
 - **M4 production bridge closure** — review and land the existing M4.1-M4.4
-  bridge diff and live proof evidence before any new subsystem is treated as
-  production-relevant. M4.7 and M4.8 remain the follow-on validation gates
-  for documents and entity resolution.
+  companion diffs and live proof evidence together before any new subsystem
+  is treated as production-relevant. M4.7 and M4.8 remain the follow-on
+  validation gates for documents and entity resolution.
 - **frontend-api matrix evidence upkeep** — keep the
   `lite-local-readonly-ui` verified row bound to its recorded
   smoke/e2e/contract-suite evidence. Do not mutate historical verified
