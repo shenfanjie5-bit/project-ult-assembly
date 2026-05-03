@@ -9,6 +9,7 @@
   "assertion_count": 0,
   "candidate_id": 1,
   "candidate_ingest_seq": 1,
+  "candidate_queue_evidence_source": "public_data_platform_queue_freeze_and_graph_reader",
   "candidate_queue_payload_delta_id": "m4-ex3-queue-promotion-delta-93b9257bf7d04f24802617fdf1860512",
   "candidate_queue_validation_status": "accepted",
   "cycle_id": "CYCLE_20260503",
@@ -26,6 +27,13 @@
   "plan_edge_ids": [
     "m4-ex3-queue-promotion-delta-93b9257bf7d04f24802617fdf1860512"
   ],
+  "public_queue_evidence": {
+    "candidate_id": 1,
+    "evidence_source": "public_data_platform_queue_freeze_and_graph_reader",
+    "payload_delta_id": "m4-ex3-queue-promotion-delta-93b9257bf7d04f24802617fdf1860512",
+    "private_table_read": false,
+    "validation_status": "accepted"
+  },
   "reader_delta_ids": [
     "m4-ex3-queue-promotion-delta-93b9257bf7d04f24802617fdf1860512"
   ],
