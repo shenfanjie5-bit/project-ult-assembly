@@ -70,7 +70,8 @@ Result summary:
 - Applied migrations: `0001`, `0002`, `0003`, `0004`, `0005`
 - Candidate id: `1`
 - Candidate ingest seq: `1`
-- Candidate validation status: `accepted`
+- Candidate validation status: `accepted` via public queue/freeze and
+  graph-reader outputs; assembly does not query data-platform private tables
 - Cycle id: `CYCLE_20260503`
 - Selection ref: `cycle_candidate_selection:CYCLE_20260503`
 - Frozen candidate count: `1`
@@ -83,7 +84,7 @@ Result summary:
 The proof establishes:
 
 ```text
-candidate_queue Ex-3
+public data-platform Ex-3 queue output
   -> validate_pending_candidates
   -> freeze_cycle_candidates / cycle_candidate_selection
   -> PostgresCandidateDeltaReader

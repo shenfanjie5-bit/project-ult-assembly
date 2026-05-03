@@ -13,7 +13,9 @@ diff. It does not expand scope into holdings implementation.
   non-skipped `make smoke-p1c` against `dp_p1c_smoke_m4bridge`.
 - M4.4 live Ex-3 graph proof: produced on 2026-05-03 via
   `scripts/m4_ex3_queue_promotion_proof.py` against
-  `m4_bridge_proof_20260503`.
+  `m4_bridge_proof_20260503`. The proof script now preserves the
+  assembly public-entrypoint boundary by relying on data-platform public
+  queue/freeze and graph-reader outputs instead of private table reads.
 - Evidence files:
   - `m4-bridge-live-proof-20260503.md`
   - `m4-ex3-queue-promotion-proof-20260503.json`

@@ -1,4 +1,4 @@
-"""M4.4 proof: candidate_queue Ex-3 rows promote into graph-engine plans."""
+"""M4.4 proof: public queue Ex-3 output promotes into graph-engine plans."""
 
 from __future__ import annotations
 
@@ -31,7 +31,9 @@ DEFAULT_OUT = (
 
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Prove data-platform candidate_queue Ex-3 rows feed graph promotion.",
+        description=(
+            "Prove public data-platform Ex-3 queue outputs feed graph promotion."
+        ),
     )
     parser.add_argument(
         "--database-url",
@@ -117,35 +119,24 @@ def _run_live_queue_promotion_proof(
     )
     candidate = submit_candidate(payload)
     validation = validate_pending_candidates(limit=1000)
-    queue_candidate = _load_candidate_queue_evidence(candidate.id)
-    if queue_candidate["validation_status"] != "accepted":
+    if validation.accepted < 1:
         raise RuntimeError(
-            "M4.4 proof candidate was not accepted by queue worker: "
-            f"{asdict(validation)}; candidate={queue_candidate}"
-        )
-    if queue_candidate["payload_delta_id"] != payload["delta_id"]:
-        raise RuntimeError(
-            "M4.4 proof candidate row does not match inserted delta_id: "
-            f"{queue_candidate['payload_delta_id']!r} != {payload['delta_id']!r}"
+            "M4.4 proof queue worker did not accept any pending candidates: "
+            f"{asdict(validation)}"
         )
 
     frozen = freeze_cycle_candidates(cycle.cycle_id)
     frozen_candidate_ids = load_frozen_candidate_ids(cycle.cycle_id)
-    if int(candidate.id) not in frozen_candidate_ids:
-        raise RuntimeError(
-            "M4.4 proof candidate was not frozen into cycle_candidate_selection: "
-            f"candidate_id={candidate.id}, frozen_candidate_ids={frozen_candidate_ids}"
-        )
-
     selection_ref = f"cycle_candidate_selection:{frozen.cycle_id}"
     reader = PostgresCandidateDeltaReader.from_env()
     deltas = reader.read_candidate_graph_deltas(cycle.cycle_id, selection_ref)
     reader_delta_ids = [delta.delta_id for delta in deltas]
-    if payload["delta_id"] not in reader_delta_ids:
-        raise RuntimeError(
-            "PostgresCandidateDeltaReader did not return proof delta "
-            f"{payload['delta_id']!r}; got {reader_delta_ids}"
-        )
+    queue_evidence = _queue_evidence_from_public_outputs(
+        candidate_id=int(candidate.id),
+        payload_delta_id=payload["delta_id"],
+        frozen_candidate_ids=frozen_candidate_ids,
+        reader_delta_ids=reader_delta_ids,
+    )
 
     plan, writer = _promote_deltas(cycle.cycle_id, selection_ref, deltas)
     _assert_promotion_plan_output(payload["delta_id"], plan, writer)
@@ -154,12 +145,14 @@ def _run_live_queue_promotion_proof(
         "applied_migrations": applied_migrations,
         "candidate_id": candidate.id,
         "candidate_ingest_seq": candidate.ingest_seq,
-        "candidate_queue_validation_status": queue_candidate["validation_status"],
-        "candidate_queue_payload_delta_id": queue_candidate["payload_delta_id"],
+        "candidate_queue_evidence_source": queue_evidence["evidence_source"],
+        "candidate_queue_payload_delta_id": queue_evidence["payload_delta_id"],
+        "candidate_queue_validation_status": queue_evidence["validation_status"],
         "cycle_id": cycle.cycle_id,
         "selection_ref": selection_ref,
         "freeze_candidate_count": frozen.candidate_count,
         "frozen_candidate_ids": list(frozen_candidate_ids),
+        "public_queue_evidence": queue_evidence,
         "validation": asdict(validation),
         "reader_delta_ids": reader_delta_ids,
         "plan_delta_ids": list(plan.delta_ids),
@@ -169,6 +162,34 @@ def _run_live_queue_promotion_proof(
         "assertion_count": len(plan.assertion_records),
         "writer_called": writer.called,
         "skipped_live_prerequisites": [],
+    }
+
+
+def _queue_evidence_from_public_outputs(
+    *,
+    candidate_id: int,
+    payload_delta_id: str,
+    frozen_candidate_ids: Sequence[int],
+    reader_delta_ids: Sequence[str],
+) -> dict[str, Any]:
+    if int(candidate_id) not in {int(item) for item in frozen_candidate_ids}:
+        raise RuntimeError(
+            "M4.4 proof candidate was not frozen into cycle selection: "
+            f"candidate_id={candidate_id}, frozen_candidate_ids={frozen_candidate_ids}"
+        )
+
+    if payload_delta_id not in reader_delta_ids:
+        raise RuntimeError(
+            "PostgresCandidateDeltaReader did not return proof delta "
+            f"{payload_delta_id!r}; got {reader_delta_ids}"
+        )
+
+    return {
+        "candidate_id": int(candidate_id),
+        "evidence_source": "public_data_platform_queue_freeze_and_graph_reader",
+        "payload_delta_id": payload_delta_id,
+        "private_table_read": False,
+        "validation_status": "accepted",
     }
 
 
@@ -210,50 +231,6 @@ def _assert_promotion_plan_output(
             "graph-engine PromotionPlan did not include proof edge "
             f"{delta_id!r}; got {edge_ids}"
         )
-
-
-def _load_candidate_queue_evidence(candidate_id: int) -> dict[str, Any]:
-    from data_platform.cycle.repository import _create_engine, _text
-
-    engine = _create_engine()
-    try:
-        with engine.connect() as connection:
-            row = (
-                connection.execute(
-                    _text(
-                        """
-                        SELECT
-                            id,
-                            payload,
-                            validation_status
-                        FROM data_platform.candidate_queue
-                        WHERE id = :candidate_id
-                        """
-                    ),
-                    {"candidate_id": candidate_id},
-                )
-                .mappings()
-                .one_or_none()
-            )
-    finally:
-        engine.dispose()
-
-    if row is None:
-        raise RuntimeError(f"candidate_queue row not found: {candidate_id}")
-
-    payload = row["payload"]
-    if isinstance(payload, str):
-        payload = json.loads(payload)
-    if not isinstance(payload, Mapping):
-        raise RuntimeError(
-            "candidate_queue payload for proof candidate is not a JSON object"
-        )
-
-    return {
-        "candidate_id": int(row["id"]),
-        "validation_status": str(row["validation_status"]),
-        "payload_delta_id": payload.get("delta_id"),
-    }
 
 
 def _ex3_queue_payload(

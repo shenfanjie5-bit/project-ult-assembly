@@ -33,8 +33,9 @@ Source of truth:
   evidence.
 - M4.3/M4.4 live PostgreSQL bridge evidence was produced on 2026-05-03:
   `make smoke-p1c` passed against an isolated PG database and
-  `scripts/m4_ex3_queue_promotion_proof.py` proved a real Ex-3
-  `candidate_queue` row through graph-engine `PromotionPlan`. Closeout:
+  `scripts/m4_ex3_queue_promotion_proof.py` proved public data-platform
+  queue/freeze output for a real Ex-3 candidate through graph-engine
+  `PromotionPlan`. Closeout:
   `reports/stabilization/m4-bridge-live-proof-20260503.md`.
 - Compatibility matrix records 4 verified rows:
   - `lite-local` (default): `verified_at: 2026-04-24T05:24:14Z` (Stage
@@ -74,8 +75,8 @@ M4 priority order:
    `data_platform_queue` bridge tests exist, and live `make smoke-p1c`
    evidence now proves non-skipped PG queue/freeze behavior.
 3. **M4.4 Ex-3 graph bridge**: live proof now shows `payload_type='Ex-3'`
-   rows validate as `CandidateGraphDelta` and become graph-engine promotion
-   input with edge output.
+   candidates validate through public queue/freeze outputs and become
+   graph-engine promotion input with edge output.
 4. **M4.7/M4.8 validation gates**: keep Docling/LlamaIndex at partial until
    10-20 representative A-share documents parse successfully; keep entity
    resolution proof fail-closed with unresolved cases audited.

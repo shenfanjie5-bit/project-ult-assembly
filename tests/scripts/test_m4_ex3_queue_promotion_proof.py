@@ -73,6 +73,57 @@ def test_ex3_queue_payload_accepts_unique_delta_id() -> None:
     assert payload["delta_id"] == "m4-proof-unique-delta"
 
 
+def test_script_does_not_use_data_platform_private_repository_or_table_sql() -> None:
+    source = SCRIPT_PATH.read_text(encoding="utf-8")
+
+    assert "data_platform.cycle.repository" not in source
+    assert "_create_engine" not in source
+    assert "data_platform.candidate_queue" not in source
+
+
+def test_public_queue_evidence_requires_frozen_candidate() -> None:
+    module = _load_module()
+
+    with pytest.raises(RuntimeError, match="not frozen"):
+        module._queue_evidence_from_public_outputs(
+            candidate_id=7,
+            payload_delta_id="delta-7",
+            frozen_candidate_ids=[1, 2],
+            reader_delta_ids=["delta-7"],
+        )
+
+
+def test_public_queue_evidence_requires_reader_delta() -> None:
+    module = _load_module()
+
+    with pytest.raises(RuntimeError, match="did not return proof delta"):
+        module._queue_evidence_from_public_outputs(
+            candidate_id=7,
+            payload_delta_id="delta-7",
+            frozen_candidate_ids=[7],
+            reader_delta_ids=["other-delta"],
+        )
+
+
+def test_public_queue_evidence_marks_private_table_read_false() -> None:
+    module = _load_module()
+
+    evidence = module._queue_evidence_from_public_outputs(
+        candidate_id=7,
+        payload_delta_id="delta-7",
+        frozen_candidate_ids=[7],
+        reader_delta_ids=["delta-7"],
+    )
+
+    assert evidence == {
+        "candidate_id": 7,
+        "evidence_source": "public_data_platform_queue_freeze_and_graph_reader",
+        "payload_delta_id": "delta-7",
+        "private_table_read": False,
+        "validation_status": "accepted",
+    }
+
+
 def test_promotion_output_assertion_requires_writer_call() -> None:
     module = _load_module()
     writer = module._CapturingCanonicalWriter()
