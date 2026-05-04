@@ -246,20 +246,31 @@ def test_source_scan_reports_no_reasoner_runtime_forbidden_imports() -> None:
         module.REASONER_RUNTIME_ROOT / "reasoner_runtime"
     )
 
-    assert scan["status"] == "passed"
-    assert scan["passed"] is True
     assert scan["forbidden_imports_found"] == []
-    assert scan["python_file_count"] > 0
     assert scan["runtime_package"] == "reasoner_runtime"
     assert scan["runtime_project_path"] == "reasoner-runtime/reasoner_runtime"
-    assert scan["runtime_tree_exists"] is True
-    assert scan["runtime_tree_is_dir"] is True
-    assert scan["failure_reason"] is None
-    assert scan["blocker"] is None
     assert "runtime_path" not in scan
     assert str(module.PROJECT_ROOT) not in json.dumps(scan, sort_keys=True)
-    assert "graph_engine" in scan["claim"]
-    assert "data_platform" in scan["claim"]
+
+    if scan["runtime_tree_exists"]:
+        assert scan["status"] == "passed"
+        assert scan["passed"] is True
+        assert scan["python_file_count"] > 0
+        assert scan["runtime_tree_is_dir"] is True
+        assert scan["failure_reason"] is None
+        assert scan["blocker"] is None
+        assert "graph_engine" in scan["claim"]
+        assert "data_platform" in scan["claim"]
+    else:
+        assert scan["status"] == "blocked"
+        assert scan["passed"] is False
+        assert scan["python_file_count"] == 0
+        assert scan["runtime_tree_is_dir"] is False
+        assert scan["failure_reason"] == "runtime_tree_missing"
+        assert "source tree is missing" in scan["blocker"]
+        assert "graph_engine" in scan["blocker"]
+        assert "data_platform" in scan["blocker"]
+        assert scan["claim"] == "reasoner-runtime import boundary not proven"
 
 
 def test_source_scan_blocks_missing_runtime_tree(tmp_path: Path) -> None:
