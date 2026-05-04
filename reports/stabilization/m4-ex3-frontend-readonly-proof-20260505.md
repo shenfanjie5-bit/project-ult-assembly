@@ -1,0 +1,24 @@
+# M4.6 Ex-3 Frontend Read-Only Proof
+
+- Status: passed
+- Generated at: 2026-05-05T00:00:00+00:00
+- Report mode: deterministic_testclient_synthetic_fixture
+- Scope: deterministic component proof only; no live PG, API, or UI end-to-end claim
+- Frontend-api reference: PR #2, merge commit 3eee856c4f0ae72acd91a526e46582def0c94151
+- Orchestrator reference: PR #115, merge commit 947a3a06cfb8c448bf8423bb23ada4147057c57f
+- Upstream proof references: m4-bridge-live-proof-20260503.md; m4-ex3-queue-promotion-proof-20260503.json; m4-ex3-reasoner-consumption-proof-20260505.json
+- Fixture artifact: orchestrator/artifacts/frontend-api/ex3-graph-signals/CYCLE_20260505_M46_EX3.json
+- TestClient endpoint: GET /api/project-ult/graph/ex3-signals/{cycle_id}
+- HTTP status: 200
+- Same-cycle signal count: 1
+- Same-cycle delta ids: m4-6-ex3-frontend-readonly-delta-1
+- Sanitized public fields: candidate_id, cycle_id, delta_id, delta_type, evidence_refs, properties, relation_type, selection_ref, source_node, target_node
+- Unsafe producer/provenance/private fields: absent from response
+- Local filesystem paths: absent from response and report
+- Ex-3 endpoint methods: GET
+- Project ULT graph Ex-3 write routes: none
+- Default raw debug routes mounted: False
+- Live API/UI smoke status: blocked
+- Live API/UI smoke blocker: missing PROJECT_ULT_FRONTEND_URL / PROJECT_ULT_API_BASE; live API/UI smoke not executed
+- Overall passed scope: deterministic_component_proof_only
+- G4/P5 completion claim: False
