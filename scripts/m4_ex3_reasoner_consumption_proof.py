@@ -41,6 +41,27 @@ PREREQUISITE_ARTIFACT = {
     "artifact_pr": "#49",
     "merge_commit": "7dec6cd999998bcbb36f20a40406152969c09f93",
 }
+REPORT_MODE = {
+    "mode": "offline_synthetic_serializer_source_scan_with_runtime_reference",
+    "scope": (
+        "Assembly offline/synthetic serializer proof plus reasoner-runtime "
+        "source scan and orchestrator runtime implementation reference."
+    ),
+    "orchestrator_runtime_path_executed": False,
+    "live_pg_end_to_end_claim": False,
+}
+ORCHESTRATOR_RUNTIME_REFERENCE = {
+    "artifact_pr": "#114",
+    "merge_commit": "83025e9e7f77406727791126311579c174af2bcb",
+    "implementation_path": "orchestrator/src/orchestrator_adapters/p2_dry_run.py",
+    "merged_functions": [
+        "_load_frozen_ex3_graph_signals",
+        "_ex3_graph_signal_summary",
+        "_feature_bundle",
+    ],
+    "l6_handoff_test": "tests/integration/test_p2_dry_run_handoff.py",
+    "execution_status": "referenced_not_executed_by_assembly_proof",
+}
 SECRET_ENV_KEYS = (
     LIVE_PG_DSN_ENV,
     "DATABASE_URL",
@@ -130,14 +151,17 @@ def main(argv: Sequence[str] | None = None) -> int:
         "status": "failed",
         "generated_at": DEFAULT_GENERATED_AT.isoformat(),
         "prerequisite_artifact": dict(PREREQUISITE_ARTIFACT),
+        "report_mode": dict(REPORT_MODE),
+        "orchestrator_runtime_reference": _json_safe(ORCHESTRATOR_RUNTIME_REFERENCE),
     }
 
     try:
         deterministic_proof = run_deterministic_proof()
         report.update(deterministic_proof)
         report["live_pg"] = _live_pg_status(args.disposable_live_pg_dsn)
-        report["status"] = "passed"
-        return 0
+        deterministic_status = report["deterministic_proof"]["status"]
+        report["status"] = "passed" if deterministic_status == "passed" else deterministic_status
+        return 0 if report["status"] == "passed" else 1
     except Exception as exc:  # noqa: BLE001 - evidence must preserve blockers.
         report["error"] = {
             "message": _redact_text(str(exc)),
@@ -185,16 +209,19 @@ def run_deterministic_proof() -> dict[str, Any]:
         REASONER_RUNTIME_ROOT / "reasoner_runtime"
     )
     if not source_scan["passed"]:
-        raise RuntimeError(
-            "reasoner-runtime forbidden import scan failed: "
-            f"{source_scan['forbidden_imports_found']}"
-        )
+        deterministic_status = source_scan["status"]
+    else:
+        deterministic_status = "passed"
 
     report = {
         "deterministic_proof": {
-            "status": "passed",
-            "mode": "offline_contract_and_source_scan",
+            "status": deterministic_status,
+            "mode": REPORT_MODE["mode"],
+            "scope": REPORT_MODE["scope"],
+            "orchestrator_runtime_path_executed": False,
+            "live_pg_end_to_end_claim": False,
         },
+        "orchestrator_runtime_reference": _json_safe(ORCHESTRATOR_RUNTIME_REFERENCE),
         "accepted_frozen_ex3": {
             "candidate_id": validated["candidate_id"],
             "payload_type": accepted_payload["payload_type"],
@@ -429,32 +456,87 @@ def prove_reasoner_input_survives(
 
 def scan_reasoner_runtime_imports(runtime_root: Path) -> dict[str, Any]:
     findings: list[dict[str, Any]] = []
+    runtime_tree_exists = runtime_root.exists()
+    runtime_tree_is_dir = runtime_root.is_dir()
+    runtime_package = runtime_root.name or "reasoner_runtime"
+    runtime_project_path = _project_relative_path(runtime_root, fallback=runtime_package)
+    base_result: dict[str, Any] = {
+        "status": "blocked",
+        "passed": False,
+        "runtime_package": runtime_package,
+        "runtime_project_path": runtime_project_path,
+        "runtime_tree_exists": runtime_tree_exists,
+        "runtime_tree_is_dir": runtime_tree_is_dir,
+        "python_file_count": 0,
+        "forbidden_imports_found": findings,
+    }
+    if not runtime_tree_exists:
+        return {
+            **base_result,
+            "failure_reason": "runtime_tree_missing",
+            "blocker": (
+                "reasoner-runtime source tree is missing; source scan cannot "
+                "prove the graph_engine/data_platform import boundary"
+            ),
+            "claim": "reasoner-runtime import boundary not proven",
+        }
+    if not runtime_tree_is_dir:
+        return {
+            **base_result,
+            "failure_reason": "runtime_tree_not_directory",
+            "blocker": (
+                "reasoner-runtime scan target is not a directory; source scan "
+                "cannot prove the graph_engine/data_platform import boundary"
+            ),
+            "claim": "reasoner-runtime import boundary not proven",
+        }
+
     python_files = sorted(
         path
         for path in runtime_root.rglob("*.py")
         if ".venv" not in path.parts and ".git" not in path.parts
     )
+    base_result["python_file_count"] = len(python_files)
+    if not python_files:
+        return {
+            **base_result,
+            "failure_reason": "runtime_tree_empty",
+            "blocker": (
+                "reasoner-runtime source tree contains zero Python files; "
+                "source scan cannot prove the graph_engine/data_platform import boundary"
+            ),
+            "claim": "reasoner-runtime import boundary not proven",
+        }
+
     for path in python_files:
-        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        tree = ast.parse(
+            path.read_text(encoding="utf-8"),
+            filename=_runtime_relative_python_path(path, runtime_root),
+        )
         for node in ast.walk(tree):
             for module in _imported_module_roots(node):
                 if module in FORBIDDEN_IMPORT_ROOTS:
                     findings.append(
                         {
-                            "path": str(path.relative_to(runtime_root.parent)),
+                            "path": _runtime_relative_python_path(path, runtime_root),
                             "line": getattr(node, "lineno", None),
                             "module": module,
                         }
                     )
 
     return {
+        **base_result,
         "status": "passed" if not findings else "failed",
         "passed": not findings,
-        "runtime_path": str(runtime_root),
-        "python_file_count": len(python_files),
-        "forbidden_imports_found": findings,
+        "failure_reason": None if not findings else "forbidden_imports_found",
+        "blocker": None
+        if not findings
+        else "reasoner-runtime imports forbidden graph_engine/data_platform modules",
         "claim": (
-            "reasoner-runtime package has no imports of graph_engine or data_platform"
+            "reasoner-runtime package has no imports of graph_engine or data_platform "
+            "in scanned Python files"
+            if not findings
+            else "reasoner-runtime import boundary failed"
         ),
     }
 
@@ -481,19 +563,38 @@ def markdown_report(report: Mapping[str, Any]) -> str:
     live_pg = report.get("live_pg", {})
     source_scan = report.get("source_scan", {})
     safety = report.get("safety_assertions", {})
+    report_mode = report.get("report_mode", {})
+    runtime_reference = report.get("orchestrator_runtime_reference", {})
+    merged_functions = ", ".join(
+        str(function_name)
+        for function_name in runtime_reference.get("merged_functions", [])
+    )
     return "\n".join(
         [
             "# M4.5 Ex-3 Reasoner Consumption Proof",
             "",
             f"- Status: {report.get('status')}",
             f"- Generated at: {report.get('generated_at')}",
+            f"- Report mode: {report_mode.get('mode')}",
+            f"- Scope: {report_mode.get('scope')}",
+            "- Live orchestrator runtime path executed by this assembly proof: "
+            f"{report_mode.get('orchestrator_runtime_path_executed')}",
+            "- Live PG end-to-end claim: "
+            f"{report_mode.get('live_pg_end_to_end_claim')}",
             "- Prerequisite: M3.5 artifact PR #49, merge commit "
             "7dec6cd999998bcbb36f20a40406152969c09f93",
+            "- Orchestrator runtime reference: PR "
+            f"{runtime_reference.get('artifact_pr')}, merge commit "
+            f"{runtime_reference.get('merge_commit')}, "
+            f"{runtime_reference.get('implementation_path')}",
+            f"- Referenced merged functions: {merged_functions}",
+            f"- Referenced L6 handoff test: {runtime_reference.get('l6_handoff_test')}",
             f"- Delta ids: {delta_ids}",
             f"- Candidate id: {accepted_ex3.get('candidate_id')}",
             f"- Retained graph feature keys: {retained_keys}",
             f"- Retained graph feature shape: {reasoner_input.get('retained_graph_feature_shape')}",
             f"- Source scan: {source_scan.get('status')} - {source_scan.get('claim')}",
+            f"- Source scan path: {source_scan.get('runtime_project_path')}",
             f"- Live PG status: {live_pg.get('status')}",
             f"- Live PG blocker: {live_pg.get('blocker')}",
             f"- Runtime logs included: {safety.get('runtime_logs_included')}",
@@ -528,6 +629,24 @@ def _imported_module_roots(node: ast.AST) -> list[str]:
     if isinstance(node, ast.ImportFrom) and node.module:
         return [node.module.split(".", maxsplit=1)[0]]
     return []
+
+
+def _project_relative_path(path: Path, *, fallback: str) -> str:
+    try:
+        return path.resolve(strict=False).relative_to(
+            PROJECT_ROOT.resolve(strict=False)
+        ).as_posix()
+    except ValueError:
+        return fallback
+
+
+def _runtime_relative_python_path(path: Path, runtime_root: Path) -> str:
+    try:
+        relative_path = path.relative_to(runtime_root)
+    except ValueError:
+        return path.name
+    runtime_package = runtime_root.name or "reasoner_runtime"
+    return str(Path(runtime_package) / relative_path).replace(os.sep, "/")
 
 
 def _ensure_project_paths() -> None:

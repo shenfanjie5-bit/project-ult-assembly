@@ -190,6 +190,31 @@ def test_main_writes_json_markdown_and_redacts_without_live_pg(
     assert exit_code == 0
     assert payload["status"] == "passed"
     assert payload["deterministic_proof"]["status"] == "passed"
+    assert (
+        payload["deterministic_proof"]["mode"]
+        == "offline_synthetic_serializer_source_scan_with_runtime_reference"
+    )
+    assert payload["report_mode"] == {
+        "mode": "offline_synthetic_serializer_source_scan_with_runtime_reference",
+        "scope": (
+            "Assembly offline/synthetic serializer proof plus reasoner-runtime "
+            "source scan and orchestrator runtime implementation reference."
+        ),
+        "orchestrator_runtime_path_executed": False,
+        "live_pg_end_to_end_claim": False,
+    }
+    assert payload["orchestrator_runtime_reference"] == {
+        "artifact_pr": "#114",
+        "merge_commit": "83025e9e7f77406727791126311579c174af2bcb",
+        "implementation_path": "orchestrator/src/orchestrator_adapters/p2_dry_run.py",
+        "merged_functions": [
+            "_load_frozen_ex3_graph_signals",
+            "_ex3_graph_signal_summary",
+            "_feature_bundle",
+        ],
+        "l6_handoff_test": "tests/integration/test_p2_dry_run_handoff.py",
+        "execution_status": "referenced_not_executed_by_assembly_proof",
+    }
     assert payload["accepted_frozen_ex3"]["candidate_id"] == module.DEFAULT_CANDIDATE_ID
     assert payload["accepted_frozen_ex3"]["selection_ref"] == module.DEFAULT_SELECTION_REF
     assert payload["live_pg"] == {
@@ -207,6 +232,11 @@ def test_main_writes_json_markdown_and_redacts_without_live_pg(
     assert "supersecret" not in combined_text
     assert "sk-test-secret-token" not in combined_text
     assert "Traceback (most recent call last)" not in combined_text
+    assert str(module.PROJECT_ROOT) not in combined_text
+    assert "Live orchestrator runtime path executed by this assembly proof: False" in (
+        markdown_text
+    )
+    assert "live_pg proof blocked" in markdown_text
 
 
 def test_source_scan_reports_no_reasoner_runtime_forbidden_imports() -> None:
@@ -220,8 +250,57 @@ def test_source_scan_reports_no_reasoner_runtime_forbidden_imports() -> None:
     assert scan["passed"] is True
     assert scan["forbidden_imports_found"] == []
     assert scan["python_file_count"] > 0
+    assert scan["runtime_package"] == "reasoner_runtime"
+    assert scan["runtime_project_path"] == "reasoner-runtime/reasoner_runtime"
+    assert scan["runtime_tree_exists"] is True
+    assert scan["runtime_tree_is_dir"] is True
+    assert scan["failure_reason"] is None
+    assert scan["blocker"] is None
+    assert "runtime_path" not in scan
+    assert str(module.PROJECT_ROOT) not in json.dumps(scan, sort_keys=True)
     assert "graph_engine" in scan["claim"]
     assert "data_platform" in scan["claim"]
+
+
+def test_source_scan_blocks_missing_runtime_tree(tmp_path: Path) -> None:
+    module = _load_module()
+    missing_package = tmp_path / "reasoner_runtime"
+
+    scan = module.scan_reasoner_runtime_imports(missing_package)
+
+    assert scan["status"] == "blocked"
+    assert scan["passed"] is False
+    assert scan["runtime_package"] == "reasoner_runtime"
+    assert scan["runtime_project_path"] == "reasoner_runtime"
+    assert scan["runtime_tree_exists"] is False
+    assert scan["runtime_tree_is_dir"] is False
+    assert scan["python_file_count"] == 0
+    assert scan["forbidden_imports_found"] == []
+    assert scan["failure_reason"] == "runtime_tree_missing"
+    assert "source tree is missing" in scan["blocker"]
+    assert "runtime_path" not in scan
+    assert str(tmp_path) not in json.dumps(scan, sort_keys=True)
+
+
+def test_source_scan_blocks_empty_runtime_tree(tmp_path: Path) -> None:
+    module = _load_module()
+    package = tmp_path / "reasoner_runtime"
+    package.mkdir()
+
+    scan = module.scan_reasoner_runtime_imports(package)
+
+    assert scan["status"] == "blocked"
+    assert scan["passed"] is False
+    assert scan["runtime_package"] == "reasoner_runtime"
+    assert scan["runtime_project_path"] == "reasoner_runtime"
+    assert scan["runtime_tree_exists"] is True
+    assert scan["runtime_tree_is_dir"] is True
+    assert scan["python_file_count"] == 0
+    assert scan["forbidden_imports_found"] == []
+    assert scan["failure_reason"] == "runtime_tree_empty"
+    assert "zero Python files" in scan["blocker"]
+    assert "runtime_path" not in scan
+    assert str(tmp_path) not in json.dumps(scan, sort_keys=True)
 
 
 def test_source_scan_detects_forbidden_imports(tmp_path: Path) -> None:
@@ -237,6 +316,17 @@ def test_source_scan_detects_forbidden_imports(tmp_path: Path) -> None:
 
     assert scan["status"] == "failed"
     assert scan["passed"] is False
+    assert scan["runtime_package"] == "reasoner_runtime"
+    assert scan["runtime_project_path"] == "reasoner_runtime"
+    assert scan["runtime_tree_exists"] is True
+    assert scan["runtime_tree_is_dir"] is True
+    assert scan["python_file_count"] == 1
+    assert scan["failure_reason"] == "forbidden_imports_found"
+    assert "runtime_path" not in scan
+    assert str(tmp_path) not in json.dumps(scan, sort_keys=True)
     assert {
         finding["module"] for finding in scan["forbidden_imports_found"]
     } == {"graph_engine", "data_platform"}
+    assert {
+        finding["path"] for finding in scan["forbidden_imports_found"]
+    } == {"reasoner_runtime/__init__.py"}

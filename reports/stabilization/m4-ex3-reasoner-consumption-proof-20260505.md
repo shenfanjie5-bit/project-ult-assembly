@@ -2,12 +2,20 @@
 
 - Status: passed
 - Generated at: 2026-05-05T00:00:00+00:00
+- Report mode: offline_synthetic_serializer_source_scan_with_runtime_reference
+- Scope: Assembly offline/synthetic serializer proof plus reasoner-runtime source scan and orchestrator runtime implementation reference.
+- Live orchestrator runtime path executed by this assembly proof: False
+- Live PG end-to-end claim: False
 - Prerequisite: M3.5 artifact PR #49, merge commit 7dec6cd999998bcbb36f20a40406152969c09f93
+- Orchestrator runtime reference: PR #114, merge commit 83025e9e7f77406727791126311579c174af2bcb, orchestrator/src/orchestrator_adapters/p2_dry_run.py
+- Referenced merged functions: _load_frozen_ex3_graph_signals, _ex3_graph_signal_summary, _feature_bundle
+- Referenced L6 handoff test: tests/integration/test_p2_dry_run_handoff.py
 - Delta ids: m4-5-ex3-reasoner-delta-1
 - Candidate id: 1
 - Retained graph feature keys: ex3_graph_signals, same_cycle_ex3_graph_signals
 - Retained graph feature shape: list
-- Source scan: passed - reasoner-runtime package has no imports of graph_engine or data_platform
+- Source scan: passed - reasoner-runtime package has no imports of graph_engine or data_platform in scanned Python files
+- Source scan path: reasoner-runtime/reasoner_runtime
 - Live PG status: blocked
 - Live PG blocker: M4_EX3_DISPOSABLE_LIVE_PG_DSN is not set; live_pg proof blocked; destructive DB operations were not run
 - Runtime logs included: False

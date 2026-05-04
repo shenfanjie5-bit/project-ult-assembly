@@ -10,7 +10,10 @@
     "m4-5-ex3-reasoner-delta-1"
   ],
   "deterministic_proof": {
-    "mode": "offline_contract_and_source_scan",
+    "live_pg_end_to_end_claim": false,
+    "mode": "offline_synthetic_serializer_source_scan_with_runtime_reference",
+    "orchestrator_runtime_path_executed": false,
+    "scope": "Assembly offline/synthetic serializer proof plus reasoner-runtime source scan and orchestrator runtime implementation reference.",
     "status": "passed"
   },
   "generated_at": "2026-05-05T00:00:00+00:00",
@@ -65,6 +68,18 @@
     "destructive_db_operations_run": false,
     "dsn": "<missing>",
     "status": "blocked"
+  },
+  "orchestrator_runtime_reference": {
+    "artifact_pr": "#114",
+    "execution_status": "referenced_not_executed_by_assembly_proof",
+    "implementation_path": "orchestrator/src/orchestrator_adapters/p2_dry_run.py",
+    "l6_handoff_test": "tests/integration/test_p2_dry_run_handoff.py",
+    "merge_commit": "83025e9e7f77406727791126311579c174af2bcb",
+    "merged_functions": [
+      "_load_frozen_ex3_graph_signals",
+      "_ex3_graph_signal_summary",
+      "_feature_bundle"
+    ]
   },
   "prerequisite_artifact": {
     "artifact_pr": "#49",
@@ -232,6 +247,12 @@
     },
     "serializer": "main_core.l6_alpha.multi_agent_analyzer.build_multi_agent_input_payload"
   },
+  "report_mode": {
+    "live_pg_end_to_end_claim": false,
+    "mode": "offline_synthetic_serializer_source_scan_with_runtime_reference",
+    "orchestrator_runtime_path_executed": false,
+    "scope": "Assembly offline/synthetic serializer proof plus reasoner-runtime source scan and orchestrator runtime implementation reference."
+  },
   "safety_assertions": {
     "destructive_db_operations_run": false,
     "runtime_logs_included": false,
@@ -239,11 +260,16 @@
     "unsafe_payload_fields_absent": true
   },
   "source_scan": {
-    "claim": "reasoner-runtime package has no imports of graph_engine or data_platform",
+    "blocker": null,
+    "claim": "reasoner-runtime package has no imports of graph_engine or data_platform in scanned Python files",
+    "failure_reason": null,
     "forbidden_imports_found": [],
     "passed": true,
     "python_file_count": 36,
-    "runtime_path": "/Users/fanjie/Desktop/Cowork/project-ult/reasoner-runtime/reasoner_runtime",
+    "runtime_package": "reasoner_runtime",
+    "runtime_project_path": "reasoner-runtime/reasoner_runtime",
+    "runtime_tree_exists": true,
+    "runtime_tree_is_dir": true,
     "status": "passed"
   },
   "status": "passed",
