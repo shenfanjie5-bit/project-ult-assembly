@@ -12,7 +12,7 @@ Source of truth:
 - `CLAUDE.md` (project-specific guardrails — boundary rules, blocker
   triggers, KPI baselines)
 
-## Current state — stabilization gate passed + M4 bridge live proof produced
+## Current state — stabilization gate passed + M4.6 component proof produced
 
 - 13 of 15 module slots are `integration_status: verified` per
   `module-registry.yaml`. The two frozen slots (`feature-store`,
@@ -43,11 +43,26 @@ Source of truth:
 - M3.5 L6 graph-context decision was recorded on 2026-05-05:
   M4.5 may attach graph context only through
   `AlphaAnalysisContext.feature_bundle.graph_features` as
-  main-core-managed context. M4.5 remains planned / not complete; contracts
-  stay unchanged, and reasoner-runtime must not import graph-engine or
-  data-platform or read raw Ex-3/queue tables directly. Evidence:
-  `reports/stabilization/l6-graph-context-decision-20260505.md` and
-  `reports/stabilization/l6-graph-context-decision-20260505.json`.
+  main-core-managed context. M4.5 deterministic component proof is complete
+  and shows sanitized Ex-3 graph context survives reasoner input without
+  changing contracts or adding reasoner-runtime imports of graph-engine or
+  data-platform. Evidence:
+  `reports/stabilization/l6-graph-context-decision-20260505.md`,
+  `reports/stabilization/l6-graph-context-decision-20260505.json`,
+  `reports/stabilization/m4-ex3-reasoner-consumption-proof-20260505.md`,
+  and `reports/stabilization/m4-ex3-reasoner-consumption-proof-20260505.json`.
+- M4.6 Ex-3 frontend read-only component proof is complete as deterministic
+  TestClient evidence against merged `frontend-api origin/main` PR #2 commit
+  `3eee856c4f0ae72acd91a526e46582def0c94151`, with orchestrator PR #115
+  commit `947a3a06cfb8c448bf8423bb23ada4147057c57f` referenced as the
+  artifact writer. The proof reads a same-cycle synthetic orchestrator
+  Ex-3 signal fixture through the read-only API, verifies sanitized response
+  fields and GET-only route registration, and records live API/UI smoke as
+  blocked when `PROJECT_ULT_FRONTEND_URL` / `PROJECT_ULT_API_BASE` are absent.
+  It does not claim live PG e2e, G4/P5 completion, write-path coverage, or
+  frontend UI changes. Evidence:
+  `reports/stabilization/m4-ex3-frontend-readonly-proof-20260505.md` and
+  `reports/stabilization/m4-ex3-frontend-readonly-proof-20260505.json`.
 - Compatibility matrix records 4 verified rows:
   - `lite-local` (default): `verified_at: 2026-04-24T05:24:14Z` (Stage
     5 re-verification after audit-eval pin sync 0.2.2 → 0.2.5;
@@ -84,19 +99,24 @@ M4 priority order:
    and the Ex-3 proof shows `payload_type='Ex-3'` candidates validate
    through public queue/freeze outputs and become graph-engine promotion
    input with edge output.
-2. **M4.5 L6 graph-context implementation**: use the M3.5 decision to keep
-   graph context injection on the orchestrator/main-core side. Sanitized
-   Ex-3 graph-delta summaries may enter reasoner input through
+2. **M4.5 L6 graph-context implementation**: deterministic component proof
+   is complete. Graph context injection stays on the orchestrator/main-core
+   side; sanitized Ex-3 graph-delta summaries may enter reasoner input through
    `AlphaAnalysisContext.feature_bundle.graph_features`; do not add
    holdings-specific subtypes, financial-doc scope, graph-engine #55
    algorithms, or reasoner-runtime imports of graph-engine/data-platform.
-3. **Companion PR sequencing**: land the SDK/data-platform/graph-engine/
+3. **M4.6 frontend read-only proof**: deterministic component proof is
+   complete. The merged frontend-api endpoint reads sanitized same-cycle
+   Ex-3 signal artifacts through GET-only TestClient evidence. Live API/UI
+   smoke remains blocked when required env/server setup is absent, and this
+   proof does not close G4/P5.
+4. **Companion PR sequencing**: land the SDK/data-platform/graph-engine/
    assembly bridge diffs and evidence together before any holdings subsystem
    work is treated as production-relevant.
-4. **M4.7/M4.8 validation gates**: keep Docling/LlamaIndex at partial until
+5. **M4.7/M4.8 validation gates**: keep Docling/LlamaIndex at partial until
    10-20 representative A-share documents parse successfully; keep entity
    resolution proof fail-closed with unresolved cases audited.
-5. **M4.9 subsystem scope decision**: explicitly record that
+6. **M4.9 subsystem scope decision**: explicitly record that
    subsystem-holdings is the next P0 domain extension and
    subsystem-financial-doc remains gated behind M4.7 and holdings evidence.
 

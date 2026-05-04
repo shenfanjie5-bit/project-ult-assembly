@@ -1,0 +1,173 @@
+{
+  "api_response": {
+    "body": [
+      {
+        "candidate_id": 46,
+        "cycle_id": "CYCLE_20260505_M46_EX3",
+        "delta_id": "m4-6-ex3-frontend-readonly-delta-1",
+        "delta_type": "edge_add",
+        "evidence_refs": [
+          "m4.6:evidence:ex3-frontend-signal-1",
+          "https://example.test/evidence/m4.6/ex3"
+        ],
+        "properties": {
+          "confidence": 0.88,
+          "direction": "positive",
+          "impact_score": 0.74,
+          "quality_tags": [
+            "m4.6",
+            "readonly"
+          ],
+          "safe_details": {
+            "signal_family": "semantic",
+            "weighting": 0.51
+          },
+          "safe_list": [
+            {
+              "flag": true
+            }
+          ],
+          "same_cycle": true,
+          "time_horizon": "same_cycle"
+        },
+        "relation_type": "SEMANTIC_SIGNAL",
+        "selection_ref": "cycle_candidate_selection:CYCLE_20260505_M46_EX3",
+        "source_node": "ENT_M4_6_SOURCE",
+        "target_node": "ENT_M4_6_TARGET"
+      }
+    ],
+    "client": "fastapi.testclient.TestClient",
+    "cycle_id": "CYCLE_20260505_M46_EX3",
+    "endpoint": "/api/project-ult/graph/ex3-signals/{cycle_id}",
+    "http_status": 200,
+    "method": "GET",
+    "same_cycle_delta_ids": [
+      "m4-6-ex3-frontend-readonly-delta-1"
+    ],
+    "same_cycle_signal_count": 1,
+    "status": "passed"
+  },
+  "deterministic_proof": {
+    "frontend_api_testclient_executed": true,
+    "g4_p5_completion_claim": false,
+    "live_api_ui_smoke_executed": false,
+    "live_pg_end_to_end_claim": false,
+    "mode": "deterministic_testclient_synthetic_fixture",
+    "status": "passed",
+    "synthetic_fixture_used": true
+  },
+  "frontend_api_reference": {
+    "artifact_pr": "#2",
+    "checkout_path_recorded": false,
+    "local_main_rewritten": false,
+    "merge_commit": "3eee856c4f0ae72acd91a526e46582def0c94151",
+    "repo": "project-ult/frontend-api",
+    "source": "origin/main"
+  },
+  "generated_at": "2026-05-05T00:00:00+00:00",
+  "live_api_ui_smoke": {
+    "blocker": "missing PROJECT_ULT_FRONTEND_URL / PROJECT_ULT_API_BASE; live API/UI smoke not executed",
+    "env_values_recorded": false,
+    "executed": false,
+    "required_env": [
+      "PROJECT_ULT_FRONTEND_URL",
+      "PROJECT_ULT_API_BASE"
+    ],
+    "server_reachability_checked": false,
+    "status": "blocked"
+  },
+  "orchestrator_artifact_fixture": {
+    "artifact": "orchestrator/artifacts/frontend-api/ex3-graph-signals/CYCLE_20260505_M46_EX3.json",
+    "cycle_id": "CYCLE_20260505_M46_EX3",
+    "path_recorded": false,
+    "producer_component": "orchestrator",
+    "producer_merge_commit": "947a3a06cfb8c448bf8423bb23ada4147057c57f",
+    "unsafe_fixture_fields_present": true
+  },
+  "overall": {
+    "g4_p5_completion_claim": false,
+    "live_api_ui_claim": false,
+    "live_api_ui_smoke_executed": false,
+    "live_pg_end_to_end_claim": false,
+    "passed": true,
+    "passed_scope": "deterministic_component_proof_only"
+  },
+  "proof_id": "m4.6-ex3-frontend-readonly-proof",
+  "report_mode": {
+    "g4_p5_completion_claim": false,
+    "live_api_ui_smoke_executed": false,
+    "live_pg_end_to_end_claim": false,
+    "mode": "deterministic_testclient_synthetic_fixture",
+    "scope": "Assembly component proof only: frontend-api origin/main TestClient reads a synthetic same-cycle orchestrator Ex-3 signal artifact."
+  },
+  "route_table": {
+    "ex3_endpoint": "/api/project-ult/graph/ex3-signals/{cycle_id}",
+    "ex3_endpoint_methods": [
+      "GET"
+    ],
+    "project_ult_graph_ex3_write_routes": [],
+    "raw_debug_paths_default_mounted": [],
+    "raw_debug_routes_default_mounted": false,
+    "status": "passed"
+  },
+  "safety_assertions": {
+    "contracts_changed": false,
+    "frontend_api_local_main_rewritten": false,
+    "frontend_api_write_methods_for_ex3_endpoint": false,
+    "raw_debug_route_default_mounted": false,
+    "runtime_logs_included": false,
+    "secret_values_included": false,
+    "writes_to_frontend_api_repo": false
+  },
+  "sanitization": {
+    "local_absolute_path_hits": [],
+    "public_field_set": [
+      "candidate_id",
+      "cycle_id",
+      "delta_id",
+      "delta_type",
+      "evidence_refs",
+      "properties",
+      "relation_type",
+      "selection_ref",
+      "source_node",
+      "target_node"
+    ],
+    "response_matches_expected_sanitized_view": true,
+    "source_node_is_public_graph_field": true,
+    "status": "passed",
+    "unsafe_field_hits": [],
+    "unsafe_fixture_fields_present": true
+  },
+  "status": "passed",
+  "upstream_evidence": [
+    {
+      "artifact": "reports/stabilization/m4-bridge-live-proof-20260503.md",
+      "claim": "live PostgreSQL Ex-3 queue/freeze to graph promotion proof",
+      "milestone": "M4.4",
+      "proof_artifact": "reports/stabilization/m4-ex3-queue-promotion-proof-20260503.json"
+    },
+    {
+      "artifact": "reports/stabilization/m4-ex3-reasoner-consumption-proof-20260505.md",
+      "assembly_pr": "#50",
+      "claim": "deterministic Ex-3 graph context survives reasoner input",
+      "merge_commit": "00c4644d6469178e4046c5b5511d93c5ad8f435f",
+      "milestone": "M4.5",
+      "proof_artifact": "reports/stabilization/m4-ex3-reasoner-consumption-proof-20260505.json"
+    },
+    {
+      "artifact_pr": "#115",
+      "claim": "merged frontend-api Ex-3 signal artifact writer",
+      "component": "orchestrator",
+      "merge_commit": "947a3a06cfb8c448bf8423bb23ada4147057c57f",
+      "milestone": "M4.6"
+    },
+    {
+      "artifact_pr": "#2",
+      "claim": "merged read-only Ex-3 signal endpoint",
+      "component": "frontend-api",
+      "merge_commit": "3eee856c4f0ae72acd91a526e46582def0c94151",
+      "milestone": "M4.6"
+    }
+  ]
+}
