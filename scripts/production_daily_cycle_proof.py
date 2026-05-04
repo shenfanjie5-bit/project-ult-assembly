@@ -61,6 +61,9 @@ SECRET_ENV_KEYS = (
     "NEO4J_PASSWORD",
     "OPENAI_API_KEY",
 )
+PROCESS_STREAM_FIELD_NAMES = frozenset(
+    ("stdout", "stderr", "stdout_tail", "stderr_tail", "compile_stdout")
+)
 
 
 def _proof_report_dates(generated_at: datetime) -> dict[str, str]:
@@ -636,22 +639,22 @@ def _probe_audit_duckdb(runtime_root: Path) -> dict[str, Any]:
 
 def _run_current_selection_tests(*, artifact_dir: Path, timeout_s: int) -> dict[str, Any]:
     started = perf_counter()
-    stdout_path = artifact_dir / "data-platform-current-selection-tests.stdout.txt"
-    stderr_path = artifact_dir / "data-platform-current-selection-tests.stderr.txt"
+    summary_path = artifact_dir / "data-platform-current-selection-tests-summary.json"
     env = os.environ.copy()
     env["PYTHONPATH"] = (
         f"{DATA_PLATFORM_ROOT / 'src'}{os.pathsep}"
         f"{env.get('PYTHONPATH', '')}"
     )
+    command = [
+        sys.executable,
+        "-m",
+        "pytest",
+        "tests/cycle/test_current_selection.py",
+        "-q",
+        "-rs",
+    ]
     completed = subprocess.run(
-        [
-            sys.executable,
-            "-m",
-            "pytest",
-            "tests/cycle/test_current_selection.py",
-            "-q",
-            "-rs",
-        ],
+        command,
         cwd=DATA_PLATFORM_ROOT,
         env=env,
         text=True,
@@ -660,16 +663,37 @@ def _run_current_selection_tests(*, artifact_dir: Path, timeout_s: int) -> dict[
         check=False,
         timeout=timeout_s,
     )
-    stdout_path.write_text(_redact_text(completed.stdout), encoding="utf-8")
-    stderr_path.write_text(_redact_text(completed.stderr), encoding="utf-8")
+    duration_ms = _elapsed_ms(started)
+    status = "passed" if completed.returncode == 0 else "failed"
+    summary_payload = {
+        "schema_version": f"{SCHEMA_VERSION}.current-selection-tests-summary.v1",
+        "status": status,
+        "generated_at_utc": datetime.now(UTC).isoformat(),
+        "artifact": str(summary_path),
+        "command": command,
+        "cwd": str(DATA_PLATFORM_ROOT),
+        "test_path": "tests/cycle/test_current_selection.py",
+        "returncode": completed.returncode,
+        "duration_ms": duration_ms,
+        "timeout_s": timeout_s,
+        "process_stream_policy": _process_stream_policy(),
+    }
+    _write_json_artifact(summary_path, summary_payload)
     return {
         "status": "passed" if completed.returncode == 0 else "failed",
         "returncode": completed.returncode,
-        "stdout": str(stdout_path),
-        "stderr": str(stderr_path),
-        "stdout_tail": _tail(completed.stdout),
-        "stderr_tail": _tail(completed.stderr),
-        "duration_ms": _elapsed_ms(started),
+        "summary_artifact": str(summary_path),
+        "duration_ms": duration_ms,
+        "process_stream_policy": _process_stream_policy(),
+    }
+
+
+def _process_stream_policy() -> dict[str, Any]:
+    return {
+        "captured_for_status_only": True,
+        "persisted_text_artifact": False,
+        "log_text_omitted_from_artifact": True,
+        "pass_critical_facts_in_structured_fields": True,
     }
 
 
@@ -960,6 +984,7 @@ def _run_daily_refresh(
         select=DEFAULT_SELECT,
         json_report=report_path,
     )
+    _sanitize_json_artifact_process_streams(report_path)
     if not result.ok:
         raise RuntimeError("daily_refresh failed; see daily-refresh.json")
     return {
@@ -1727,6 +1752,8 @@ def _run_production_dagster(
             runtime_root,
             artifact_dir,
         )
+        if evidence["dbt_prepare"].get("status") != "passed":
+            raise RuntimeError("orchestrator dbt compile failed")
     except Exception as exc:  # noqa: BLE001 - evidence before Dagster run
         evidence.update(
             {
@@ -1868,6 +1895,7 @@ def _dagster_step_from_evidence(evidence: Mapping[str, Any]) -> dict[str, Any]:
         "run_id": evidence.get("run_id"),
         "dagster_success": bool(evidence.get("dagster_success")),
         "artifact": evidence.get("artifact"),
+        "dbt_prepare": evidence.get("dbt_prepare"),
         "artifact_backed_pass_claim": artifact_backed_pass,
         "asset_check_pass_basis": asset_check_basis,
         "asset_checks_complete": asset_checks_complete,
@@ -2401,6 +2429,7 @@ def _apply_effective_provider_status(report: dict[str, Any]) -> None:
 
 
 def _prepare_orchestrator_dbt_project(runtime_root: Path, artifact_dir: Path) -> dict[str, Any]:
+    started = perf_counter()
     dbt_project = runtime_root / "orchestrator_dbt_stub"
     if dbt_project.exists():
         shutil.rmtree(dbt_project)
@@ -2411,20 +2440,21 @@ def _prepare_orchestrator_dbt_project(runtime_root: Path, artifact_dir: Path) ->
     )
     (dbt_project / "dagster_home").mkdir(parents=True, exist_ok=True)
     os.environ["ORCHESTRATOR_DBT_PROJECT_DIR"] = str(dbt_project)
-    stdout_path = artifact_dir / "orchestrator-dbt-compile.stdout.txt"
+    summary_path = artifact_dir / "orchestrator-dbt-compile-summary.json"
     dbt_executable = os.environ.get("DP_DBT_EXECUTABLE") or str(
         ASSEMBLY_ROOT / ".venv-py312" / "bin" / "dbt"
     )
     os.environ["DP_DBT_EXECUTABLE"] = dbt_executable
+    command = [
+        dbt_executable,
+        "compile",
+        "--profiles-dir",
+        ".",
+        "--project-dir",
+        ".",
+    ]
     completed = subprocess.run(
-        [
-            dbt_executable,
-            "compile",
-            "--profiles-dir",
-            ".",
-            "--project-dir",
-            ".",
-        ],
+        command,
         cwd=dbt_project,
         text=True,
         stdout=subprocess.PIPE,
@@ -2432,13 +2462,35 @@ def _prepare_orchestrator_dbt_project(runtime_root: Path, artifact_dir: Path) ->
         check=False,
         timeout=90,
     )
-    stdout_path.write_text(_redact_text(completed.stdout), encoding="utf-8")
-    if completed.returncode != 0:
-        raise RuntimeError("orchestrator dbt compile failed")
+    duration_ms = _elapsed_ms(started)
+    status = "passed" if completed.returncode == 0 else "failed"
+    manifest_path = dbt_project / "target" / "manifest.json"
+    _write_json_artifact(
+        summary_path,
+        {
+            "schema_version": f"{SCHEMA_VERSION}.orchestrator-dbt-compile-summary.v1",
+            "status": status,
+            "generated_at_utc": datetime.now(UTC).isoformat(),
+            "artifact": str(summary_path),
+            "command": command,
+            "cwd": str(dbt_project),
+            "dbt_executable": dbt_executable,
+            "project_dir": str(dbt_project),
+            "manifest": str(manifest_path),
+            "returncode": completed.returncode,
+            "duration_ms": duration_ms,
+            "timeout_s": 90,
+            "process_stream_policy": _process_stream_policy(),
+        },
+    )
     return {
+        "status": status,
         "project_dir": str(dbt_project),
-        "manifest": str(dbt_project / "target" / "manifest.json"),
-        "compile_stdout": str(stdout_path),
+        "manifest": str(manifest_path),
+        "summary_artifact": str(summary_path),
+        "returncode": completed.returncode,
+        "duration_ms": duration_ms,
+        "process_stream_policy": _process_stream_policy(),
     }
 
 
@@ -2635,6 +2687,32 @@ def _raw_artifact_summary(result_payload: Mapping[str, Any]) -> list[dict[str, A
     return artifacts
 
 
+def _sanitize_json_artifact_process_streams(path: Path) -> None:
+    if not path.exists():
+        return
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    sanitized = _sanitize_process_stream_fields(payload)
+    _write_json_artifact(path, sanitized)
+
+
+def _sanitize_process_stream_fields(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        sanitized: dict[str, Any] = {}
+        removed_stream_field = False
+        for key, item in value.items():
+            key_text = str(key)
+            if key_text in PROCESS_STREAM_FIELD_NAMES:
+                removed_stream_field = True
+                continue
+            sanitized[key_text] = _sanitize_process_stream_fields(item)
+        if removed_stream_field:
+            sanitized.setdefault("process_stream_policy", _process_stream_policy())
+        return sanitized
+    if isinstance(value, list | tuple):
+        return [_sanitize_process_stream_fields(item) for item in value]
+    return value
+
+
 def _write_json_artifact(path: Path, payload: Mapping[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
@@ -2757,6 +2835,7 @@ def _write_runtime_evidence_summary(
         },
         "runtime_files": runtime_files,
         "raw_artifacts": _runtime_raw_artifact_summaries(report),
+        "process_evidence_summaries": _runtime_process_evidence_summaries(report),
         "canonical_snapshot_set": _runtime_canonical_snapshot_summary(report),
         "preflight_audit_duckdb": _runtime_preflight_audit_summary(report),
     }
@@ -2835,6 +2914,38 @@ def _runtime_raw_artifact_summaries(report: Mapping[str, Any]) -> list[dict[str,
     for path_text, summary in merged_by_path.items():
         path = Path(path_text)
         summary.update(_path_hash_fields(path))
+        summaries.append(summary)
+    return summaries
+
+
+def _runtime_process_evidence_summaries(
+    report: Mapping[str, Any],
+) -> list[dict[str, Any]]:
+    summaries: list[dict[str, Any]] = []
+    candidates = (
+        (
+            "data_platform_current_selection_tests",
+            _nested_get(report, "preflight", "data_platform_current_selection_tests"),
+        ),
+        (
+            "orchestrator_dbt_compile",
+            _nested_get(report, "steps", "production_dagster", "dbt_prepare"),
+        ),
+    )
+    for name, record in candidates:
+        if not isinstance(record, Mapping):
+            continue
+        artifact_text = record.get("summary_artifact")
+        if not isinstance(artifact_text, str) or not artifact_text:
+            continue
+        summary = {
+            "name": name,
+            "status": record.get("status"),
+            "returncode": record.get("returncode"),
+            "artifact": artifact_text,
+            "process_stream_policy": record.get("process_stream_policy"),
+        }
+        summary.update(_path_hash_fields(Path(artifact_text)))
         summaries.append(summary)
     return summaries
 
@@ -2922,14 +3033,22 @@ def _file_evidence_manifest(
     for path in sorted(set(paths), key=lambda item: str(item)):
         under_artifact_dir = _is_relative_to(path, artifact_dir)
         under_runtime_root = _is_relative_to(path, runtime_root)
+        process_stream_artifact = _is_process_stream_artifact(path)
         entry: dict[str, Any] = {
             "path": str(path),
             "under_report_artifact_dir": under_artifact_dir,
             "under_runtime_root": under_runtime_root,
             "git_tracked_at_write_time": _git_tracked(path),
             "exists_at_write_time": path.exists(),
-            "pass_critical": bool(under_artifact_dir and path.is_file()),
+            "pass_critical": bool(
+                under_artifact_dir
+                and path.is_file()
+                and not process_stream_artifact
+            ),
         }
+        if process_stream_artifact:
+            entry["pass_critical"] = False
+            entry["evidence_role"] = "process_stream_text_not_pass_critical"
         if under_runtime_root and not under_artifact_dir:
             entry["pass_critical"] = False
             entry["evidence_role"] = (
@@ -2943,6 +3062,10 @@ def _file_evidence_manifest(
             entry["sha256"] = _sha256_file(path)
         manifest.append(entry)
     return manifest
+
+
+def _is_process_stream_artifact(path: Path) -> bool:
+    return path.name.endswith((".stdout.txt", ".stderr.txt"))
 
 
 def _collect_evidence_paths(

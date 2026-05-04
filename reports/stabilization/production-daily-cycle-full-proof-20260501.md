@@ -99,7 +99,7 @@ PYTHONDONTWRITEBYTECODE=1 .venv-py312/bin/python -m pytest \
 Result:
 
 ```text
-17 passed
+21 passed
 ```
 
 Orchestrator targeted suite:
@@ -144,9 +144,9 @@ PRODUCTION_DAILY_CYCLE_PASS /Users/fanjie/Desktop/Cowork/project-ult/assembly/re
 | `runtime-evidence-summary.json` | artifact-root summary of pass-critical runtime facts, hashes, row counts, run ids, and snapshot ids |
 | `neo4j-gds-preflight.json` | GDS availability proof: version + required procedure availability |
 | `graph-status-initialization.json` | proof-only isolated DB `neo4j_graph_status` bootstrap and readback |
-| `daily-refresh.json` | data-platform daily refresh evidence |
-| `data-platform-current-selection-tests.stdout.txt` | current-selection focused test stdout |
-| `orchestrator-dbt-compile.stdout.txt` | orchestrator dbt stub compile stdout |
+| `daily-refresh.json` | data-platform daily refresh evidence with dbt process stream text omitted |
+| `data-platform-current-selection-tests-summary.json` | current-selection focused test status, return code, command, duration, and stream policy |
+| `orchestrator-dbt-compile-summary.json` | orchestrator dbt stub compile status, manifest path, return code, command, and stream policy |
 
 GDS preflight:
 
@@ -196,7 +196,7 @@ canonical_v2 snapshot ids: dim_security=8119016700871861950, fact_price_bar=2794
 | Runtime preflight | PASS | `production-daily-cycle-proof.json` |
 | Neo4j GDS preflight | PASS | `neo4j-gds-preflight.json`, `gds_version: 2.13.9` |
 | Reasoner health/quota | PASS | `codex_reasoner_health`, `quota_status: ok` |
-| Data-platform refresh/current selection | PASS | `daily-refresh.json`; current-selection stdout |
+| Data-platform refresh/current selection | PASS | `daily-refresh.json`; `data-platform-current-selection-tests-summary.json` |
 | Isolated PG bootstrap | PASS | `postgres_bootstrap` |
 | Graph status initialization | PASS | `graph-status-initialization.json`; ready row readback |
 | Phase 0 candidate freeze | PASS | Dagster materialization for `candidate_freeze` |

@@ -801,3 +801,141 @@ def test_asset_check_evidence_accepts_event_specific_data_evaluation_shape() -> 
             "metadata": {"graph_status": "ready"},
         }
     ]
+
+
+def test_current_selection_tests_write_curated_summary_without_stream_text(
+    tmp_path: Path,
+    monkeypatch: Any,
+) -> None:
+    module = _load_module()
+
+    def fake_run(*args: Any, **kwargs: Any) -> SimpleNamespace:
+        assert kwargs["stdout"] == module.subprocess.PIPE
+        assert kwargs["stderr"] == module.subprocess.PIPE
+        return SimpleNamespace(
+            returncode=0,
+            stdout="..........                                                               [100%]\n",
+            stderr="raw stderr text",
+        )
+
+    monkeypatch.setattr(module.subprocess, "run", fake_run)
+
+    result = module._run_current_selection_tests(artifact_dir=tmp_path, timeout_s=12)
+    payload = json.loads(
+        (tmp_path / "data-platform-current-selection-tests-summary.json").read_text()
+    )
+    serialized_result = json.dumps(result, sort_keys=True).lower()
+    serialized_payload = json.dumps(payload, sort_keys=True).lower()
+
+    assert result["status"] == "passed"
+    assert result["summary_artifact"].endswith(
+        "data-platform-current-selection-tests-summary.json"
+    )
+    assert not (tmp_path / "data-platform-current-selection-tests.stdout.txt").exists()
+    assert not (tmp_path / "data-platform-current-selection-tests.stderr.txt").exists()
+    assert "stdout" not in serialized_result
+    assert "stderr" not in serialized_result
+    assert "stdout" not in serialized_payload
+    assert "stderr" not in serialized_payload
+    assert "[100%]" not in serialized_payload
+    assert payload["process_stream_policy"]["persisted_text_artifact"] is False
+
+
+def test_orchestrator_dbt_compile_writes_summary_without_stream_text(
+    tmp_path: Path,
+    monkeypatch: Any,
+) -> None:
+    module = _load_module()
+    runtime_root = tmp_path / "runtime"
+    artifact_dir = tmp_path / "artifacts"
+
+    def fake_copytree(src: Path, dst: Path, ignore: object = None) -> Path:
+        del src, ignore
+        (dst / "target").mkdir(parents=True)
+        (dst / "target" / "manifest.json").write_text("{}", encoding="utf-8")
+        return dst
+
+    def fake_run(*args: Any, **kwargs: Any) -> SimpleNamespace:
+        assert kwargs["stdout"] == module.subprocess.PIPE
+        assert kwargs["stderr"] == module.subprocess.STDOUT
+        return SimpleNamespace(
+            returncode=0,
+            stdout="15:08:26 Running with dbt=1.9.8\n15:08:26 Found 1 model\n",
+        )
+
+    monkeypatch.setattr(module, "ORCHESTRATOR_ROOT", tmp_path / "orchestrator")
+    monkeypatch.setattr(module.shutil, "copytree", fake_copytree)
+    monkeypatch.setattr(module.subprocess, "run", fake_run)
+    monkeypatch.setenv("DP_DBT_EXECUTABLE", "/usr/local/bin/dbt")
+
+    result = module._prepare_orchestrator_dbt_project(runtime_root, artifact_dir)
+    payload = json.loads((artifact_dir / "orchestrator-dbt-compile-summary.json").read_text())
+    serialized_result = json.dumps(result, sort_keys=True).lower()
+    serialized_payload = json.dumps(payload, sort_keys=True).lower()
+
+    assert result["status"] == "passed"
+    assert result["summary_artifact"].endswith("orchestrator-dbt-compile-summary.json")
+    assert not (artifact_dir / "orchestrator-dbt-compile.stdout.txt").exists()
+    assert "compile_stdout" not in result
+    assert "stdout" not in serialized_result
+    assert "stderr" not in serialized_result
+    assert "stdout" not in serialized_payload
+    assert "stderr" not in serialized_payload
+    assert "15:08:26" not in serialized_payload
+    assert payload["process_stream_policy"]["log_text_omitted_from_artifact"] is True
+
+
+def test_daily_refresh_sanitizer_removes_embedded_process_stream_fields() -> None:
+    module = _load_module()
+
+    sanitized = module._sanitize_process_stream_fields(
+        {
+            "steps": [
+                {
+                    "name": "dbt_run",
+                    "status": "ok",
+                    "metadata": {
+                        "returncode": 0,
+                        "stdout_tail": "15:08:19 Running with dbt=1.9.8",
+                        "stderr_tail": "dbt warning text",
+                    },
+                }
+            ]
+        }
+    )
+    serialized = json.dumps(sanitized, sort_keys=True).lower()
+    metadata = sanitized["steps"][0]["metadata"]
+
+    assert metadata["returncode"] == 0
+    assert metadata["process_stream_policy"]["captured_for_status_only"] is True
+    assert "stdout" not in serialized
+    assert "stderr" not in serialized
+    assert "15:08:19" not in serialized
+    assert "dbt warning text" not in serialized
+
+
+def test_file_manifest_does_not_promote_process_stream_artifacts(
+    tmp_path: Path,
+) -> None:
+    module = _load_module()
+    artifact_dir = tmp_path / "artifacts"
+    runtime_root = tmp_path / "runtime"
+    artifact_dir.mkdir()
+    runtime_root.mkdir()
+    raw_stream = artifact_dir / "legacy.stdout.txt"
+    summary = artifact_dir / "summary.json"
+    raw_stream.write_text("raw stream text", encoding="utf-8")
+    summary.write_text("{}", encoding="utf-8")
+
+    manifest = module._file_evidence_manifest(
+        {"legacy": str(raw_stream), "summary": str(summary)},
+        runtime_root=runtime_root,
+        artifact_dir=artifact_dir,
+    )
+    by_name = {Path(item["path"]).name: item for item in manifest}
+
+    assert by_name["legacy.stdout.txt"]["pass_critical"] is False
+    assert by_name["legacy.stdout.txt"]["evidence_role"] == (
+        "process_stream_text_not_pass_critical"
+    )
+    assert by_name["summary.json"]["pass_critical"] is True

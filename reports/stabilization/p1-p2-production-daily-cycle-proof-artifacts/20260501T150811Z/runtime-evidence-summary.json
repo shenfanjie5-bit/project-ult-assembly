@@ -32,7 +32,7 @@
     "size_bytes": 1540,
     "source_path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/warehouse/canonical_v2/_mart_snapshot_set.json"
   },
-  "generated_at_utc": "2026-05-01T15:08:48.947184+00:00",
+  "generated_at_utc": "2026-05-04T04:50:31.718014+00:00",
   "policy": {
     "non_artifact_tmp_paths_pass_critical": false,
     "pass_critical_runtime_evidence": "Runtime files under assembly/tmp are source context only; pass-critical runtime facts are summarized and hashed in this artifact-root JSON."
@@ -49,6 +49,38 @@
     "size_bytes": 1323008,
     "source_path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/audit/preflight_audit_eval.duckdb"
   },
+  "process_evidence_summaries": [
+    {
+      "artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/data-platform-current-selection-tests-summary.json",
+      "exists_at_write_time": true,
+      "name": "data_platform_current_selection_tests",
+      "process_stream_policy": {
+        "captured_for_status_only": true,
+        "log_text_omitted_from_artifact": true,
+        "pass_critical_facts_in_structured_fields": true,
+        "persisted_text_artifact": false
+      },
+      "returncode": 0,
+      "sha256": "43f3b1eb9abb090f386a657ae3c7d3194d6d163a5d4d77af7185b814d4827e52",
+      "size_bytes": 967,
+      "status": "passed"
+    },
+    {
+      "artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/orchestrator-dbt-compile-summary.json",
+      "exists_at_write_time": true,
+      "name": "orchestrator_dbt_compile",
+      "process_stream_policy": {
+        "captured_for_status_only": true,
+        "log_text_omitted_from_artifact": true,
+        "pass_critical_facts_in_structured_fields": true,
+        "persisted_text_artifact": false
+      },
+      "returncode": 0,
+      "sha256": "c28e14ef070f951c46d0cdcf896f99ea10b33d888febef37fbe49fed3cb42157",
+      "size_bytes": 1344,
+      "status": "passed"
+    }
+  ],
   "raw_artifacts": [
     {
       "dataset": "trade_cal",
@@ -94,6 +126,13 @@
       "relative_to_runtime_root": "audit/preflight_audit_eval.duckdb",
       "sha256": "ff0f88ecc5da040423ece90bc94c5d5e78b4b40691ccf6a1b80f4d3e56054549",
       "size_bytes": 1323008
+    },
+    {
+      "exists_at_write_time": true,
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/orchestrator_dbt_stub/target/manifest.json",
+      "relative_to_runtime_root": "orchestrator_dbt_stub/target/manifest.json",
+      "sha256": "66746dfbb9b7aeacebb424ca195f3c7a0f65ae8a55825bf25a2cbc03ab3e1529",
+      "size_bytes": 463609
     },
     {
       "exists_at_write_time": true,

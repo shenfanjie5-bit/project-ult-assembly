@@ -126,6 +126,19 @@
     "asset_checks_complete": true,
     "cycle_id": "CYCLE_20260415",
     "dagster_success": true,
+    "dbt_prepare": {
+      "manifest": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/orchestrator_dbt_stub/target/manifest.json",
+      "process_stream_policy": {
+        "captured_for_status_only": true,
+        "log_text_omitted_from_artifact": true,
+        "pass_critical_facts_in_structured_fields": true,
+        "persisted_text_artifact": false
+      },
+      "project_dir": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/orchestrator_dbt_stub",
+      "returncode": 0,
+      "status": "passed",
+      "summary_artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/orchestrator-dbt-compile-summary.json"
+    },
     "expected_materialized_asset_count": 17,
     "failed_asset_check_names": [],
     "failure_error": null,
@@ -165,9 +178,17 @@
   },
   "dagster_success": true,
   "dbt_prepare": {
-    "compile_stdout": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/orchestrator-dbt-compile.stdout.txt",
     "manifest": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/orchestrator_dbt_stub/target/manifest.json",
-    "project_dir": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/orchestrator_dbt_stub"
+    "process_stream_policy": {
+      "captured_for_status_only": true,
+      "log_text_omitted_from_artifact": true,
+      "pass_critical_facts_in_structured_fields": true,
+      "persisted_text_artifact": false
+    },
+    "project_dir": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/orchestrator_dbt_stub",
+    "returncode": 0,
+    "status": "passed",
+    "summary_artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/orchestrator-dbt-compile-summary.json"
   },
   "duration_ms": 23025,
   "event_count": 205,

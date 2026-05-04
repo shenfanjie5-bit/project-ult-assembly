@@ -3,8 +3,8 @@
     "artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/runtime-evidence-summary.json",
     "non_artifact_tmp_paths_pass_critical": false,
     "runtime_file_count": 5,
-    "sha256": "dd05691e7448bdc2366152000ba8ba4b511995000819913480410cf8ef16f4ac",
-    "size_bytes": 7285,
+    "sha256": "803a42d0a7e6c4a12322b12b6b23a7fe7c3181723400d6faa279fced3fb033ba",
+    "size_bytes": 9094,
     "status": "passed"
   },
   "artifact_dir": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z",
@@ -56,21 +56,21 @@
     },
     {
       "exists_at_write_time": true,
-      "git_tracked_at_write_time": false,
+      "git_tracked_at_write_time": true,
       "pass_critical": true,
       "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/dagster-execution-evidence.json",
-      "sha256": "c67598f9e3490c5c5b569caffbe8221e4cab1330af7828213cf0c9a4167726ac",
-      "size_bytes": 58229,
+      "sha256": "fd975d4be3c6dedb991e66d387164290b0c9cee9d20bbe8b1595a4a271d2be64",
+      "size_bytes": 59315,
       "under_report_artifact_dir": true,
       "under_runtime_root": false
     },
     {
       "exists_at_write_time": true,
-      "git_tracked_at_write_time": false,
+      "git_tracked_at_write_time": true,
       "pass_critical": true,
       "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/daily-refresh.json",
-      "sha256": "75252e4ed92bf1c8064bcfc43b2f106a4d198e05d81dfc26c0c72ebb1778287c",
-      "size_bytes": 14867,
+      "sha256": "d73374c11153284ace18349a5987be9256c785eae74d8966a8bd09d3ac9e7121",
+      "size_bytes": 6864,
       "under_report_artifact_dir": true,
       "under_runtime_root": false
     },
@@ -78,25 +78,15 @@
       "exists_at_write_time": true,
       "git_tracked_at_write_time": false,
       "pass_critical": true,
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/data-platform-current-selection-tests.stderr.txt",
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "size_bytes": 0,
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/data-platform-current-selection-tests-summary.json",
+      "sha256": "43f3b1eb9abb090f386a657ae3c7d3194d6d163a5d4d77af7185b814d4827e52",
+      "size_bytes": 967,
       "under_report_artifact_dir": true,
       "under_runtime_root": false
     },
     {
       "exists_at_write_time": true,
-      "git_tracked_at_write_time": false,
-      "pass_critical": true,
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/data-platform-current-selection-tests.stdout.txt",
-      "sha256": "7040371af15613c02e821ec0eecc1d1330f691ace4cef93a41bfa358822c4103",
-      "size_bytes": 80,
-      "under_report_artifact_dir": true,
-      "under_runtime_root": false
-    },
-    {
-      "exists_at_write_time": true,
-      "git_tracked_at_write_time": false,
+      "git_tracked_at_write_time": true,
       "pass_critical": true,
       "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/graph-status-initialization.json",
       "sha256": "c5de6c6c9ae9269db9452ba32ba36e8a2fab3c037d929ad912bab542cfc94cbe",
@@ -106,7 +96,7 @@
     },
     {
       "exists_at_write_time": true,
-      "git_tracked_at_write_time": false,
+      "git_tracked_at_write_time": true,
       "pass_critical": true,
       "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/neo4j-gds-preflight.json",
       "sha256": "9ca8131c6ae4c08f9cd82a9a4dc8c546f395e72319b3a909f5429596f44406fe",
@@ -118,9 +108,19 @@
       "exists_at_write_time": true,
       "git_tracked_at_write_time": false,
       "pass_critical": true,
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/orchestrator-dbt-compile-summary.json",
+      "sha256": "c28e14ef070f951c46d0cdcf896f99ea10b33d888febef37fbe49fed3cb42157",
+      "size_bytes": 1344,
+      "under_report_artifact_dir": true,
+      "under_runtime_root": false
+    },
+    {
+      "exists_at_write_time": true,
+      "git_tracked_at_write_time": true,
+      "pass_critical": true,
       "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/runtime-evidence-summary.json",
-      "sha256": "dd05691e7448bdc2366152000ba8ba4b511995000819913480410cf8ef16f4ac",
-      "size_bytes": 7285,
+      "sha256": "803a42d0a7e6c4a12322b12b6b23a7fe7c3181723400d6faa279fced3fb033ba",
+      "size_bytes": 9094,
       "under_report_artifact_dir": true,
       "under_runtime_root": false
     },
@@ -143,6 +143,28 @@
       "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/audit/preflight_audit_eval.duckdb",
       "sha256": "ff0f88ecc5da040423ece90bc94c5d5e78b4b40691ccf6a1b80f4d3e56054549",
       "size_bytes": 1323008,
+      "under_report_artifact_dir": false,
+      "under_runtime_root": true
+    },
+    {
+      "evidence_role": "runtime_tmp_source_context_summarized_by_artifact_root",
+      "exists_at_write_time": true,
+      "git_tracked_at_write_time": false,
+      "pass_critical": false,
+      "pass_critical_replacement": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/runtime-evidence-summary.json",
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/orchestrator_dbt_stub",
+      "under_report_artifact_dir": false,
+      "under_runtime_root": true
+    },
+    {
+      "evidence_role": "runtime_tmp_source_context_summarized_by_artifact_root",
+      "exists_at_write_time": true,
+      "git_tracked_at_write_time": false,
+      "pass_critical": false,
+      "pass_critical_replacement": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/runtime-evidence-summary.json",
+      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/orchestrator_dbt_stub/target/manifest.json",
+      "sha256": "66746dfbb9b7aeacebb424ca195f3c7a0f65ae8a55825bf25a2cbc03ab3e1529",
+      "size_bytes": 463609,
       "under_report_artifact_dir": false,
       "under_runtime_root": true
     },
@@ -264,12 +286,15 @@
     },
     "data_platform_current_selection_tests": {
       "duration_ms": 918,
+      "process_stream_policy": {
+        "captured_for_status_only": true,
+        "log_text_omitted_from_artifact": true,
+        "pass_critical_facts_in_structured_fields": true,
+        "persisted_text_artifact": false
+      },
       "returncode": 0,
       "status": "passed",
-      "stderr": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/data-platform-current-selection-tests.stderr.txt",
-      "stderr_tail": "",
-      "stdout": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/data-platform-current-selection-tests.stdout.txt",
-      "stdout_tail": "..........                                                               [100%]\n"
+      "summary_artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/data-platform-current-selection-tests-summary.json"
     },
     "imports": {
       "imported": [
@@ -541,6 +566,19 @@
       "asset_checks_complete": true,
       "cycle_id": "CYCLE_20260415",
       "dagster_success": true,
+      "dbt_prepare": {
+        "manifest": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/orchestrator_dbt_stub/target/manifest.json",
+        "process_stream_policy": {
+          "captured_for_status_only": true,
+          "log_text_omitted_from_artifact": true,
+          "pass_critical_facts_in_structured_fields": true,
+          "persisted_text_artifact": false
+        },
+        "project_dir": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/orchestrator_dbt_stub",
+        "returncode": 0,
+        "status": "passed",
+        "summary_artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/orchestrator-dbt-compile-summary.json"
+      },
       "expected_materialized_asset_count": 17,
       "failed_asset_check_names": [],
       "failure_error": null,
