@@ -1002,3 +1002,34 @@ def test_file_manifest_does_not_promote_process_stream_artifacts(
         "process_stream_text_not_pass_critical"
     )
     assert by_name["summary.json"]["pass_critical"] is True
+
+
+def test_curated_proof_manifest_hashes_match_child_artifacts() -> None:
+    module = _load_module()
+    artifact_dir = (
+        ASSEMBLY_ROOT
+        / "reports"
+        / "stabilization"
+        / "p1-p2-production-daily-cycle-proof-artifacts"
+        / "20260501T150811Z"
+    )
+    report = json.loads(
+        (artifact_dir / "production-daily-cycle-proof.json").read_text(
+            encoding="utf-8",
+        ),
+    )
+    entries = [
+        entry
+        for entry in report["file_evidence_manifest"]
+        if entry.get("under_report_artifact_dir") is True
+        and entry.get("pass_critical") is True
+        and entry.get("sha256")
+    ]
+    artifact_names = {Path(entry["path"]).name for entry in entries}
+
+    assert "dagster-execution-evidence.json" in artifact_names
+    for entry in entries:
+        artifact_path = artifact_dir / Path(entry["path"]).name
+        assert artifact_path.is_file(), entry["path"]
+        assert entry["size_bytes"] == artifact_path.stat().st_size
+        assert entry["sha256"] == module._sha256_file(artifact_path)

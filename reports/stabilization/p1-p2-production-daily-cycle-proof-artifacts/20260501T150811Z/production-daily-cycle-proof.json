@@ -59,8 +59,8 @@
       "git_tracked_at_write_time": true,
       "pass_critical": true,
       "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/dagster-execution-evidence.json",
-      "sha256": "fd975d4be3c6dedb991e66d387164290b0c9cee9d20bbe8b1595a4a271d2be64",
-      "size_bytes": 59315,
+      "sha256": "0bf670bdc169f5605fba675d665432651d2f65ebbc385c616307d1069bb988e9",
+      "size_bytes": 12435,
       "under_report_artifact_dir": true,
       "under_runtime_root": false
     },
