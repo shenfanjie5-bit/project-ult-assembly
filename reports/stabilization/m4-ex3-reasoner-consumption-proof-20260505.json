@@ -1,0 +1,280 @@
+{
+  "accepted_frozen_ex3": {
+    "candidate_id": 1,
+    "freeze_status": "frozen",
+    "payload_type": "Ex-3",
+    "selection_ref": "cycle_candidate_selection:cycle-m4-5-ex3-reasoner-consumption",
+    "validation_status": "accepted"
+  },
+  "delta_ids": [
+    "m4-5-ex3-reasoner-delta-1"
+  ],
+  "deterministic_proof": {
+    "live_pg_end_to_end_claim": false,
+    "mode": "offline_synthetic_serializer_source_scan_with_runtime_reference",
+    "orchestrator_runtime_path_executed": false,
+    "scope": "Assembly offline/synthetic serializer proof plus reasoner-runtime source scan and orchestrator runtime implementation reference.",
+    "status": "passed"
+  },
+  "generated_at": "2026-05-05T00:00:00+00:00",
+  "graph_features": {
+    "ex3_graph_signals": [
+      {
+        "candidate_id": 1,
+        "cycle_id": "cycle-m4-5-ex3-reasoner-consumption",
+        "delta_id": "m4-5-ex3-reasoner-delta-1",
+        "delta_type": "add",
+        "evidence_refs": [
+          "m4.5:evidence:ex3-reasoner-delta-1"
+        ],
+        "properties": {
+          "confidence": 0.91,
+          "direction": "bullish",
+          "impact_score": 0.63,
+          "same_cycle": true,
+          "weight": 0.82
+        },
+        "relation_type": "SUPPLY_CHAIN",
+        "selection_ref": "cycle_candidate_selection:cycle-m4-5-ex3-reasoner-consumption",
+        "source_node": "ENT_M4_5_SOURCE",
+        "target_node": "ENT_M4_5_TARGET"
+      }
+    ],
+    "same_cycle_ex3_graph_signals": [
+      {
+        "candidate_id": 1,
+        "cycle_id": "cycle-m4-5-ex3-reasoner-consumption",
+        "delta_id": "m4-5-ex3-reasoner-delta-1",
+        "delta_type": "add",
+        "evidence_refs": [
+          "m4.5:evidence:ex3-reasoner-delta-1"
+        ],
+        "properties": {
+          "confidence": 0.91,
+          "direction": "bullish",
+          "impact_score": 0.63,
+          "same_cycle": true,
+          "weight": 0.82
+        },
+        "relation_type": "SUPPLY_CHAIN",
+        "selection_ref": "cycle_candidate_selection:cycle-m4-5-ex3-reasoner-consumption",
+        "source_node": "ENT_M4_5_SOURCE",
+        "target_node": "ENT_M4_5_TARGET"
+      }
+    ]
+  },
+  "live_pg": {
+    "blocker": "M4_EX3_DISPOSABLE_LIVE_PG_DSN is not set; live_pg proof blocked; destructive DB operations were not run",
+    "destructive_db_operations_run": false,
+    "dsn": "<missing>",
+    "status": "blocked"
+  },
+  "orchestrator_runtime_reference": {
+    "artifact_pr": "#114",
+    "execution_status": "referenced_not_executed_by_assembly_proof",
+    "implementation_path": "orchestrator/src/orchestrator_adapters/p2_dry_run.py",
+    "l6_handoff_test": "tests/integration/test_p2_dry_run_handoff.py",
+    "merge_commit": "83025e9e7f77406727791126311579c174af2bcb",
+    "merged_functions": [
+      "_load_frozen_ex3_graph_signals",
+      "_ex3_graph_signal_summary",
+      "_feature_bundle"
+    ]
+  },
+  "prerequisite_artifact": {
+    "artifact_pr": "#49",
+    "merge_commit": "7dec6cd999998bcbb36f20a40406152969c09f93",
+    "milestone": "M3.5"
+  },
+  "proof_id": "m4.5-ex3-reasoner-consumption-proof",
+  "reasoner_input": {
+    "contract_request": {
+      "context": {
+        "cycle_id": "cycle-m4-5-ex3-reasoner-consumption",
+        "entity_id": "ENT_M4_5_TARGET",
+        "feature_values": {
+          "m4_5_contract_feature": 1.0
+        },
+        "graph_features": {
+          "ex3_graph_signals": [
+            {
+              "candidate_id": 1,
+              "cycle_id": "cycle-m4-5-ex3-reasoner-consumption",
+              "delta_id": "m4-5-ex3-reasoner-delta-1",
+              "delta_type": "add",
+              "evidence_refs": [
+                "m4.5:evidence:ex3-reasoner-delta-1"
+              ],
+              "properties": {
+                "confidence": 0.91,
+                "direction": "bullish",
+                "impact_score": 0.63,
+                "same_cycle": true,
+                "weight": 0.82
+              },
+              "relation_type": "SUPPLY_CHAIN",
+              "selection_ref": "cycle_candidate_selection:cycle-m4-5-ex3-reasoner-consumption",
+              "source_node": "ENT_M4_5_SOURCE",
+              "target_node": "ENT_M4_5_TARGET"
+            }
+          ],
+          "same_cycle_ex3_graph_signals": [
+            {
+              "candidate_id": 1,
+              "cycle_id": "cycle-m4-5-ex3-reasoner-consumption",
+              "delta_id": "m4-5-ex3-reasoner-delta-1",
+              "delta_type": "add",
+              "evidence_refs": [
+                "m4.5:evidence:ex3-reasoner-delta-1"
+              ],
+              "properties": {
+                "confidence": 0.91,
+                "direction": "bullish",
+                "impact_score": 0.63,
+                "same_cycle": true,
+                "weight": 0.82
+              },
+              "relation_type": "SUPPLY_CHAIN",
+              "selection_ref": "cycle_candidate_selection:cycle-m4-5-ex3-reasoner-consumption",
+              "source_node": "ENT_M4_5_SOURCE",
+              "target_node": "ENT_M4_5_TARGET"
+            }
+          ]
+        },
+        "signal_values": {
+          "contract_signal": {
+            "source": "m4.5",
+            "value": 1.0
+          }
+        },
+        "similar_cases": [
+          {
+            "entity_id": "ENT_M4_5_SIMILAR",
+            "score": 0.31
+          }
+        ],
+        "world_state": {
+          "final_regime": "neutral",
+          "llm_delta": 0
+        }
+      },
+      "cycle_id": "cycle-m4-5-ex3-reasoner-consumption",
+      "input_refs": [
+        "ex3-delta:m4-5-ex3-reasoner-delta-1"
+      ],
+      "prompt": "Assess alpha using structured graph context.",
+      "reasoner_name": "main-core.l6_alpha.multi_agent",
+      "reasoner_version": "0.1.0",
+      "request_id": "m4-5-ex3-reasoner-request-1",
+      "requested_at": "2026-05-05T00:00:00Z"
+    },
+    "retained_delta_ids": [
+      "m4-5-ex3-reasoner-delta-1"
+    ],
+    "retained_graph_feature_keys": [
+      "ex3_graph_signals",
+      "same_cycle_ex3_graph_signals"
+    ],
+    "retained_graph_feature_shape": "list",
+    "serialized_payload": {
+      "cycle_id": "cycle-m4-5-ex3-reasoner-consumption",
+      "entity_id": "ENT_M4_5_TARGET",
+      "feature_values": {
+        "m4_5_contract_feature": 1.0
+      },
+      "graph_features": {
+        "ex3_graph_signals": [
+          {
+            "candidate_id": 1,
+            "cycle_id": "cycle-m4-5-ex3-reasoner-consumption",
+            "delta_id": "m4-5-ex3-reasoner-delta-1",
+            "delta_type": "add",
+            "evidence_refs": [
+              "m4.5:evidence:ex3-reasoner-delta-1"
+            ],
+            "properties": {
+              "confidence": 0.91,
+              "direction": "bullish",
+              "impact_score": 0.63,
+              "same_cycle": true,
+              "weight": 0.82
+            },
+            "relation_type": "SUPPLY_CHAIN",
+            "selection_ref": "cycle_candidate_selection:cycle-m4-5-ex3-reasoner-consumption",
+            "source_node": "ENT_M4_5_SOURCE",
+            "target_node": "ENT_M4_5_TARGET"
+          }
+        ],
+        "same_cycle_ex3_graph_signals": [
+          {
+            "candidate_id": 1,
+            "cycle_id": "cycle-m4-5-ex3-reasoner-consumption",
+            "delta_id": "m4-5-ex3-reasoner-delta-1",
+            "delta_type": "add",
+            "evidence_refs": [
+              "m4.5:evidence:ex3-reasoner-delta-1"
+            ],
+            "properties": {
+              "confidence": 0.91,
+              "direction": "bullish",
+              "impact_score": 0.63,
+              "same_cycle": true,
+              "weight": 0.82
+            },
+            "relation_type": "SUPPLY_CHAIN",
+            "selection_ref": "cycle_candidate_selection:cycle-m4-5-ex3-reasoner-consumption",
+            "source_node": "ENT_M4_5_SOURCE",
+            "target_node": "ENT_M4_5_TARGET"
+          }
+        ]
+      },
+      "signal_values": {
+        "contract_signal": {
+          "source": "m4.5",
+          "value": 1.0
+        }
+      },
+      "similar_cases": [
+        {
+          "entity_id": "ENT_M4_5_SIMILAR",
+          "score": 0.31
+        }
+      ],
+      "world_state": {
+        "final_regime": "neutral",
+        "llm_delta": 0
+      }
+    },
+    "serializer": "main_core.l6_alpha.multi_agent_analyzer.build_multi_agent_input_payload"
+  },
+  "report_mode": {
+    "live_pg_end_to_end_claim": false,
+    "mode": "offline_synthetic_serializer_source_scan_with_runtime_reference",
+    "orchestrator_runtime_path_executed": false,
+    "scope": "Assembly offline/synthetic serializer proof plus reasoner-runtime source scan and orchestrator runtime implementation reference."
+  },
+  "safety_assertions": {
+    "destructive_db_operations_run": false,
+    "runtime_logs_included": false,
+    "secret_values_included": false,
+    "unsafe_payload_fields_absent": true
+  },
+  "source_scan": {
+    "blocker": null,
+    "claim": "reasoner-runtime package has no imports of graph_engine or data_platform in scanned Python files",
+    "failure_reason": null,
+    "forbidden_imports_found": [],
+    "passed": true,
+    "python_file_count": 36,
+    "runtime_package": "reasoner_runtime",
+    "runtime_project_path": "reasoner-runtime/reasoner_runtime",
+    "runtime_tree_exists": true,
+    "runtime_tree_is_dir": true,
+    "status": "passed"
+  },
+  "status": "passed",
+  "validated_schemas": [
+    "contracts.schemas.Ex3CandidateGraphDelta",
+    "contracts.schemas.CandidateGraphDelta"
+  ]
+}
