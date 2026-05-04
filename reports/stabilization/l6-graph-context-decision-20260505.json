@@ -1,0 +1,40 @@
+{
+  "status": "decision_recorded",
+  "recorded_at": "2026-05-04T18:29:20Z",
+  "decision_date": "2026-05-05",
+  "scope": "M3.5 L6 graph-context decision for M4.5 planning",
+  "milestones": {
+    "m3_5": "decision_recorded",
+    "m4_5": "planned_not_complete"
+  },
+  "decision": {
+    "allowed_attach_point": "AlphaAnalysisContext.feature_bundle.graph_features",
+    "context_owner": "main-core-managed context",
+    "m4_5_injection_path": "orchestrator/main-core inject sanitized Ex-3 graph-delta summaries into reasoner input"
+  },
+  "boundary_constraints": [
+    "reasoner-runtime must not import graph-engine",
+    "reasoner-runtime must not import data-platform",
+    "reasoner-runtime must not read raw Ex-3 tables directly",
+    "reasoner-runtime must not read queue tables directly",
+    "contracts remain unchanged"
+  ],
+  "explicit_exclusions": [
+    "no holdings-specific subtype",
+    "no financial-doc",
+    "no graph-engine #55 algorithms"
+  ],
+  "implementation_implication": {
+    "producer_side": "orchestrator/main-core",
+    "reasoner_runtime_role": "receives sanitized context only",
+    "contracts_changed": false,
+    "end_to_end_runtime_proof": false
+  },
+  "evidence_hygiene": {
+    "raw_logs_recorded": false,
+    "secrets_recorded": false,
+    "dsn_recorded": false,
+    "api_keys_recorded": false,
+    "contract_files_touched": false
+  }
+}

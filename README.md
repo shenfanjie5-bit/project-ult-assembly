@@ -40,6 +40,14 @@ Source of truth:
   `reports/stabilization/m4-ex3-queue-promotion-proof-20260503.json`.
   The proof uses public queue/freeze/graph-reader outputs and artifacts;
   assembly does not read private data-platform tables.
+- M3.5 L6 graph-context decision was recorded on 2026-05-05:
+  M4.5 may attach graph context only through
+  `AlphaAnalysisContext.feature_bundle.graph_features` as
+  main-core-managed context. M4.5 remains planned / not complete; contracts
+  stay unchanged, and reasoner-runtime must not import graph-engine or
+  data-platform or read raw Ex-3/queue tables directly. Evidence:
+  `reports/stabilization/l6-graph-context-decision-20260505.md` and
+  `reports/stabilization/l6-graph-context-decision-20260505.json`.
 - Compatibility matrix records 4 verified rows:
   - `lite-local` (default): `verified_at: 2026-04-24T05:24:14Z` (Stage
     5 re-verification after audit-eval pin sync 0.2.2 → 0.2.5;
@@ -76,13 +84,19 @@ M4 priority order:
    and the Ex-3 proof shows `payload_type='Ex-3'` candidates validate
    through public queue/freeze outputs and become graph-engine promotion
    input with edge output.
-2. **Companion PR sequencing**: land the SDK/data-platform/graph-engine/
+2. **M4.5 L6 graph-context implementation**: use the M3.5 decision to keep
+   graph context injection on the orchestrator/main-core side. Sanitized
+   Ex-3 graph-delta summaries may enter reasoner input through
+   `AlphaAnalysisContext.feature_bundle.graph_features`; do not add
+   holdings-specific subtypes, financial-doc scope, graph-engine #55
+   algorithms, or reasoner-runtime imports of graph-engine/data-platform.
+3. **Companion PR sequencing**: land the SDK/data-platform/graph-engine/
    assembly bridge diffs and evidence together before any holdings subsystem
    work is treated as production-relevant.
-3. **M4.7/M4.8 validation gates**: keep Docling/LlamaIndex at partial until
+4. **M4.7/M4.8 validation gates**: keep Docling/LlamaIndex at partial until
    10-20 representative A-share documents parse successfully; keep entity
    resolution proof fail-closed with unresolved cases audited.
-4. **M4.9 subsystem scope decision**: explicitly record that
+5. **M4.9 subsystem scope decision**: explicitly record that
    subsystem-holdings is the next P0 domain extension and
    subsystem-financial-doc remains gated behind M4.7 and holdings evidence.
 
@@ -182,8 +196,9 @@ fails the test suite if MD ⇄ YAML drifts.
 
 - **M4 production bridge closure** — review and land the existing M4.1-M4.4
   companion diffs and live proof evidence together before any new subsystem
-  is treated as production-relevant. M4.7 and M4.8 remain the follow-on
-  validation gates for documents and entity resolution.
+  is treated as production-relevant. M4.5 remains an implementation gate
+  using the M3.5 L6 graph-context decision; M4.7 and M4.8 remain the
+  follow-on validation gates for documents and entity resolution.
 - **frontend-api matrix evidence upkeep** — keep the
   `lite-local-readonly-ui` verified row bound to its recorded
   smoke/e2e/contract-suite evidence. Do not mutate historical verified
