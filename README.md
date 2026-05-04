@@ -12,27 +12,41 @@ Source of truth:
 - `CLAUDE.md` (project-specific guardrails — boundary rules, blocker
   triggers, KPI baselines)
 
-## Current state — stabilization gate passed + frontend-api promotion planned
+## Current state — stabilization gate passed + M4 bridge live proof produced
 
 - 13 of 15 module slots are `integration_status: verified` per
   `module-registry.yaml`. The two frozen slots (`feature-store`,
   `stream-layer`) stay `not_started` per master plan §1.1.
 - `frontend-api` is registered with standard public entrypoints and
-  read-only API-1 through API-5C smoke/release-readiness evidence, but
-  is not folded into the existing verified compatibility matrix rows.
+  read-only API-1 through API-5C smoke/release-readiness evidence. It is
+  folded only into the frontend-api-inclusive `lite-local-readonly-ui`
+  verified matrix row; the historical `lite-local`/`full-dev` rows keep
+  their original evidence identities.
 - Stabilization final gate passed on 2026-04-27. Batch 1
   contract/schema cleanup, Batch 2 LLM/replay hardening, Batch 3
   execution/write-boundary hardening, and FrontEnd read-only polish are
   closed in `reports/stabilization/stabilization-master-checklist-20260427.md`.
-- `frontend-api` matrix promotion is planned in
-  `reports/stabilization/frontend-api-matrix-promotion-plan-20260427.md`.
-  The plan keeps old verified rows intact and requires a fresh
-  frontend-api-inclusive matrix context with matching smoke/e2e/contract
+- `frontend-api` matrix promotion evidence is recorded in
+  `reports/stabilization/frontend-api-readonly-ui-promotion-20260427.md`.
+  The promoted row keeps old verified rows intact and binds the
+  frontend-api-inclusive matrix context to matching smoke/e2e/contract
   evidence.
-- Compatibility matrix records 3 verified rows:
+- M4.3/M4.4 live PostgreSQL bridge evidence was produced on 2026-05-03:
+  `make smoke-p1c` passed against an isolated PG database and
+  `scripts/m4_ex3_queue_promotion_proof.py` proved public data-platform
+  queue/freeze output for a real Ex-3 candidate through graph-engine
+  `PromotionPlan`. Closeout evidence:
+  `reports/stabilization/m4-bridge-live-proof-20260503.md` and
+  `reports/stabilization/m4-ex3-queue-promotion-proof-20260503.json`.
+  The proof uses public queue/freeze/graph-reader outputs and artifacts;
+  assembly does not read private data-platform tables.
+- Compatibility matrix records 4 verified rows:
   - `lite-local` (default): `verified_at: 2026-04-24T05:24:14Z` (Stage
     5 re-verification after audit-eval pin sync 0.2.2 → 0.2.5;
     original Stage 4 §4.3 PASS was `2026-04-22T06:08:55Z`).
+  - `lite-local-readonly-ui` (frontend-api-inclusive): `verified_at:
+    2026-04-27T05:34:25.425611Z` (fresh read-only UI
+    contract/smoke/e2e evidence bound to this exact matrix context).
   - `full-dev` (default, no extras): `verified_at:
     2026-04-24T05:24:14Z` (Stage 5 full-dev parallel, driven against
     the same 4-service Lite stack since both profiles resolve the
@@ -46,6 +60,31 @@ Source of truth:
 - Current stabilization gate on this workspace:
   `tests/release/test_docs.py tests/smoke tests/registry tests/compat`
   passed on 2026-04-27.
+
+## Production bridge closure plan
+
+Next assembly-owned planning focus is M4 production bridge closure. Keep the
+historical verified compatibility matrix rows intact; the frontend-api-inclusive
+row already has its own smoke/e2e/contract evidence, and any future
+frontend-api matrix change needs a fresh context-bound evidence set.
+
+M4 priority order:
+
+1. **M4.1-M4.4 bridge closeout**: the direct SDK
+   `data_platform_queue` backend is the selected bridge. Live
+   `make smoke-p1c` evidence proves non-skipped PG queue/freeze behavior,
+   and the Ex-3 proof shows `payload_type='Ex-3'` candidates validate
+   through public queue/freeze outputs and become graph-engine promotion
+   input with edge output.
+2. **Companion PR sequencing**: land the SDK/data-platform/graph-engine/
+   assembly bridge diffs and evidence together before any holdings subsystem
+   work is treated as production-relevant.
+3. **M4.7/M4.8 validation gates**: keep Docling/LlamaIndex at partial until
+   10-20 representative A-share documents parse successfully; keep entity
+   resolution proof fail-closed with unresolved cases audited.
+4. **M4.9 subsystem scope decision**: explicitly record that
+   subsystem-holdings is the next P0 domain extension and
+   subsystem-financial-doc remains gated behind M4.7 and holdings evidence.
 
 ## Lite stack quickstart
 
@@ -141,13 +180,17 @@ fails the test suite if MD ⇄ YAML drifts.
 
 ## Next steps
 
-- **frontend-api verified matrix promotion** — use the recorded plan in
-  `reports/stabilization/frontend-api-matrix-promotion-plan-20260427.md`.
-  Do not mutate old verified rows. Add an explicit read-only UI profile
-  variant and draft row, then produce fresh smoke/e2e/contract-suite
-  evidence for that exact matrix context.
-- **Real-data mini cycle** — only after the frontend-api promotion plan
-  is implemented cleanly or explicitly deferred.
+- **M4 production bridge closure** — review and land the existing M4.1-M4.4
+  companion diffs and live proof evidence together before any new subsystem
+  is treated as production-relevant. M4.7 and M4.8 remain the follow-on
+  validation gates for documents and entity resolution.
+- **frontend-api matrix evidence upkeep** — keep the
+  `lite-local-readonly-ui` verified row bound to its recorded
+  smoke/e2e/contract-suite evidence. Do not mutate historical verified
+  rows; future frontend-api-inclusive matrix changes require fresh
+  evidence for that exact context.
+- **Real-data mini cycle** — only after the M4 bridge review lands cleanly
+  or explicitly defers follow-on validation gates.
 - **Remaining 5 optional bundles** (Grafana, Superset, Temporal, Feast,
   Kafka-Flink) — each follows the MinIO pilot template:
   1. Bring bundle service up in the `fulldev` compose project,

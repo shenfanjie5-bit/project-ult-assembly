@@ -1,0 +1,25 @@
+{
+  "artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/data-platform-current-selection-tests-summary.json",
+  "command": [
+    "/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python",
+    "-m",
+    "pytest",
+    "tests/cycle/test_current_selection.py",
+    "-q",
+    "-rs"
+  ],
+  "cwd": "/Users/fanjie/Desktop/Cowork/project-ult/data-platform",
+  "duration_ms": 918,
+  "generated_at_utc": "2026-05-01T15:08:11.054734+00:00",
+  "process_stream_policy": {
+    "captured_for_status_only": true,
+    "log_text_omitted_from_artifact": true,
+    "pass_critical_facts_in_structured_fields": true,
+    "persisted_text_artifact": false
+  },
+  "returncode": 0,
+  "schema_version": "project-ult.production-daily-cycle-proof.v2.current-selection-tests-summary.v1",
+  "status": "passed",
+  "test_path": "tests/cycle/test_current_selection.py",
+  "timeout_s": 180
+}

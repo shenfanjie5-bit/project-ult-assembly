@@ -4,6 +4,13 @@
 **Date:** 2026-04-29
 **Status:** Intentional no-code promotion round. NOT production daily-cycle proof. NOT Lite-compose proof. NOT live Iceberg proof. NOT P5 readiness.
 
+**Supersession note (2026-04-30):** This file is historical M1.9
+evidence. The `BLOCKED_NO_LOCAL_SCHEMA` verdict below was superseded by
+M1.11 schema check-in and M1.13 promotion of all 8 candidates; M1.14 then
+closed M1 with 9/9 retirement preconditions done and 0 xfails. Use this
+report only to understand the M1.9 decision boundary, not current M1/G1
+status.
+
 ## Outcome
 
 | metric | value |
@@ -14,12 +21,13 @@
 | Production code touched | NONE |
 | Tests added | 0 |
 | Evidence files added | **2** (audit + this proof) |
+| Current supersession | M1.13 promoted all 8; current event_timeline coverage is 16/16 |
 
 ## Promoted sources (M1.9)
 
 **0.** This is an intentional no-code promotion round. The deliverable is the per-source contract audit + path-forward documented in [event-timeline-m1-9-candidate-contract-audit-20260429.md](assembly/reports/stabilization/event-timeline-m1-9-candidate-contract-audit-20260429.md).
 
-## Still-blocked sources
+## Historical M1.9 blocked sources (superseded)
 
 | source | verdict | exact blocker reason |
 |---|---|---|
@@ -41,11 +49,11 @@ The binding blocker for ALL 8 candidates is **schema knowledge in the repo**, no
 - `BLOCKED_NO_STAGING` could be misread as "implementation backlog — just write the staging models". Implementation is mechanical IF column lists are known.
 - `BLOCKED_NO_LOCAL_SCHEMA` is the truthful upstream blocker: column lists are NOT in the repo, and adding them requires owner sign-off (canonical column naming + per-source intra-day uniqueness verification + per-source canonical event_type constant decision). This is documentation work, not coding work.
 
-Per the M1.9 hard rule "Do not invent source schemas", and the operational hard rule "no production fetch", M1.9 cannot resolve this blocker. The audit documents the resolution path; the resolution itself belongs in a future round triggered by an owner column-list check-in.
+Per the M1.9 hard rule "Do not invent source schemas", and the operational hard rule "no production fetch", M1.9 could not resolve this blocker. The audit documented the resolution path. That future path later landed as M1.11 schema check-in and M1.13 promotion, so the blocker is not current.
 
 ## Test commands and results
 
-No production code changed by M1.9, but M1.9-7 re-ran both sweeps as a regression sanity check. Exact M1.9 results below; both lanes are green.
+No production code changed by M1.9, but M1.9-7 re-ran both sweeps as a regression sanity check. Exact M1.9 historical results below; both lanes were green for the M1.9 baseline. Do not cite these as current test counts after M1.12-M1.14 retirement.
 
 ```sh
 $ cd data-platform && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest \
@@ -69,7 +77,10 @@ $ cd data-platform && DP_CANONICAL_USE_V2=1 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH
 ==> 176 passed, 5 skipped, 17 xfailed in 3.66s
 ```
 
-The 8 xfails (default sweep) and 17 xfails (v2 lane) are the `_M1D_LEGACY_RETIREMENT_XFAIL` provider-neutrality scoreboard tests — unchanged from M1.8 because M1.9 did not touch legacy specs.
+At M1.9, the 8 xfails (default sweep) and 17 xfails (v2 lane) were the
+`_M1D_LEGACY_RETIREMENT_XFAIL` provider-neutrality scoreboard tests. That
+state is superseded by M1.14, where the final marker was removed and the
+full data-platform sweep reported 624 passed / 74 skipped / 0 xfailed.
 
 ## What this does NOT prove (do NOT misclaim)
 
@@ -86,7 +97,11 @@ The 8 xfails (default sweep) and 17 xfails (v2 lane) are the `_M1D_LEGACY_RETIRE
 - namechange (M1.6)
 - block_trade (M1.8)
 
-Full event_timeline coverage (16 known registry/candidate sources) is still **NOT** achieved. The 8 candidates remain BLOCKED_NO_LOCAL_SCHEMA. M1 closure remains pending until the schema documentation gap is closed in a future round.
+At M1.9, full event_timeline coverage (16 known registry/candidate
+sources) was **NOT** achieved, and the 8 candidates remained
+`BLOCKED_NO_LOCAL_SCHEMA`. Current status is superseded: M1.11 supplied
+local schema + uniqueness evidence, M1.13 promoted all 8, and M1.14 closed
+M1.
 
 ### event_type taxonomy after M1.9
 
@@ -102,31 +117,33 @@ Full event_timeline coverage (16 known registry/candidate sources) is still **NO
 ```
 8 entries (unchanged from M1.8).
 
-## Remaining blockers for M1 / P5
+## Historical blockers after M1.9 (superseded for M1/G1)
 
-| gate | description | status after M1.9 |
-|---|---|---|
-| **M1 event_timeline closure** | All 16 registry/candidate event sources flow into canonical_v2.fact_event | PARTIAL — 8 of 16 promoted; 8 BLOCKED_NO_LOCAL_SCHEMA |
-| **G1** | canonical provider-neutral closure / legacy retirement | BLOCKED — preconditions 6, 7, 8 of retirement-readiness still NOT STARTED |
-| **G2** | production daily-cycle full proof / M2.6 | BLOCKED — out of M1 scope |
-| **G3** | same-cycle production consumption | BLOCKED — gated on G2 |
-| **G4** | live PG / downstream bridge closure | BLOCKED — gated on G2 |
+| gate | description | status after M1.9 | current supersession |
+|---|---|---|---|
+| **M1 event_timeline closure** | All 16 registry/candidate event sources flow into canonical_v2.fact_event | PARTIAL — 8 of 16 promoted; 8 `BLOCKED_NO_LOCAL_SCHEMA` | PASS after M1.13, 16/16 promoted |
+| **G1** | canonical provider-neutral closure / legacy retirement | BLOCKED — preconditions 6, 7, 8 of retirement-readiness were open in M1.9 | PASS after M1.12 + M1.14 |
+| **G2** | production daily-cycle full proof / M2.6 | BLOCKED — out of M1 scope | Still blocked pending M2.6 proof |
+| **G3** | same-cycle production consumption | BLOCKED — gated on G2 | Still blocked pending M2.6 + M3.2/M3.3 |
+| **G4** | live PG / downstream bridge closure | BLOCKED — gated on G2 | Still blocked pending M4 bridge/live PG downstream proof |
 
-M1.9 does not advance any of these gates. Its contribution is naming the schema-documentation blocker truthfully so future rounds can target the right work.
+M1.9 did not advance these gates. Its contribution was naming the schema-documentation blocker truthfully so later rounds could target the right work.
 
-## Status declarations
+## Historical M1.9 status declarations
 
-- `project_ult_v5_0_1.md` UNCHANGED.
-- `ult_milestone.md` UNCHANGED.
+- These declarations describe M1.9 only; they do not describe the current
+  post-M1.14 state.
+- `project_ult_v5_0_1.md` UNCHANGED in M1.9.
+- `ult_milestone.md` UNCHANGED in M1.9.
 - compose NOT started.
 - production fetch NOT enabled.
 - P5 shadow-run NOT started.
 - M2 / M3 / M4 NOT entered.
 - API-6 / sidecar / frontend write API / Kafka/Flink/Temporal / news/Polymarket NOT touched.
 - Tushare remains a `provider="tushare"` source adapter ONLY.
-- Legacy `canonical.*` specs / load specs / dbt marts NOT deleted.
-- `_M1D_LEGACY_RETIREMENT_XFAIL` NOT removed.
-- `FORBIDDEN_SCHEMA_FIELDS` / `FORBIDDEN_PAYLOAD_FIELDS` NOT extended.
+- Legacy `canonical.*` specs / load specs / dbt marts NOT deleted in M1.9.
+- `_M1D_LEGACY_RETIREMENT_XFAIL` NOT removed in M1.9.
+- `FORBIDDEN_SCHEMA_FIELDS` / `FORBIDDEN_PAYLOAD_FIELDS` NOT extended in M1.9.
 - `/Users/fanjie/Desktop/BIG/FrontEnd` NOT modified (read-only).
 - Pre-existing staged / unstaged files NOT reverted.
 - No `git init`. No commits. No push.

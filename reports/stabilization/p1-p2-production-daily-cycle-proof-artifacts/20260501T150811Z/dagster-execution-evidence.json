@@ -1,0 +1,423 @@
+{
+  "artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/dagster-execution-evidence.json",
+  "artifact_backed_pass_claim": true,
+  "asset_check_pass_basis": {
+    "all_recorded_asset_checks_passed": true,
+    "asset_checks_complete": true,
+    "expected_asset_check_names": [
+      "not_null_heartbeat_heartbeat",
+      "llm_health_check",
+      "phase0_ping_check",
+      "neo4j_graph_consistency_check",
+      "phase2_pool_failure_rate_gate"
+    ],
+    "failed_asset_check_names": [],
+    "missing_expected_asset_check_names": [],
+    "nonpassing_asset_check_names": [],
+    "recorded_asset_check_count": 5,
+    "recorded_asset_check_names": [
+      "llm_health_check",
+      "neo4j_graph_consistency_check",
+      "not_null_heartbeat_heartbeat",
+      "phase0_ping_check",
+      "phase2_pool_failure_rate_gate"
+    ],
+    "unknown_asset_check_names": []
+  },
+  "asset_checks": [
+    {
+      "asset_key": null,
+      "check_name": "not_null_heartbeat_heartbeat",
+      "index": 15,
+      "metadata": {
+        "Execution Duration": 0.012634,
+        "dagster_dbt/failed_row_count": 0,
+        "invocation_id": "755dc989-1e73-4004-8ac5-5e81188650bd",
+        "status": "pass",
+        "unique_id": "test.orchestrator_stub.not_null_heartbeat_heartbeat.4d6b4a7935"
+      },
+      "passed": true,
+      "step_key": "dbt_phase0_assets"
+    },
+    {
+      "asset_key": null,
+      "check_name": "llm_health_check",
+      "index": 37,
+      "metadata": {
+        "all_critical_targets_available": "true",
+        "provider": "openai-codex",
+        "provider_models": "openai-codex/gpt-5.5",
+        "provider_statuses": "[{\"error\":null,\"latency_ms\":1202.0,\"model\":\"gpt-5.5\",\"provider\":\"openai-codex\",\"quota_status\":\"ok\",\"reachable\":true}]",
+        "providers": "openai-codex",
+        "summary": "all 1 critical provider/model target(s) available",
+        "target_count": "1",
+        "unavailable_provider_models": "",
+        "unavailable_target_count": "0"
+      },
+      "passed": true,
+      "step_key": "phase0_readiness_ping_llm_health_check"
+    },
+    {
+      "asset_key": null,
+      "check_name": "phase0_ping_check",
+      "index": 43,
+      "metadata": {},
+      "passed": true,
+      "step_key": "phase0_readiness_ping_phase0_ping_check"
+    },
+    {
+      "asset_key": null,
+      "check_name": "neo4j_graph_consistency_check",
+      "index": 51,
+      "metadata": {
+        "graph_status": "ready"
+      },
+      "passed": true,
+      "step_key": "graph_status_neo4j_graph_consistency_check"
+    },
+    {
+      "asset_key": null,
+      "check_name": "phase2_pool_failure_rate_gate",
+      "index": 171,
+      "metadata": {
+        "action": "continue",
+        "failed_count": 0,
+        "failed_nodes": "",
+        "failure_class": "data_quality",
+        "failure_rate": 0.0,
+        "metric_cycle_id": "CYCLE_20260415",
+        "phase": "phase2",
+        "scenario_id": "",
+        "total_count": 2
+      },
+      "passed": true,
+      "step_key": "l8_phase2_pool_failure_rate_gate"
+    }
+  ],
+  "asset_checks_complete": true,
+  "cycle_id": "CYCLE_20260415",
+  "dagster_execution_status": "passed",
+  "dagster_step_summary": {
+    "artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/dagster-execution-evidence.json",
+    "artifact_backed_pass_claim": true,
+    "asset_check_pass_basis": {
+      "all_recorded_asset_checks_passed": true,
+      "asset_checks_complete": true,
+      "expected_asset_check_names": [
+        "not_null_heartbeat_heartbeat",
+        "llm_health_check",
+        "phase0_ping_check",
+        "neo4j_graph_consistency_check",
+        "phase2_pool_failure_rate_gate"
+      ],
+      "failed_asset_check_names": [],
+      "missing_expected_asset_check_names": [],
+      "nonpassing_asset_check_names": [],
+      "recorded_asset_check_count": 5,
+      "recorded_asset_check_names": [
+        "llm_health_check",
+        "neo4j_graph_consistency_check",
+        "not_null_heartbeat_heartbeat",
+        "phase0_ping_check",
+        "phase2_pool_failure_rate_gate"
+      ],
+      "unknown_asset_check_names": []
+    },
+    "asset_checks_complete": true,
+    "cycle_id": "CYCLE_20260415",
+    "dagster_success": true,
+    "dbt_prepare": {
+      "manifest": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/orchestrator_dbt_stub/target/manifest.json",
+      "process_stream_policy": {
+        "captured_for_status_only": true,
+        "log_text_omitted_from_artifact": true,
+        "pass_critical_facts_in_structured_fields": true,
+        "persisted_text_artifact": false
+      },
+      "project_dir": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/orchestrator_dbt_stub",
+      "returncode": 0,
+      "status": "passed",
+      "summary_artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/orchestrator-dbt-compile-summary.json"
+    },
+    "expected_materialized_asset_count": 17,
+    "failed_asset_check_names": [],
+    "failure_error": null,
+    "failure_message": null,
+    "failure_root_cause": null,
+    "failure_step": null,
+    "legacy_claim_count": 15,
+    "materialized_asset_count": 17,
+    "materialized_asset_keys": [
+      "candidate_freeze",
+      "heartbeat",
+      "phase0_readiness_ping",
+      "graph_status",
+      "graph_promotion",
+      "graph_snapshot",
+      "l1",
+      "l2",
+      "l3",
+      "l4",
+      "l5",
+      "l6",
+      "l7",
+      "l8",
+      "formal_objects_commit",
+      "cycle_publish_manifest",
+      "retrospective_hook"
+    ],
+    "missing_expected_asset_check_names": [],
+    "recorded_asset_check_count": 5,
+    "run_id": "efad558c-f5a1-4b9e-9bd6-31d0a0ce2212",
+    "selected_asset_count": 17,
+    "selected_asset_count_matches_materialization_basis": true,
+    "selected_materializations_complete": true,
+    "status": "passed",
+    "supports_legacy_15_materializations_claim": false,
+    "supports_selected_asset_materialization_claim": true
+  },
+  "dagster_success": true,
+  "dbt_prepare": {
+    "manifest": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/orchestrator_dbt_stub/target/manifest.json",
+    "process_stream_policy": {
+      "captured_for_status_only": true,
+      "log_text_omitted_from_artifact": true,
+      "pass_critical_facts_in_structured_fields": true,
+      "persisted_text_artifact": false
+    },
+    "project_dir": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/orchestrator_dbt_stub",
+    "returncode": 0,
+    "status": "passed",
+    "summary_artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/orchestrator-dbt-compile-summary.json"
+  },
+  "duration_ms": 23025,
+  "event_count": 205,
+  "expected_materialized_asset_count": 17,
+  "extra_materialized_asset_keys": [],
+  "failed_asset_check_names": [],
+  "failure_error": null,
+  "failure_events": [],
+  "failure_message": null,
+  "failure_root_cause": null,
+  "failure_step": null,
+  "generated_at_utc": "2026-05-01T15:08:25.915352+00:00",
+  "job_name": "daily_cycle_job",
+  "legacy_materialization_claim_count": 15,
+  "legacy_materialization_count_against_claim_15": {
+    "actual_count": 17,
+    "actual_unique_count": 17,
+    "has_at_least_15": true,
+    "has_exactly_15": false,
+    "historical_only": true,
+    "legacy_claim_count": 15
+  },
+  "materialization_count_against_selected_assets": {
+    "actual_count": 17,
+    "actual_unique_count": 17,
+    "expected_selected_asset_count": 17,
+    "extra_materialized_asset_count": 0,
+    "has_exactly_selected_asset_count": true,
+    "missing_selected_asset_count": 0
+  },
+  "materialization_order": [
+    "candidate_freeze",
+    "heartbeat",
+    "phase0_readiness_ping",
+    "graph_status",
+    "graph_promotion",
+    "graph_snapshot",
+    "l1",
+    "l2",
+    "l3",
+    "l4",
+    "l5",
+    "l6",
+    "l7",
+    "l8",
+    "formal_objects_commit",
+    "cycle_publish_manifest",
+    "retrospective_hook"
+  ],
+  "materializations": [
+    {
+      "asset_key": "candidate_freeze",
+      "index": 7,
+      "metadata": {},
+      "step_key": "candidate_freeze"
+    },
+    {
+      "asset_key": "heartbeat",
+      "index": 14,
+      "metadata": {
+        "Execution Duration": 0.023951,
+        "invocation_id": "755dc989-1e73-4004-8ac5-5e81188650bd",
+        "unique_id": "model.orchestrator_stub.heartbeat"
+      },
+      "step_key": "dbt_phase0_assets"
+    },
+    {
+      "asset_key": "phase0_readiness_ping",
+      "index": 22,
+      "metadata": {},
+      "step_key": "phase0_readiness_ping"
+    },
+    {
+      "asset_key": "graph_status",
+      "index": 31,
+      "metadata": {},
+      "step_key": "graph_status"
+    },
+    {
+      "asset_key": "graph_promotion",
+      "index": 64,
+      "metadata": {},
+      "step_key": "graph_promotion"
+    },
+    {
+      "asset_key": "graph_snapshot",
+      "index": 73,
+      "metadata": {},
+      "step_key": "graph_snapshot"
+    },
+    {
+      "asset_key": "l1",
+      "index": 82,
+      "metadata": {},
+      "step_key": "l1"
+    },
+    {
+      "asset_key": "l2",
+      "index": 91,
+      "metadata": {},
+      "step_key": "l2"
+    },
+    {
+      "asset_key": "l3",
+      "index": 100,
+      "metadata": {},
+      "step_key": "l3"
+    },
+    {
+      "asset_key": "l4",
+      "index": 109,
+      "metadata": {},
+      "step_key": "l4"
+    },
+    {
+      "asset_key": "l5",
+      "index": 120,
+      "metadata": {},
+      "step_key": "l5"
+    },
+    {
+      "asset_key": "l6",
+      "index": 133,
+      "metadata": {},
+      "step_key": "l6"
+    },
+    {
+      "asset_key": "l7",
+      "index": 146,
+      "metadata": {},
+      "step_key": "l7"
+    },
+    {
+      "asset_key": "l8",
+      "index": 163,
+      "metadata": {},
+      "step_key": "l8"
+    },
+    {
+      "asset_key": "formal_objects_commit",
+      "index": 180,
+      "metadata": {},
+      "step_key": "formal_objects_commit"
+    },
+    {
+      "asset_key": "cycle_publish_manifest",
+      "index": 189,
+      "metadata": {},
+      "step_key": "cycle_publish_manifest"
+    },
+    {
+      "asset_key": "retrospective_hook",
+      "index": 198,
+      "metadata": {},
+      "step_key": "retrospective_hook"
+    }
+  ],
+  "materialized_asset_count": 17,
+  "materialized_asset_keys": [
+    "candidate_freeze",
+    "heartbeat",
+    "phase0_readiness_ping",
+    "graph_status",
+    "graph_promotion",
+    "graph_snapshot",
+    "l1",
+    "l2",
+    "l3",
+    "l4",
+    "l5",
+    "l6",
+    "l7",
+    "l8",
+    "formal_objects_commit",
+    "cycle_publish_manifest",
+    "retrospective_hook"
+  ],
+  "missing_expected_asset_check_names": [],
+  "missing_selected_asset_keys": [],
+  "pass_basis": "resolved_selected_asset_keys",
+  "recorded_asset_check_count": 5,
+  "run_id": "efad558c-f5a1-4b9e-9bd6-31d0a0ce2212",
+  "schema_version": "project-ult.production-daily-cycle-proof.v2.dagster-execution-evidence.v1",
+  "selected_asset_count": 17,
+  "selected_asset_count_matches_legacy_claim": false,
+  "selected_asset_count_matches_materialization_basis": true,
+  "selected_asset_keys": [
+    "candidate_freeze",
+    "cycle_publish_manifest",
+    "formal_objects_commit",
+    "graph_promotion",
+    "graph_snapshot",
+    "graph_status",
+    "heartbeat",
+    "l1",
+    "l2",
+    "l3",
+    "l4",
+    "l5",
+    "l6",
+    "l7",
+    "l8",
+    "phase0_readiness_ping",
+    "retrospective_hook"
+  ],
+  "selected_materializations_complete": true,
+  "status": "passed",
+  "supports_legacy_15_materializations_claim": false,
+  "supports_selected_asset_materialization_claim": true,
+  "terminal_observed_policy": "terminal-observed progress is operator context only; PASS claims must come from this structured Dagster event artifact",
+  "terminal_observed_steps": [],
+  "unique_materialized_asset_count": 17,
+  "unique_materialized_asset_keys": [
+    "candidate_freeze",
+    "cycle_publish_manifest",
+    "formal_objects_commit",
+    "graph_promotion",
+    "graph_snapshot",
+    "graph_status",
+    "heartbeat",
+    "l1",
+    "l2",
+    "l3",
+    "l4",
+    "l5",
+    "l6",
+    "l7",
+    "l8",
+    "phase0_readiness_ping",
+    "retrospective_hook"
+  ]
+}

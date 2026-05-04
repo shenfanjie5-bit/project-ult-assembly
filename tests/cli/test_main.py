@@ -902,9 +902,9 @@ def test_export_registry_writes_runtime_artifacts(tmp_path: Path) -> None:
     assert json.loads((out / "registry.json").read_text(encoding="utf-8"))
     assert json.loads((out / "matrix.json").read_text(encoding="utf-8"))
     assert "modules=15" in result.output
-    # Stage 5 + MinIO pilot added a 3rd matrix row for
-    # (profile=full-dev, extra_bundles=[minio]).
-    assert "matrix=3" in result.output
+    # The frontend-api-inclusive lite-local-readonly-ui row is now verified,
+    # so the exported matrix contains 4 rows.
+    assert "matrix=4" in result.output
 
 
 def test_export_registry_cli_uses_runtime_exporter(
