@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
@@ -168,3 +169,50 @@ def test_main_records_missing_database_url_as_live_prerequisite(
     assert exit_code == 1
     assert payload["status"] == "failed"
     assert payload["skipped_live_prerequisites"] == ["DATABASE_URL or DP_PG_DSN"]
+
+
+def test_failed_report_redacts_error_without_traceback(
+    tmp_path: Path,
+    monkeypatch: Any,
+) -> None:
+    module = _load_module()
+    out = tmp_path / "proof.json"
+    dsn = "postgresql://proof_user:supersecret@localhost:5432/proofdb"
+    token = "sk-test-secret-token"
+    monkeypatch.setenv("DATABASE_URL", dsn)
+    monkeypatch.setenv("POSTGRES_PASSWORD", "supersecret")
+    monkeypatch.setenv("OPENAI_API_KEY", token)
+
+    def fail_live_proof(**kwargs: Any) -> dict[str, Any]:
+        database_url = kwargs["database_url"]
+        raise RuntimeError(
+            "database unavailable at "
+            f"{database_url} with password supersecret and Bearer {token}"
+        )
+
+    monkeypatch.setattr(module, "_run_live_queue_promotion_proof", fail_live_proof)
+
+    exit_code = module.main(
+        [
+            "--database-url",
+            dsn,
+            "--skip-migrations",
+            "--out",
+            str(out),
+        ]
+    )
+
+    payload = json.loads(out.read_text(encoding="utf-8"))
+    payload_text = json.dumps(payload, sort_keys=True)
+    assert exit_code == 1
+    assert payload["status"] == "failed"
+    assert payload["error"]["type"] == "RuntimeError"
+    assert payload["error"]["message"] == (
+        "database unavailable at <redacted> with password <redacted> "
+        "and Bearer <redacted>"
+    )
+    assert "traceback" not in payload
+    assert "Traceback (most recent call last)" not in payload_text
+    assert dsn not in payload_text
+    assert "supersecret" not in payload_text
+    assert token not in payload_text

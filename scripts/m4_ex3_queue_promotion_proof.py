@@ -27,6 +27,14 @@ DEFAULT_OUT = (
     / "stabilization"
     / "m4-ex3-queue-promotion-proof-20260503.json"
 )
+SECRET_ENV_KEYS = (
+    "DATABASE_URL",
+    "DP_PG_DSN",
+    "POSTGRES_PASSWORD",
+    "OPENAI_API_KEY",
+    "DP_TUSHARE_TOKEN",
+    "NEO4J_PASSWORD",
+)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -46,6 +54,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         "--skip-migrations",
         action="store_true",
         help="Assume data-platform PostgreSQL migrations are already applied.",
+    )
+    parser.add_argument(
+        "--include-traceback",
+        action="store_true",
+        help="include redacted traceback text in failed JSON evidence",
     )
     args = parser.parse_args(argv)
 
@@ -76,9 +89,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         report["status"] = "passed"
         return 0
     except Exception as exc:  # noqa: BLE001 - evidence must preserve blockers.
-        report["error"] = str(exc)
-        report["error_type"] = type(exc).__name__
-        report["traceback"] = traceback.format_exc()
+        report["error"] = {
+            "message": _redact_text(str(exc)),
+            "type": type(exc).__name__,
+        }
+        if args.include_traceback:
+            report["traceback"] = _redact_text(traceback.format_exc())
         return 1
     finally:
         report["finished_at"] = datetime.now(UTC).isoformat()
@@ -328,6 +344,47 @@ def _json_safe(value: Any) -> Any:
     if hasattr(value, "model_dump"):
         return _json_safe(value.model_dump(mode="python"))
     return value
+
+
+def _redact_text(value: str) -> str:
+    redacted = value
+    for key in SECRET_ENV_KEYS:
+        secret = os.environ.get(key)
+        if secret and len(secret) >= 8:
+            redacted = redacted.replace(secret, "<redacted>")
+    redacted = _redact_postgres_uri(redacted)
+    redacted = _redact_bearer(redacted)
+    return redacted
+
+
+def _redact_postgres_uri(value: str) -> str:
+    prefixes = ("postgresql://", "postgres://", "postgresql+psycopg://")
+    redacted = value
+    for prefix in prefixes:
+        start = redacted.find(prefix)
+        while start != -1:
+            end = len(redacted)
+            for separator in (" ", "\n", "\r", "\t", '"', "'"):
+                candidate = redacted.find(separator, start)
+                if candidate != -1:
+                    end = min(end, candidate)
+            redacted = redacted[:start] + prefix + "<redacted>" + redacted[end:]
+            start = redacted.find(prefix, start + len(prefix) + len("<redacted>"))
+    return redacted
+
+
+def _redact_bearer(value: str) -> str:
+    marker = "Bearer "
+    redacted = value
+    start = redacted.find(marker)
+    while start != -1:
+        token_start = start + len(marker)
+        end = token_start
+        while end < len(redacted) and not redacted[end].isspace():
+            end += 1
+        redacted = redacted[:token_start] + "<redacted>" + redacted[end:]
+        start = redacted.find(marker, token_start + len("<redacted>"))
+    return redacted
 
 
 if __name__ == "__main__":

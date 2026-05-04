@@ -165,6 +165,14 @@ def _passing_asset_check_events(
     )
 
 
+def _contains_key(value: Any, key: str) -> bool:
+    if isinstance(value, dict):
+        return key in value or any(_contains_key(item, key) for item in value.values())
+    if isinstance(value, list | tuple):
+        return any(_contains_key(item, key) for item in value)
+    return False
+
+
 def test_neo4j_gds_preflight_writes_pass_artifact(tmp_path: Path, monkeypatch: Any) -> None:
     module = _load_module()
 
@@ -382,6 +390,61 @@ def test_dagster_execution_evidence_rejects_incomplete_15_materialization_claim(
         "type": "RuntimeError",
     }
     assert step["failure_root_cause"] == "status row missing"
+
+
+def test_passed_dagster_artifact_omits_event_message_stream(tmp_path: Path) -> None:
+    module = _load_module()
+    evidence_path = tmp_path / "dagster-execution-evidence.json"
+    selected_asset_keys = [
+        "phase0_readiness_ping",
+        "candidate_freeze",
+    ]
+    result = SimpleNamespace(
+        success=True,
+        run_id="run-pass",
+        all_events=(
+            SimpleNamespace(
+                event_type_value="ENGINE_EVENT",
+                step_key=None,
+                message="Started process for run (pid: 12345)",
+            ),
+            _materialization_event(1, "phase0_readiness_ping"),
+            SimpleNamespace(
+                event_type_value="LOGS_CAPTURED",
+                step_key="candidate_freeze",
+                message="Started capturing logs in process (pid: 12345)",
+            ),
+            _materialization_event(3, "candidate_freeze"),
+            *_passing_asset_check_events(module, start_index=4),
+        ),
+    )
+
+    evidence = module._dagster_execution_evidence_from_result(
+        result,
+        cycle_id="CYCLE_20260415",
+        job_name="daily_cycle_job",
+        selected_asset_keys=selected_asset_keys,
+        legacy_materialization_claim_count=15,
+    )
+    evidence.update(
+        {
+            "schema_version": "test",
+            "artifact": str(evidence_path),
+        }
+    )
+    step = module._finalize_dagster_evidence(
+        evidence,
+        evidence_path,
+        module.perf_counter(),
+    )
+    payload = json.loads(evidence_path.read_text(encoding="utf-8"))
+
+    assert step["status"] == "passed"
+    assert payload["event_count"] == len(result.all_events)
+    assert payload["materialized_asset_keys"] == selected_asset_keys
+    assert payload["asset_checks_complete"] is True
+    assert "event_sequence" not in payload
+    assert not _contains_key(payload, "message")
 
 
 def test_finalized_dagster_artifact_persists_step_summary(tmp_path: Path) -> None:

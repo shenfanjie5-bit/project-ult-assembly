@@ -2026,7 +2026,6 @@ def _dagster_execution_evidence_from_result(
     materializations: list[dict[str, Any]] = []
     asset_checks: list[dict[str, Any]] = []
     failures: list[dict[str, Any]] = []
-    event_sequence: list[dict[str, Any]] = []
 
     for index, event in enumerate(events):
         event_type = _dagster_event_type(event)
@@ -2034,15 +2033,6 @@ def _dagster_execution_evidence_from_result(
         asset_key = _dagster_asset_key_from_event(event)
         asset_key_text = _dagster_asset_key_to_string(asset_key)
         message = _optional_event_attr(event, "message")
-        event_record = {
-            "index": index,
-            "event_type": event_type,
-            "step_key": step_key,
-            "asset_key": asset_key_text,
-        }
-        if message:
-            event_record["message"] = _tail(str(message), limit=1000)
-        event_sequence.append(event_record)
 
         if _is_dagster_materialization_event(event, event_type):
             materializations.append(
@@ -2149,7 +2139,6 @@ def _dagster_execution_evidence_from_result(
         "failure_events": failures,
         "terminal_observed_steps": [],
         "event_count": len(events),
-        "event_sequence": event_sequence,
     }
 
 
