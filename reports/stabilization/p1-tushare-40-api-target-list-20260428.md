@@ -21,7 +21,7 @@ Result:
 
 ```text
 DP_PG_DSN=missing
-DP_TUSHARE_TOKEN=missing
+DP_TUSHARE_TOKEN=<redacted>
 DATABASE_URL=missing
 ```
 

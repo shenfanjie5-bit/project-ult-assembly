@@ -29,7 +29,7 @@ Command shape:
 ```bash
 cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
 DATABASE_URL=<set from local Docker PG env, value not printed> \
-DP_TUSHARE_TOKEN=<set from untracked assembly/.env, value not printed> \
+DP_TUSHARE_TOKEN=<set from shell env, value not printed> \
 .venv/bin/python scripts/mini_cycle_runtime_bootstrap.py \
   --base-dir /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-pg-runtime-artifacts/runtime \
   --profile-name batch-b-20260427-090300 \
@@ -98,7 +98,7 @@ Command shape:
 ```bash
 cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
 DP_PG_DSN=<set in process env, value not printed> \
-DP_TUSHARE_TOKEN=<set from untracked assembly/.env, value not printed> \
+DP_TUSHARE_TOKEN=<set from shell env, value not printed> \
 DP_RAW_ZONE_PATH=<bounded artifact path> \
 DP_ICEBERG_WAREHOUSE_PATH=<bounded artifact path> \
 DP_DUCKDB_PATH=<bounded artifact path> \

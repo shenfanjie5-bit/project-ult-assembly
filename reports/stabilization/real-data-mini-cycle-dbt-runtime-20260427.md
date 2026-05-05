@@ -63,7 +63,7 @@ Real `daily_refresh` dbt/canonical path:
 ```bash
 cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
 DP_PG_DSN=<set to temporary dp_real_mini_cycle_* database> \
-DP_TUSHARE_TOKEN=<set from local untracked assembly/.env> \
+DP_TUSHARE_TOKEN=<set from shell env, value not printed> \
 DP_RAW_ZONE_PATH=<bounded temp raw path> \
 DP_ICEBERG_WAREHOUSE_PATH=<bounded temp warehouse path> \
 DP_DUCKDB_PATH=<bounded temp DuckDB path> \
