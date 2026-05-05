@@ -12,7 +12,7 @@ Source of truth:
 - `CLAUDE.md` (project-specific guardrails — boundary rules, blocker
   triggers, KPI baselines)
 
-## Current state — stabilization gate passed + M4.6 component proof produced
+## Current state — stabilization gate passed + M4.9 scope decision recorded
 
 - 13 of 15 module slots are `integration_status: verified` per
   `module-registry.yaml`. The two frozen slots (`feature-store`,
@@ -63,6 +63,19 @@ Source of truth:
   frontend UI changes. Evidence:
   `reports/stabilization/m4-ex3-frontend-readonly-proof-20260505.md` and
   `reports/stabilization/m4-ex3-frontend-readonly-proof-20260505.json`.
+- M4.9 subsystem scope decision was recorded on 2026-05-06:
+  `subsystem-holdings` is the next P0 domain extension, but this assembly PR
+  does not scaffold the producer. Future holdings work must read only
+  data-platform canonical/mart outputs, submit the existing
+  `Ex3CandidateGraphDelta` through `subsystem-sdk`, keep contracts unchanged,
+  and limit new holdings graph relations to `CO_HOLDING` /
+  `NORTHBOUND_HOLD`. Top-shareholder and pledge status facts stay on
+  `OWNERSHIP` plus properties. `subsystem-financial-doc` is deferred until
+  M4.7 real-document validation and holdings usefulness evidence are both in
+  place; M4.7 remains partial and M4.8 remains a future validation gate.
+  Evidence:
+  `reports/stabilization/m4-9-holdings-scope-decision-20260506.md` and
+  `reports/stabilization/m4-9-holdings-scope-decision-20260506.json`.
 - Compatibility matrix records 4 verified rows:
   - `lite-local` (default): `verified_at: 2026-04-24T05:24:14Z` (Stage
     5 re-verification after audit-eval pin sync 0.2.2 → 0.2.5;
@@ -110,15 +123,19 @@ M4 priority order:
    Ex-3 signal artifacts through GET-only TestClient evidence. Live API/UI
    smoke remains blocked when required env/server setup is absent, and this
    proof does not close G4/P5.
-4. **Companion PR sequencing**: land the SDK/data-platform/graph-engine/
-   assembly bridge diffs and evidence together before any holdings subsystem
-   work is treated as production-relevant.
-5. **M4.7/M4.8 validation gates**: keep Docling/LlamaIndex at partial until
-   10-20 representative A-share documents parse successfully; keep entity
-   resolution proof fail-closed with unresolved cases audited.
-6. **M4.9 subsystem scope decision**: explicitly record that
-   subsystem-holdings is the next P0 domain extension and
-   subsystem-financial-doc remains gated behind M4.7 and holdings evidence.
+4. **M4.7/M4.8 validation gates**: M4.7 remains partial until
+   representative A-share documents parse successfully; M4.8 remains the
+   future validation gate for entity resolution and fail-closed unresolved
+   cases.
+5. **M4.9 subsystem scope decision**: scope decision is recorded.
+   `subsystem-holdings` is the next P0 domain extension, but the producer is
+   not scaffolded here. It must read data-platform canonical/mart outputs
+   only, submit existing `Ex3CandidateGraphDelta` through `subsystem-sdk`,
+   and avoid contract/subtype changes. `subsystem-financial-doc` remains
+   gated behind M4.7 real-document validation and holdings usefulness.
+6. **Graph-engine #55 follow-up**: after holdings producer proof exists,
+   supersede the old financial-doc/contracts-subtype #55 scope and narrow it
+   to holdings-only propagation.
 
 ## Lite stack quickstart
 
@@ -220,11 +237,19 @@ fails the test suite if MD ⇄ YAML drifts.
 
 ## Next steps
 
-- **M4 production bridge closure** — review and land the existing M4.1-M4.4
-  companion diffs and live proof evidence together before any new subsystem
-  is treated as production-relevant. M4.5 remains an implementation gate
-  using the M3.5 L6 graph-context decision; M4.7 and M4.8 remain the
-  follow-on validation gates for documents and entity resolution.
+- **M4.9 holdings scope handoff** — use
+  `reports/stabilization/m4-9-holdings-scope-decision-20260506.md` as the
+  boundary for the next P0 domain extension. Do not scaffold
+  `subsystem-holdings` until its producer work can prove canonical/mart-only
+  inputs and existing `Ex3CandidateGraphDelta` submission through
+  `subsystem-sdk`; do not use M4.9 to start financial-doc work.
+- **M4.7/M4.8 validation gates** — M4.7 remains partial until
+  real-document parsing is validated on representative A-share documents.
+  M4.8 remains the future entity-resolution validation gate with unresolved
+  cases handled fail-closed.
+- **M4 production bridge closure upkeep** — keep the M4.1-M4.6 bridge and
+  read-only evidence linked to their recorded reports. Future subsystem work
+  must not be treated as producer-complete without fresh proof.
 - **frontend-api matrix evidence upkeep** — keep the
   `lite-local-readonly-ui` verified row bound to its recorded
   smoke/e2e/contract-suite evidence. Do not mutate historical verified
