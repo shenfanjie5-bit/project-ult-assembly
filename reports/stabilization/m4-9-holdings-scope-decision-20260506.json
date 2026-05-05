@@ -10,7 +10,8 @@
   "milestones": {
     "m4_7": "partial_real_document_validation_open",
     "m4_8": "future_validation_gate",
-    "m4_9": "decision_recorded"
+    "m4_9": "decision_recorded",
+    "post_pr1_3_readiness_handoff": "recorded"
   },
   "decision": {
     "next_p0_domain_extension": "subsystem-holdings",
@@ -24,7 +25,8 @@
   "producer_boundary": {
     "allowed_inputs": [
       "data-platform canonical outputs",
-      "data-platform mart outputs"
+      "data-platform mart outputs",
+      "data-platform derivation marts"
     ],
     "disallowed_inputs": [
       "Tushare direct client calls",
@@ -33,10 +35,55 @@
       "provider-specific source tables"
     ],
     "submission_path": "existing Ex3CandidateGraphDelta through subsystem-sdk",
+    "entity_alignment_required": true,
+    "unresolved_entity_handling": "fail_closed_with_audit",
     "contracts_changed": false,
     "holdings_specific_subtype_added": false,
     "issue_81_state": "CLOSED_NOT_PLANNED",
     "derivations_or_backfill_included": false
+  },
+  "post_pr1_3_readiness_handoff": {
+    "data_platform_holdings_live_smoke": {
+      "status": "complete",
+      "interfaces_covered": [
+        "top10_holders",
+        "top10_floatholders",
+        "fund_portfolio",
+        "hsgt_top10",
+        "hsgt_hold_top10"
+      ],
+      "evidence_path": "data-platform/docs/evidence/holdings-live-smoke-20260506.md",
+      "token_and_code_scope": "redacted"
+    },
+    "backfill_orchestration": {
+      "status": "merged_available",
+      "data_platform_pr": "#102",
+      "commit": "9629604dae9ed64dafd4d6c223e8b89941f6ad72",
+      "bounded_inputs_only": true,
+      "default_plan_only": true,
+      "live_execution_explicit_opt_in": true
+    },
+    "derivation_marts": {
+      "status": "merged_available",
+      "data_platform_pr": "#103",
+      "commit": "32289f14252d530fab6cc1aed46c2f0cd5b7c39e",
+      "read_only_producer_inputs": [
+        "top-holder QoQ change",
+        "fund co-holding",
+        "northbound z-score"
+      ]
+    },
+    "evidence_docs": {
+      "status": "merged",
+      "data_platform_pr": "#104",
+      "commit": "81f3a57ee3fde8d1dc2a157737af2cd2abba91e5",
+      "evidence_path": "data-platform/docs/evidence/holdings-backfill-derivation-evidence-20260506.md"
+    },
+    "live_backfill": {
+      "executed": false,
+      "token_status": "DP_TUSHARE_TOKEN=SET/redacted",
+      "blocker": "DP_TUSHARE_LIVE_HOLDINGS_BACKFILL missing"
+    }
   },
   "graph_relation_scope": {
     "allowed_relation_types": [
@@ -49,6 +96,7 @@
   },
   "graph_engine_follow_up": {
     "issue": "#55",
+    "state": "OPEN_UNIMPLEMENTED",
     "required_future_scope": "holdings-only propagation after producer proof",
     "must_supersede_old_scope": [
       "financial-doc",
