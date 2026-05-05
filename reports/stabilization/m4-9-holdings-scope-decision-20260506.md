@@ -16,6 +16,8 @@ change contracts, and does not perform derivations or backfill.
 - Evidence type: docs-only scope decision with a structured JSON sibling.
 - Structured artifact:
   `reports/stabilization/m4-9-holdings-scope-decision-20260506.json`.
+- Post-PR1-3 handoff: recorded after the data-platform holdings live smoke,
+  backfill orchestration, derivation marts, and evidence/docs PRs landed.
 
 ## Decision
 
@@ -26,11 +28,39 @@ requiring new document parsing, new contract subtypes, or raw provider access.
 This PR only records the scope decision. The producer repository, runtime
 wiring, tests, and proof artifacts remain future work.
 
+## Post-PR1-3 Readiness Handoff
+
+Data-platform holdings readiness is now available for downstream planning, but
+the future `subsystem-holdings` producer still needs its own bounded proof.
+
+- Holdings live smoke is complete in data-platform for five promoted
+  interfaces: `top10_holders`, `top10_floatholders`, `fund_portfolio`,
+  `hsgt_top10`, and `hsgt_hold_top10`. Curated evidence is repo-relative at
+  `data-platform/docs/evidence/holdings-live-smoke-20260506.md`; token status
+  and code scopes are redacted, and no provider payloads or raw logs are
+  recorded here.
+- Backfill orchestration is merged and available via data-platform PR #102 /
+  commit `9629604dae9ed64dafd4d6c223e8b89941f6ad72`. It requires bounded
+  inputs, defaults to plan-only, and live execution remains explicit opt-in.
+- Derivation marts are merged and available via data-platform PR #103 /
+  commit `32289f14252d530fab6cc1aed46c2f0cd5b7c39e`. The read-only producer
+  inputs are top-holder quarter-over-quarter change, fund co-holding, and
+  northbound z-score.
+- Data-platform evidence/docs are merged via PR #104 / commit
+  `81f3a57ee3fde8d1dc2a157737af2cd2abba91e5`.
+- Live backfill was not executed. The recorded local status was
+  `DP_TUSHARE_TOKEN=SET/redacted` with blocker
+  `DP_TUSHARE_LIVE_HOLDINGS_BACKFILL missing`.
+
 ## Producer Boundary
 
 - `subsystem-holdings` must read data-platform canonical or mart outputs only.
+- `subsystem-holdings` must use the data-platform derivation marts only as
+  read-only inputs.
 - `subsystem-holdings` must not call Tushare, raw provider clients, raw-zone
   storage, or provider-specific source tables directly.
+- `subsystem-holdings` must perform entity alignment and must fail closed with
+  unresolved-entity audit records when alignment is incomplete.
 - `subsystem-holdings` must submit only the existing
   `Ex3CandidateGraphDelta` shape through `subsystem-sdk`.
 - `contracts` remain unchanged.
@@ -60,10 +90,10 @@ subtypes in this scope decision.
 
 ## Graph-Engine Follow-Up
 
-`graph-engine #55` must be narrowed later to holdings-only propagation after
-producer proof exists. The future #55 scope must supersede the older
-financial-doc / contracts-subtype scope and must not assume financial-doc
-availability.
+`graph-engine #55` remains open and unimplemented. It must be narrowed later to
+holdings-only propagation after producer proof exists. The future #55 scope
+must supersede the older financial-doc / contracts-subtype scope and must not
+assume financial-doc availability.
 
 The dependency order is:
 

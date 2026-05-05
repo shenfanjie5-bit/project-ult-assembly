@@ -76,6 +76,19 @@ Source of truth:
   Evidence:
   `reports/stabilization/m4-9-holdings-scope-decision-20260506.md` and
   `reports/stabilization/m4-9-holdings-scope-decision-20260506.json`.
+- M4.9 post-PR1-3 readiness handoff is recorded. Data-platform holdings live
+  smoke covers all five promoted interfaces with curated evidence at
+  `data-platform/docs/evidence/holdings-live-smoke-20260506.md` and redacted
+  token/code scope status only. Backfill orchestration is merged via
+  data-platform PR #102 commit `9629604dae9ed64dafd4d6c223e8b89941f6ad72`
+  with bounded inputs, default plan-only mode, and explicit live opt-in.
+  Derivation marts are merged via PR #103 commit
+  `32289f14252d530fab6cc1aed46c2f0cd5b7c39e` as read-only producer inputs:
+  top-holder QoQ change, fund co-holding, and northbound z-score.
+  Data-platform evidence/docs are merged via PR #104 commit
+  `81f3a57ee3fde8d1dc2a157737af2cd2abba91e5`. Live backfill was not
+  executed: `DP_TUSHARE_TOKEN=SET/redacted` and
+  `DP_TUSHARE_LIVE_HOLDINGS_BACKFILL missing`.
 - Compatibility matrix records 4 verified rows:
   - `lite-local` (default): `verified_at: 2026-04-24T05:24:14Z` (Stage
     5 re-verification after audit-eval pin sync 0.2.2 → 0.2.5;
@@ -130,12 +143,16 @@ M4 priority order:
 5. **M4.9 subsystem scope decision**: scope decision is recorded.
    `subsystem-holdings` is the next P0 domain extension, but the producer is
    not scaffolded here. It must read data-platform canonical/mart outputs
-   only, submit existing `Ex3CandidateGraphDelta` through `subsystem-sdk`,
-   and avoid contract/subtype changes. `subsystem-financial-doc` remains
-   gated behind M4.7 real-document validation and holdings usefulness.
+  and derivation marts only, perform entity alignment with fail-closed
+  unresolved audit records, submit existing `Ex3CandidateGraphDelta` through
+  `subsystem-sdk`, and avoid contract/subtype changes. Relations are limited
+  to `CO_HOLDING` / `NORTHBOUND_HOLD`; top-shareholder and pledge facts stay
+   on `OWNERSHIP` plus properties. `contracts #81` remains CLOSED /
+   NOT_PLANNED. `subsystem-financial-doc` remains gated behind M4.7
+   real-document validation and holdings usefulness.
 6. **Graph-engine #55 follow-up**: after holdings producer proof exists,
-   supersede the old financial-doc/contracts-subtype #55 scope and narrow it
-   to holdings-only propagation.
+   supersede the old financial-doc/contracts-subtype #55 scope and narrow the
+   still-open, unimplemented issue to holdings-only propagation.
 
 ## Lite stack quickstart
 
@@ -239,10 +256,12 @@ fails the test suite if MD ⇄ YAML drifts.
 
 - **M4.9 holdings scope handoff** — use
   `reports/stabilization/m4-9-holdings-scope-decision-20260506.md` as the
-  boundary for the next P0 domain extension. Do not scaffold
-  `subsystem-holdings` until its producer work can prove canonical/mart-only
-  inputs and existing `Ex3CandidateGraphDelta` submission through
-  `subsystem-sdk`; do not use M4.9 to start financial-doc work.
+  boundary for the next P0 domain extension. Data-platform PR #102 / #103 /
+  #104 are merged, but do not scaffold `subsystem-holdings` until its producer
+  work can prove canonical/mart-only read inputs, entity alignment with
+  fail-closed unresolved audit, and existing `Ex3CandidateGraphDelta`
+  submission through `subsystem-sdk`; do not use M4.9 to start financial-doc
+  work or graph-engine #55 propagation.
 - **M4.7/M4.8 validation gates** — M4.7 remains partial until
   real-document parsing is validated on representative A-share documents.
   M4.8 remains the future entity-resolution validation gate with unresolved
