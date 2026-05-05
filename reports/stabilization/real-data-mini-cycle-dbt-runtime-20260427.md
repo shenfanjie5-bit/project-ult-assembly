@@ -43,7 +43,7 @@ No dbt step was mocked or skipped.
 Focused tests:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+cd <workspace-root>/data-platform
 .venv/bin/python -m pytest tests/dbt/test_dbt_wrapper.py tests/integration/test_daily_refresh.py -q
 ```
 
@@ -52,7 +52,7 @@ Result: `10 passed, 1 skipped`.
 Whitespace check:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+cd <workspace-root>/data-platform
 git diff --check
 ```
 
@@ -61,15 +61,15 @@ Result: pass.
 Real `daily_refresh` dbt/canonical path:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+cd <workspace-root>/data-platform
 DP_PG_DSN=<set to temporary dp_real_mini_cycle_* database> \
 DP_TUSHARE_TOKEN=<set from shell env, value not printed> \
 DP_RAW_ZONE_PATH=<bounded temp raw path> \
 DP_ICEBERG_WAREHOUSE_PATH=<bounded temp warehouse path> \
 DP_DUCKDB_PATH=<bounded temp DuckDB path> \
 DP_ICEBERG_CATALOG_NAME=<bounded temp catalog> \
-DP_DBT_EXECUTABLE=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/dbt \
-PYTHON=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python \
+DP_DBT_EXECUTABLE=<workspace-root>/assembly/.venv-py312/bin/dbt \
+PYTHON=<workspace-root>/assembly/.venv-py312/bin/python \
 ./scripts/daily_refresh.sh --date 20260415 --select stock_basic,daily \
   --json-report <artifact>
 ```
