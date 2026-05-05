@@ -134,6 +134,12 @@ docker compose -f compose/lite-local.yaml --env-file .env ps        # 4/4 should
 docker compose -f compose/lite-local.yaml --env-file .env down -v   # tear down + drop volumes
 ```
 
+In the local workspace, `assembly/.env` is a symlink to `../.env`. Keep real
+credentials in the workspace-level `project-ult/.env`; the subproject `.env`
+path exists only so compose and `assembly --env-file .env` commands continue
+to work from this directory. Update or rotate values in `../.env`, not by
+creating a second local copy.
+
 Required `.env` keys (loaded by `lite-local.yaml` into all 4
 containers): `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`,
 `POSTGRES_PASSWORD`, `POSTGRES_DB`, `NEO4J_AUTH`, `NEO4J_HEAP_INITIAL`,

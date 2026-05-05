@@ -27,13 +27,13 @@
 Command shape:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+cd <workspace-root>/data-platform
 DATABASE_URL=<set from local Docker PG env, value not printed> \
-DP_TUSHARE_TOKEN=<set from untracked assembly/.env, value not printed> \
+DP_TUSHARE_TOKEN=<set from shell env, value not printed> \
 .venv/bin/python scripts/mini_cycle_runtime_bootstrap.py \
-  --base-dir /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-pg-runtime-artifacts/runtime \
+  --base-dir <workspace-root>/assembly/reports/stabilization/real-data-mini-cycle-pg-runtime-artifacts/runtime \
   --profile-name batch-b-20260427-090300 \
-  --json-report /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-pg-runtime-artifacts/runtime-preflight.json \
+  --json-report <workspace-root>/assembly/reports/stabilization/real-data-mini-cycle-pg-runtime-artifacts/runtime-preflight.json \
   --create-pg-database \
   --admin-dsn-env DATABASE_URL \
   --print-json
@@ -96,9 +96,9 @@ Result: `25 passed`.
 Command shape:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+cd <workspace-root>/data-platform
 DP_PG_DSN=<set in process env, value not printed> \
-DP_TUSHARE_TOKEN=<set from untracked assembly/.env, value not printed> \
+DP_TUSHARE_TOKEN=<set from shell env, value not printed> \
 DP_RAW_ZONE_PATH=<bounded artifact path> \
 DP_ICEBERG_WAREHOUSE_PATH=<bounded artifact path> \
 DP_DUCKDB_PATH=<bounded artifact path> \
@@ -106,9 +106,9 @@ DP_ICEBERG_CATALOG_NAME=data_platform_real_mini_cycle_batch_b_20260427_090300 \
 DP_ENV=test \
 .venv/bin/python scripts/real_data_mini_cycle_probe.py \
   --dates 20260415 \
-  --symbols 600519.SH,000001.SZ,000063.SZ \
-  --artifact-dir /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-pg-runtime-artifacts/probe-artifacts \
-  --json-report /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-pg-runtime-artifacts/real-data-mini-cycle-probe-pg-runtime.json \
+  --symbols <redacted:bounded-ts-codes> \
+  --artifact-dir <workspace-root>/assembly/reports/stabilization/real-data-mini-cycle-pg-runtime-artifacts/probe-artifacts \
+  --json-report <workspace-root>/assembly/reports/stabilization/real-data-mini-cycle-pg-runtime-artifacts/real-data-mini-cycle-probe-pg-runtime.json \
   --print-json
 ```
 
@@ -147,10 +147,10 @@ Accurate failure point:
 
 - `reports/stabilization/real-data-mini-cycle-pg-runtime-artifacts/runtime-preflight.json`
 - `reports/stabilization/real-data-mini-cycle-pg-runtime-artifacts/runtime-env-status.txt`
-- `reports/stabilization/real-data-mini-cycle-pg-runtime-artifacts/migrations.stdout.txt`
-- `reports/stabilization/real-data-mini-cycle-pg-runtime-artifacts/init-catalog.stdout.txt`
-- `reports/stabilization/real-data-mini-cycle-pg-runtime-artifacts/cycle-formal-metadata.stdout.txt`
-- `reports/stabilization/real-data-mini-cycle-pg-runtime-artifacts/focused-pytest.stdout.txt`
+- Curated summaries for migrations, catalog initialization, cycle/formal
+  metadata, and focused pytest results are recorded in the sections above;
+  operator raw log files are represented only as `<redacted:raw-runtime-log>`
+  and are not part of the committed curated proof.
 - `reports/stabilization/real-data-mini-cycle-pg-runtime-artifacts/probe-artifacts/daily-refresh-real-probe-20260415.json`
 - `reports/stabilization/real-data-mini-cycle-pg-runtime-artifacts/real-data-mini-cycle-probe-pg-runtime.json`
 
@@ -162,7 +162,7 @@ Secret scan:
 ## Verification
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+cd <workspace-root>/data-platform
 .venv/bin/python -m pytest -q \
   tests/scripts/test_mini_cycle_runtime_bootstrap.py \
   tests/integration/test_real_data_mini_cycle_probe.py \
@@ -173,7 +173,7 @@ cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
 Result: `25 passed`.
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/assembly
+cd <workspace-root>/assembly
 python3 <secret-value-scan for real-data-mini-cycle-pg-runtime-artifacts>
 ```
 

@@ -21,7 +21,7 @@ Result:
 
 ```text
 DP_PG_DSN=missing
-DP_TUSHARE_TOKEN=missing
+DP_TUSHARE_TOKEN=<redacted>
 DATABASE_URL=missing
 ```
 
@@ -36,7 +36,7 @@ Impact:
 
 Code reference:
 
-- `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/cycle/current_selection.py`
+- `<workspace-root>/data-platform/src/data_platform/cycle/current_selection.py`
   lines 255-391.
 
 Observed behavior:
@@ -57,7 +57,7 @@ Archived Raw Zone proof command:
 .venv/bin/python - <<'PY'
 from data_platform.cycle.current_selection import select_current_cycle
 selection = select_current_cycle(
-    raw_zone_path="/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-runtime-unblock-artifacts/raw"
+    raw_zone_path="<workspace-root>/assembly/reports/stabilization/real-data-mini-cycle-runtime-unblock-artifacts/raw"
 )
 print(selection.evidence)
 PY
@@ -83,19 +83,19 @@ Additional blocked artifact checks:
 Code references:
 
 - `freeze_current_cycle_candidates()`:
-  `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/cycle/current_selection.py`
+  `<workspace-root>/data-platform/src/data_platform/cycle/current_selection.py`
   lines 428-470.
 - Underlying transaction:
-  `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/cycle/freeze.py`
+  `<workspace-root>/data-platform/src/data_platform/cycle/freeze.py`
   uses `with repository.begin() as connection`.
 - Repository transaction body:
-  `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/cycle/repository.py`
+  `<workspace-root>/data-platform/src/data_platform/cycle/repository.py`
   `freeze_selection()` performs row lock, `INSERT ... SELECT`, metadata update,
   and return in the caller transaction.
 
 New wrapper evidence added:
 
-- `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tests/cycle/test_current_selection.py`
+- `<workspace-root>/data-platform/tests/cycle/test_current_selection.py`
   lines 215-247: default wrapper uses real PG `get_cycle`,
   `freeze_cycle_candidates`, and `load_frozen_candidate_ids` when a DSN is
   available.
@@ -128,7 +128,7 @@ path because no DSN is configured.
 
 2026-04-28 provider-neutral addendum:
 
-- `/Users/fanjie/Desktop/Cowork/tushare全部可用接口.csv` is now treated as
+- `<workspace-root>/tushare全部可用接口.csv` is now treated as
   Tushare provider availability inventory, not as the Project ULT business API
   contract.
 - The inventory contains 138 available provider interface rows. This does not
@@ -139,7 +139,7 @@ path because no DSN is configured.
   an interface can enter curated marts, production daily-cycle, graph, reasoner,
   frontend-api, or formal serving.
 - Detailed boundary evidence:
-  `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-provider-neutral-tushare-catalog-20260428.md`.
+  `reports/stabilization/p1-provider-neutral-tushare-catalog-20260428.md`.
 
 Inventory command:
 
