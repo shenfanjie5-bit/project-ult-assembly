@@ -102,8 +102,10 @@ The proof boundary is intentionally narrow:
 
 Data-platform holdings readiness is now available for downstream planning. The
 `subsystem-holdings` producer has bounded read-only mart adapter proof, PR #5
-blocker evidence, and newer attempt2 runtime PASS status awaiting sibling
-evidence PR tracking.
+blocker evidence, and newer attempt2 runtime PASS status with tracked sibling
+evidence merged via data-platform PR #107 commit
+`841f7c0f95e8c613e5bac9fe0fe78c09e1f9f152` and `subsystem-holdings` PR #9
+commit `b046ecf6b54220ceedf517089ebcc883571184d1`.
 
 - Holdings live smoke is complete in data-platform for five promoted
   interfaces: `top10_holders`, `top10_floatholders`, `fund_portfolio`,
