@@ -12,7 +12,7 @@ Source of truth:
 - `CLAUDE.md` (project-specific guardrails — boundary rules, blocker
   triggers, KPI baselines)
 
-## Current state — stabilization gate passed + M4.9 scope decision recorded
+## Current state — stabilization gate passed + M4.9 holdings blockers recorded
 
 - 13 of 15 module slots are `integration_status: verified` per
   `module-registry.yaml`. The two frozen slots (`feature-store`,
@@ -70,13 +70,21 @@ Source of truth:
   PR #2 commit `b62cb0b98348f5d5f090397200430edfae2c54b4`; the read-only mart
   adapter proof landed via PR #3 commit
   `752c9842d75048a12b28472ed55c83615f7bd199`; evidence landed via PR #4 commit
-  `41ac033125fab3f810b98ad5e7ad5c5606ae227a`. The completed proof remains
-  non-live, fixture/local DuckDB backed, and limited to a read-only SELECT path.
-  It does not prove live producer execution, live holdings backfill, provider
-  calls from `subsystem-holdings`, production queue propagation, or live graph
-  propagation. Contracts remain unchanged, no holdings-specific subtype is
-  introduced, and `contracts #81` remains CLOSED / NOT_PLANNED. M4.7 remains
-  partial; M4.8 remains a future validation gate. Evidence:
+  `41ac033125fab3f810b98ad5e7ad5c5606ae227a`. PR #5 blocker evidence landed
+  via commit `abfa7603484acc3a0bb09887a4332d490be05046` at
+  `subsystem-holdings/docs/evidence/live-producer-proof-blockers-20260506.md`.
+  Assembly was already aligned at the boundary level and is now synced to the
+  PR #5 exact blockers: `DP_TUSHARE_LIVE_HOLDINGS_BACKFILL` is missing; the
+  configured DuckDB target is missing; no available DuckDB/database contains
+  all required holdings mart tables; processed data and data storage root
+  targets are missing; and complete mart plus lineage inputs are not available
+  for live producer proof. The completed proof remains non-live, fixture/local
+  DuckDB backed, and limited to a read-only SELECT path. No live producer
+  proof, live holdings backfill, provider call from `subsystem-holdings`,
+  production queue/live graph proof, graph-engine #55 entry, or
+  contracts/subtype change is claimed. `contracts #81` remains CLOSED /
+  NOT_PLANNED. M4.7 remains partial; M4.8 remains a future validation gate.
+  Evidence:
   `reports/stabilization/m4-9-holdings-scope-decision-20260506.md` and
   `reports/stabilization/m4-9-holdings-scope-decision-20260506.json`.
 - M4.9 post-PR1-3 readiness handoff is recorded. Data-platform holdings live
@@ -145,16 +153,18 @@ M4 priority order:
    cases.
 5. **M4.9 subsystem scope decision**: scope decision and handoff are recorded.
    `subsystem-holdings` is the next P0 domain extension. Its producer scaffold
-   exists, and the real read-only mart adapter proof is complete, but the proof
-   is non-live, fixture/local DuckDB backed, and limited to read-only SELECT
-   access. No live producer proof, live holdings backfill, provider call from
-   `subsystem-holdings`, production queue propagation, or live graph propagation
-   is claimed. It must continue to use existing `Ex3CandidateGraphDelta`
-   submission through `subsystem-sdk` and avoid contract/subtype changes.
-   Relations are limited to `CO_HOLDING` / `NORTHBOUND_HOLD`; top-shareholder
-   and pledge facts stay on `OWNERSHIP` plus properties. `contracts #81`
-   remains CLOSED / NOT_PLANNED. `subsystem-financial-doc` remains gated behind
-   M4.7 real-document validation and holdings usefulness.
+   exists, the real read-only mart adapter proof is complete, and PR #5 exact
+   live producer blockers are recorded. The proof is non-live, fixture/local
+   DuckDB backed, and limited to read-only SELECT access. No live producer
+   proof, live holdings backfill, provider call from `subsystem-holdings`,
+   production queue/live graph proof, graph-engine #55 entry, or
+   contracts/subtype change is claimed. It must continue to use existing
+   `Ex3CandidateGraphDelta` submission through `subsystem-sdk` and avoid
+   contract/subtype changes. Relations are limited to `CO_HOLDING` /
+   `NORTHBOUND_HOLD`; top-shareholder and pledge facts stay on `OWNERSHIP`
+   plus properties. `contracts #81` remains CLOSED / NOT_PLANNED.
+   `subsystem-financial-doc` remains gated behind M4.7 real-document validation
+   and holdings usefulness.
 6. **Graph-engine #55 follow-up**: graph-engine #55 remains not entered and
    unimplemented. This handoff does not shift #56/#55 scope, and the old
    financial-doc/contracts-subtype #55 scope must not be revived through M4.9.
