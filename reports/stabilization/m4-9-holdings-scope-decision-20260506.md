@@ -167,7 +167,7 @@ This is historical blocker evidence, not the current terminal state:
 - Commit: `abfa7603484acc3a0bb09887a4332d490be05046`.
 - Evidence path:
   `subsystem-holdings/docs/evidence/live-producer-proof-blockers-20260506.md`.
-- Handoff meaning: assembly was already aligned at the boundary level and is
+- Handoff meaning: assembly was already aligned at the boundary level and
   keeps the PR #5 blocker evidence as historical context.
 
 The blocker class was missing live backfill and complete mart/lineage inputs.
@@ -221,9 +221,10 @@ scope and must not assume financial-doc availability.
 The dependency order is:
 
 1. Keep this M4.9 scope decision and handoff as the assembly boundary.
-2. Add a separate live producer proof only when live execution is intentionally
-   in scope.
-3. Only then enter graph-engine #55 propagation work.
+2. Treat the bounded live producer proof as merged sibling evidence through
+   `subsystem-holdings` PR #9.
+3. Enter queue propagation, live graph propagation, and graph-engine #55 only
+   when that work is explicitly planned.
 
 ## Financial-Doc Gate
 
@@ -248,16 +249,19 @@ unresolved entities.
 
 ## Scope Exclusions
 
+These exclusions do not negate the bounded live backfill and producer proof
+evidence already merged through data-platform PR #107 and `subsystem-holdings`
+PR #9.
+
 This decision does not:
 
 - modify `data-platform`, `contracts`, `graph-engine`, or any sibling repo;
-- add data derivations, backfill, or raw-provider ingestion;
+- add new data derivations, additional backfill, or raw-provider ingestion;
 - add holdings-specific contract classes, subtypes, or relation contracts;
-- claim live producer execution;
-- claim live holdings backfill;
-- claim provider calls from `subsystem-holdings`;
 - claim production queue propagation or live graph propagation;
 - enter graph-engine #55;
+- add contracts subtype scope;
+- claim financial-doc scope;
 - claim that M4.7 or M4.8 is complete;
 - start `subsystem-financial-doc`.
 

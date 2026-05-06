@@ -99,9 +99,10 @@ Source of truth:
   `32289f14252d530fab6cc1aed46c2f0cd5b7c39e` as read-only producer inputs:
   top-holder QoQ change, fund co-holding, and northbound z-score.
   Data-platform evidence/docs are merged via PR #104 commit
-  `81f3a57ee3fde8d1dc2a157737af2cd2abba91e5`. Live backfill was not
-  executed; credential status was redacted and the explicit live opt-in gate
-  was absent.
+  `81f3a57ee3fde8d1dc2a157737af2cd2abba91e5`. That earlier no-live-backfill
+  blocker was superseded by attempt2 bounded live backfill evidence merged in
+  data-platform PR #107; this assembly handoff still does not enter queue
+  propagation, live graph propagation, or graph-engine #55.
 - Compatibility matrix records 4 verified rows:
   - `lite-local` (default): `verified_at: 2026-04-24T05:24:14Z` (Stage
     5 re-verification after audit-eval pin sync 0.2.2 → 0.2.5;
