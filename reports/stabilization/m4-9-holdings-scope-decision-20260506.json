@@ -1,5 +1,5 @@
 {
-  "status": "attempt2_live_proof_handoff_pending_sibling_evidence_prs",
+  "status": "attempt2_live_proof_handoff_sibling_evidence_merged",
   "recorded_at": "2026-05-07T00:00:00Z",
   "decision_date": "2026-05-06",
   "scope": "M4.9 subsystem scope decision, holdings adapter handoff, PR #5 live producer blockers, and attempt2 live proof handoff",
@@ -14,7 +14,7 @@
     "post_pr1_3_readiness_handoff": "recorded",
     "post_pr1_4_holdings_adapter_handoff": "recorded",
     "pr_5_live_producer_blocker_handoff": "recorded_historical",
-    "attempt2_live_proof_handoff": "runtime_pass_pending_sibling_evidence_prs"
+    "attempt2_live_proof_handoff": "runtime_pass_sibling_evidence_merged"
   },
   "decision": {
     "next_p0_domain_extension": "subsystem-holdings",
@@ -23,7 +23,7 @@
     "read_only_mart_adapter_proof_complete": true,
     "read_only_mart_adapter_proof_boundary": "non_live_fixture_local_duckdb_read_only_select",
     "attempt2_live_proof_runtime_status": "PASS_REPORTED",
-    "attempt2_tracked_evidence_state": "pending_sibling_evidence_prs_or_local_pending_evidence",
+    "attempt2_tracked_evidence_state": "sibling_evidence_prs_merged",
     "subsystem_financial_doc": "deferred",
     "financial_doc_gate": [
       "M4.7 real-document validation",
@@ -91,9 +91,9 @@
     "assembly_boundary_level_already_aligned": true,
     "assembly_synced_to_pr_5_exact_blockers": true,
     "blocker_class": "missing_live_backfill_and_complete_mart_lineage_inputs",
-    "superseded_for_current_handoff_by": "attempt2_runtime_pass_pending_sibling_evidence_prs",
+    "superseded_for_current_handoff_by": "attempt2_runtime_pass_sibling_evidence_merged",
     "not_claimed": {
-      "live_producer_proof": false,
+      "live_producer_proof_executed_by_assembly": false,
       "live_holdings_backfill": false,
       "provider_call_from_subsystem_holdings": false,
       "production_queue_proof": false,
@@ -104,7 +104,7 @@
   },
   "attempt2_live_proof_handoff": {
     "runtime_status": "PASS_REPORTED",
-    "tracked_evidence_state": "pending_sibling_evidence_prs_or_local_pending_evidence",
+    "tracked_evidence_state": "sibling_evidence_prs_merged",
     "data_platform_prs_landed": [
       "#105",
       "#106"
@@ -114,8 +114,20 @@
       "#7",
       "#8"
     ],
-    "evidence_pr_numbers_known": false,
-    "evidence_prs_claimed_merged": false,
+    "evidence_pr_numbers_known": true,
+    "evidence_prs_claimed_merged": true,
+    "tracked_evidence_prs": {
+      "data_platform": {
+        "pr": "#107",
+        "status": "merged",
+        "commit": "841f7c0f95e8c613e5bac9fe0fe78c09e1f9f152"
+      },
+      "subsystem_holdings": {
+        "pr": "#9",
+        "status": "merged",
+        "commit": "b046ecf6b54220ceedf517089ebcc883571184d1"
+      }
+    },
     "adapter_incomplete_top_holder_qoq_null_rows": {
       "behavior": "fail_closed_skip_diagnostic",
       "blocks_co_holding_or_northbound_hold": false
@@ -184,7 +196,7 @@
   "graph_engine_follow_up": {
     "issue": "#55",
     "state": "NOT_ENTERED_UNIMPLEMENTED",
-    "required_future_scope": "holdings-only propagation after tracked attempt2 evidence is available and graph-engine #55 is intentionally entered",
+    "required_future_scope": "holdings-only propagation after graph-engine #55 is intentionally entered",
     "does_not_shift_55_or_56_scope": true,
     "do_not_mix_55_and_56": true,
     "must_not_revive_old_scope": [
@@ -200,7 +212,7 @@
     "no derivations",
     "no backfill",
     "no financial-doc implementation",
-    "no live producer proof",
+    "no live producer proof executed by assembly",
     "no live holdings backfill",
     "no provider call from subsystem-holdings",
     "no production queue proof",

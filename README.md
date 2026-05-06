@@ -75,12 +75,13 @@ Source of truth:
   `subsystem-holdings/docs/evidence/live-producer-proof-blockers-20260506.md`.
   Data-platform PR #105 / #106 and `subsystem-holdings` PR #6 / #7 / #8 have
   since landed in sibling repos, and attempt2 live proof is reported as
-  runtime-verified PASS. Assembly does not track the live proof as merged here
-  until sibling evidence PRs are opened and merged; until PR numbers are known,
-  treat the next state as pending data-platform/subsystem-holdings attempt2
-  evidence PRs or local pending evidence. The subsystem-holdings adapter fix for
-  incomplete top-holder QoQ rows is fail-closed skip diagnostic behavior and is
-  not a blocker for `CO_HOLDING` / `NORTHBOUND_HOLD`. No queue submit, live
+  runtime-verified PASS. Tracked sibling evidence is now merged via
+  data-platform PR #107 commit
+  `841f7c0f95e8c613e5bac9fe0fe78c09e1f9f152` and `subsystem-holdings`
+  PR #9 commit `b046ecf6b54220ceedf517089ebcc883571184d1`. The
+  subsystem-holdings adapter fix for incomplete top-holder QoQ rows is
+  fail-closed skip diagnostic behavior and is not a blocker for `CO_HOLDING` /
+  `NORTHBOUND_HOLD`. No queue submit, live
   graph proof, graph-engine #55 entry, provider/backfill execution from
   assembly, financial-doc scope, or contracts/subtype change is claimed.
   `contracts #81` remains CLOSED / NOT_PLANNED. M4.7 remains partial; M4.8
@@ -157,8 +158,10 @@ M4 priority order:
    exists, the real read-only mart adapter proof is complete, and PR #5 blocker
    evidence is no longer the current terminal state. Data-platform PR #105 /
    #106 and `subsystem-holdings` PR #6 / #7 / #8 have landed, and attempt2
-   live proof is reported as runtime PASS, with tracked evidence expected in
-   sibling evidence PRs or local pending evidence until PR numbers are known.
+   live proof is reported as runtime PASS, with tracked sibling evidence merged
+   via data-platform PR #107 commit
+   `841f7c0f95e8c613e5bac9fe0fe78c09e1f9f152` and `subsystem-holdings`
+   PR #9 commit `b046ecf6b54220ceedf517089ebcc883571184d1`.
    Assembly still claims no queue submit, live graph proof, graph-engine #55
    entry, provider/backfill execution from assembly, financial-doc scope, or
    contracts/subtype change. It must continue to use existing
@@ -275,21 +278,21 @@ fails the test suite if MD ⇄ YAML drifts.
 - **M4.9 holdings scope handoff** — use
   `reports/stabilization/m4-9-holdings-scope-decision-20260506.md` as the
   boundary for the next P0 domain extension. Data-platform PR #102 through
-  #106 are merged, and `subsystem-holdings` PR #1 through #8 have landed.
-  Attempt2 live proof is reported as runtime PASS, but assembly points to the
-  forthcoming sibling evidence PRs, or local pending evidence while PR numbers
-  are unknown, as the next tracked state. Do not use M4.9 to claim queue
-  submit, live graph propagation, M4.7, M4.8, financial-doc work, contracts
-  subtype changes, or graph-engine #55 propagation.
+  #107 are merged, and `subsystem-holdings` PR #1 through #9 have landed.
+  Attempt2 live proof is reported as runtime PASS, and sibling evidence is
+  merged in data-platform PR #107 commit
+  `841f7c0f95e8c613e5bac9fe0fe78c09e1f9f152` plus `subsystem-holdings`
+  PR #9 commit `b046ecf6b54220ceedf517089ebcc883571184d1`. Do not use M4.9
+  to claim queue submit, live graph propagation, M4.7, M4.8, financial-doc
+  work, contracts subtype changes, or graph-engine #55 propagation.
 - **M4.7/M4.8 validation gates** — M4.7 remains partial until
   real-document parsing is validated on representative A-share documents.
   M4.8 remains the future entity-resolution validation gate with unresolved
   cases handled fail-closed.
 - **M4 production bridge closure upkeep** — keep the M4.1-M4.6 bridge and
   read-only evidence linked to their recorded reports. The current holdings
-  handoff is waiting on sibling attempt2 evidence PRs before assembly treats
-  the live proof as repository-tracked closure, and it must not be treated as
-  graph propagation closure.
+  handoff now points to merged sibling attempt2 evidence PRs #107 and #9, but
+  it must not be treated as graph propagation closure.
 - **frontend-api matrix evidence upkeep** — keep the
   `lite-local-readonly-ui` verified row bound to its recorded
   smoke/e2e/contract-suite evidence. Do not mutate historical verified

@@ -14,9 +14,10 @@ contracts, and does not perform derivations or backfill.
 - `subsystem-holdings` status: selected as the next P0 domain extension; its
   producer scaffold exists.
 - Read-only mart adapter proof: complete.
-- Proof boundary: attempt2 is reported as runtime-verified PASS, but assembly
-  tracks it as pending sibling evidence PRs or local pending evidence until
-  evidence PR numbers are known and merged.
+- Proof boundary: attempt2 is reported as runtime-verified PASS, and tracked
+  sibling evidence is merged via data-platform PR #107 commit
+  `841f7c0f95e8c613e5bac9fe0fe78c09e1f9f152` and `subsystem-holdings`
+  PR #9 commit `b046ecf6b54220ceedf517089ebcc883571184d1`.
 - Not proven by assembly: queue submit, live graph propagation, graph-engine
   #55 entry, provider/backfill execution from assembly, financial-doc scope, or
   contracts/subtype change.
@@ -36,8 +37,10 @@ contracts, and does not perform derivations or backfill.
   landed in `subsystem-holdings`.
 - Attempt2 live proof handoff: data-platform PR #105 / #106 and
   `subsystem-holdings` PR #6 / #7 / #8 have landed in sibling repos. Runtime
-  attempt2 is reported PASS, with tracked evidence expected in sibling evidence
-  PRs or local pending evidence while PR numbers are unknown.
+  attempt2 is reported PASS, with tracked evidence merged in data-platform
+  PR #107 commit `841f7c0f95e8c613e5bac9fe0fe78c09e1f9f152` and
+  `subsystem-holdings` PR #9 commit
+  `b046ecf6b54220ceedf517089ebcc883571184d1`.
 
 ## Decision
 
@@ -50,9 +53,8 @@ scaffold now exists in `subsystem-holdings`, and the real read-only mart
 adapter proof is complete. PR #5 blocker evidence is no longer the current
 terminal state: attempt2 live proof is reported as runtime PASS after
 data-platform PR #105 / #106 and `subsystem-holdings` PR #6 / #7 / #8 landed.
-Assembly still waits on sibling evidence PRs, or local pending evidence while
-PR numbers are unknown, before treating that proof as repository-tracked
-closure.
+Assembly now points to the merged sibling evidence PRs for repository-tracked
+handoff evidence.
 
 Assembly was already aligned at the boundary level. This update syncs assembly
 to the current attempt2 handoff without changing the boundary, contracts,
@@ -87,9 +89,8 @@ The proof boundary is intentionally narrow:
 
 - Historical PR #1 through #5 evidence remains bounded to non-live adapter and
   blocker evidence.
-- Attempt2 live proof is reported PASS in runtime, but tracked evidence remains
-  pending in sibling evidence PRs or local pending evidence while PR numbers are
-  unknown.
+- Attempt2 live proof is reported PASS in runtime, and tracked evidence is
+  merged in sibling evidence PRs #107 and #9.
 - No provider call from `subsystem-holdings`.
 - No live holdings backfill.
 - No production queue propagation proof.
@@ -122,9 +123,10 @@ evidence PR tracking.
 - Data-platform PR #105 / #106 are merged in sibling repo history. Assembly
   does not record provider payloads, runtime paths, secrets, or live execution
   traces for those changes.
-- Attempt2 live proof evidence is expected in sibling evidence PRs, or local
-  pending evidence while PR numbers are unknown. Assembly does not claim those
-  evidence PRs are merged.
+- Attempt2 live proof evidence is merged via data-platform PR #107 / commit
+  `841f7c0f95e8c613e5bac9fe0fe78c09e1f9f152` and
+  `subsystem-holdings` PR #9 / commit
+  `b046ecf6b54220ceedf517089ebcc883571184d1`.
 
 ## Producer Boundary
 
@@ -152,9 +154,8 @@ data-platform canonical / mart holdings outputs
 ```
 
 This path is not production-proven by the current holdings adapter evidence.
-Assembly is waiting on tracked attempt2 evidence PRs before treating runtime
-PASS as repository-tracked closure, and this handoff still does not enter live
-graph propagation.
+Assembly points to merged tracked attempt2 evidence PRs for handoff evidence,
+and this handoff still does not enter live graph propagation.
 
 ## PR #5 Live Producer Blocker Handoff
 
@@ -169,17 +170,16 @@ This is historical blocker evidence, not the current terminal state:
 
 The blocker class was missing live backfill and complete mart/lineage inputs.
 It has been superseded for handoff purposes by the attempt2 runtime PASS state,
-with sibling evidence PRs still pending or unknown.
+with sibling evidence now merged via PR #107 and PR #9.
 
 ## Attempt2 Live Proof Handoff
 
 - Data-platform PR #105 / #106 have landed in the sibling repo.
 - `subsystem-holdings` PR #6 / #7 / #8 have landed in the sibling repo.
 - Attempt2 live proof is reported as runtime-verified PASS.
-- Assembly does not claim the tracked evidence PRs are opened or merged. Until
-  those PR numbers are known, use commit-neutral wording: pending
-  data-platform/subsystem-holdings attempt2 evidence PRs, or local pending
-  evidence.
+- Tracked sibling evidence is merged via data-platform PR #107 commit
+  `841f7c0f95e8c613e5bac9fe0fe78c09e1f9f152` and `subsystem-holdings`
+  PR #9 commit `b046ecf6b54220ceedf517089ebcc883571184d1`.
 - The subsystem-holdings adapter fix for incomplete top-holder QoQ rows is
   fail-closed skip diagnostic behavior. It does not block `CO_HOLDING` /
   `NORTHBOUND_HOLD`.
