@@ -1,8 +1,8 @@
 {
-  "status": "live_producer_blocker_handoff_recorded",
-  "recorded_at": "2026-05-06T00:00:00Z",
+  "status": "attempt2_live_proof_handoff_pending_sibling_evidence_prs",
+  "recorded_at": "2026-05-07T00:00:00Z",
   "decision_date": "2026-05-06",
-  "scope": "M4.9 subsystem scope decision, holdings adapter handoff, and PR #5 live producer blockers",
+  "scope": "M4.9 subsystem scope decision, holdings adapter handoff, PR #5 live producer blockers, and attempt2 live proof handoff",
   "prerequisites": {
     "m4_6": "complete",
     "assembly_env_hygiene_pr_52_merge_commit": "a6bb671aff39cdd31db3ef28104e6119e13ad3ba"
@@ -13,7 +13,8 @@
     "m4_9": "decision_and_handoff_recorded",
     "post_pr1_3_readiness_handoff": "recorded",
     "post_pr1_4_holdings_adapter_handoff": "recorded",
-    "pr_5_live_producer_blocker_handoff": "recorded"
+    "pr_5_live_producer_blocker_handoff": "recorded_historical",
+    "attempt2_live_proof_handoff": "runtime_pass_pending_sibling_evidence_prs"
   },
   "decision": {
     "next_p0_domain_extension": "subsystem-holdings",
@@ -21,6 +22,8 @@
     "subsystem_holdings_producer_scaffold_exists": true,
     "read_only_mart_adapter_proof_complete": true,
     "read_only_mart_adapter_proof_boundary": "non_live_fixture_local_duckdb_read_only_select",
+    "attempt2_live_proof_runtime_status": "PASS_REPORTED",
+    "attempt2_tracked_evidence_state": "pending_sibling_evidence_prs_or_local_pending_evidence",
     "subsystem_financial_doc": "deferred",
     "financial_doc_gate": [
       "M4.7 real-document validation",
@@ -81,19 +84,14 @@
     }
   },
   "subsystem_holdings_live_producer_blocker_handoff": {
-    "status": "recorded",
+    "status": "recorded_historical_not_current_terminal_state",
     "subsystem_holdings_pr": "#5",
     "commit": "abfa7603484acc3a0bb09887a4332d490be05046",
     "evidence_path": "subsystem-holdings/docs/evidence/live-producer-proof-blockers-20260506.md",
     "assembly_boundary_level_already_aligned": true,
     "assembly_synced_to_pr_5_exact_blockers": true,
-    "exact_blockers": [
-      "DP_TUSHARE_LIVE_HOLDINGS_BACKFILL missing",
-      "configured DuckDB target missing",
-      "no available DuckDB/database contains all required holdings mart tables",
-      "processed data and data storage root targets missing",
-      "complete mart plus lineage inputs not available for live producer proof"
-    ],
+    "blocker_class": "missing_live_backfill_and_complete_mart_lineage_inputs",
+    "superseded_for_current_handoff_by": "attempt2_runtime_pass_pending_sibling_evidence_prs",
     "not_claimed": {
       "live_producer_proof": false,
       "live_holdings_backfill": false,
@@ -101,6 +99,33 @@
       "production_queue_proof": false,
       "live_graph_proof": false,
       "graph_engine_55_entered": false,
+      "contracts_or_subtype_change": false
+    }
+  },
+  "attempt2_live_proof_handoff": {
+    "runtime_status": "PASS_REPORTED",
+    "tracked_evidence_state": "pending_sibling_evidence_prs_or_local_pending_evidence",
+    "data_platform_prs_landed": [
+      "#105",
+      "#106"
+    ],
+    "subsystem_holdings_prs_landed": [
+      "#6",
+      "#7",
+      "#8"
+    ],
+    "evidence_pr_numbers_known": false,
+    "evidence_prs_claimed_merged": false,
+    "adapter_incomplete_top_holder_qoq_null_rows": {
+      "behavior": "fail_closed_skip_diagnostic",
+      "blocks_co_holding_or_northbound_hold": false
+    },
+    "not_claimed": {
+      "queue_submit": false,
+      "live_graph_proof": false,
+      "graph_engine_55_entered": false,
+      "provider_or_backfill_execution_from_assembly": false,
+      "financial_doc_scope": false,
       "contracts_or_subtype_change": false
     }
   },
@@ -142,7 +167,7 @@
       "evidence_path": "data-platform/docs/evidence/holdings-backfill-derivation-evidence-20260506.md"
     },
     "live_backfill": {
-      "executed": false,
+      "executed_by_assembly": false,
       "credential_status": "redacted",
       "explicit_live_opt_in_gate_present": false
     }
@@ -159,7 +184,7 @@
   "graph_engine_follow_up": {
     "issue": "#55",
     "state": "NOT_ENTERED_UNIMPLEMENTED",
-    "required_future_scope": "holdings-only propagation after separate live producer proof",
+    "required_future_scope": "holdings-only propagation after tracked attempt2 evidence is available and graph-engine #55 is intentionally entered",
     "does_not_shift_55_or_56_scope": true,
     "do_not_mix_55_and_56": true,
     "must_not_revive_old_scope": [
