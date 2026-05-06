@@ -1,8 +1,8 @@
 {
-  "status": "handoff_updated",
+  "status": "live_producer_blocker_handoff_recorded",
   "recorded_at": "2026-05-06T00:00:00Z",
   "decision_date": "2026-05-06",
-  "scope": "M4.9 subsystem scope decision and holdings adapter handoff",
+  "scope": "M4.9 subsystem scope decision, holdings adapter handoff, and PR #5 live producer blockers",
   "prerequisites": {
     "m4_6": "complete",
     "assembly_env_hygiene_pr_52_merge_commit": "a6bb671aff39cdd31db3ef28104e6119e13ad3ba"
@@ -12,7 +12,8 @@
     "m4_8": "future_validation_gate",
     "m4_9": "decision_and_handoff_recorded",
     "post_pr1_3_readiness_handoff": "recorded",
-    "post_pr1_4_holdings_adapter_handoff": "recorded"
+    "post_pr1_4_holdings_adapter_handoff": "recorded",
+    "pr_5_live_producer_blocker_handoff": "recorded"
   },
   "decision": {
     "next_p0_domain_extension": "subsystem-holdings",
@@ -79,6 +80,30 @@
       "live_graph_propagation": false
     }
   },
+  "subsystem_holdings_live_producer_blocker_handoff": {
+    "status": "recorded",
+    "subsystem_holdings_pr": "#5",
+    "commit": "abfa7603484acc3a0bb09887a4332d490be05046",
+    "evidence_path": "subsystem-holdings/docs/evidence/live-producer-proof-blockers-20260506.md",
+    "assembly_boundary_level_already_aligned": true,
+    "assembly_synced_to_pr_5_exact_blockers": true,
+    "exact_blockers": [
+      "DP_TUSHARE_LIVE_HOLDINGS_BACKFILL missing",
+      "configured DuckDB target missing",
+      "no available DuckDB/database contains all required holdings mart tables",
+      "processed data and data storage root targets missing",
+      "complete mart plus lineage inputs not available for live producer proof"
+    ],
+    "not_claimed": {
+      "live_producer_proof": false,
+      "live_holdings_backfill": false,
+      "provider_call_from_subsystem_holdings": false,
+      "production_queue_proof": false,
+      "live_graph_proof": false,
+      "graph_engine_55_entered": false,
+      "contracts_or_subtype_change": false
+    }
+  },
   "post_pr1_3_readiness_handoff": {
     "data_platform_holdings_live_smoke": {
       "status": "complete",
@@ -136,6 +161,7 @@
     "state": "NOT_ENTERED_UNIMPLEMENTED",
     "required_future_scope": "holdings-only propagation after separate live producer proof",
     "does_not_shift_55_or_56_scope": true,
+    "do_not_mix_55_and_56": true,
     "must_not_revive_old_scope": [
       "financial-doc",
       "contracts-subtype"
@@ -152,8 +178,10 @@
     "no live producer proof",
     "no live holdings backfill",
     "no provider call from subsystem-holdings",
-    "no production queue propagation proof",
-    "no live graph propagation proof",
+    "no production queue proof",
+    "no live graph proof",
+    "no graph-engine #55 entry",
+    "no contracts/subtype change",
     "no M4.7 closure",
     "no M4.8 closure"
   ],

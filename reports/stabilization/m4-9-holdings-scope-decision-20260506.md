@@ -3,9 +3,10 @@
 This report records the assembly-owned M4.9 subsystem scope decision and
 handoff after M4.6, assembly PR #52
 (`a6bb671aff39cdd31db3ef28104e6119e13ad3ba`), and the first four
-`subsystem-holdings` PRs landed. It is an assembly docs/report artifact only.
-It does not change code, does not change contracts, and does not perform
-derivations or backfill.
+`subsystem-holdings` PRs landed. It now also records the exact live producer
+blockers from `subsystem-holdings` PR #5. It is an assembly docs/report
+artifact only. It does not change code, does not change contracts, and does
+not perform derivations or backfill.
 
 ## Status
 
@@ -29,6 +30,8 @@ derivations or backfill.
 - Post-PR1-4 holdings adapter handoff: recorded after the
   `subsystem-holdings` scaffold, mart shape fidelity, read-only mart adapter,
   and evidence PRs landed.
+- PR #5 live producer blocker handoff: recorded after exact blocker evidence
+  landed in `subsystem-holdings`.
 
 ## Decision
 
@@ -41,6 +44,10 @@ scaffold now exists in `subsystem-holdings`, and the real read-only mart
 adapter proof is complete. Live producer execution, live holdings backfill,
 provider calls from `subsystem-holdings`, production queue propagation, and
 live graph propagation remain unproven.
+
+Assembly was already aligned at the boundary level. This update syncs assembly
+to the PR #5 exact live producer blockers without changing the boundary,
+contracts, subtype scope, graph-engine scope, or sibling repositories.
 
 ## Subsystem-Holdings Adapter Handoff
 
@@ -132,6 +139,36 @@ This path is not production-proven by the current holdings adapter evidence.
 The completed adapter proof stops at non-live, fixture/local DuckDB backed,
 read-only SELECT access.
 
+## PR #5 Live Producer Blocker Handoff
+
+`subsystem-holdings` PR #5 landed blocker evidence for the live producer proof:
+
+- Commit: `abfa7603484acc3a0bb09887a4332d490be05046`.
+- Evidence path:
+  `subsystem-holdings/docs/evidence/live-producer-proof-blockers-20260506.md`.
+- Handoff meaning: assembly was already aligned at the boundary level and is
+  now synced to the PR #5 exact blockers.
+
+Exact blockers:
+
+- `DP_TUSHARE_LIVE_HOLDINGS_BACKFILL` missing.
+- Configured DuckDB target missing.
+- No available DuckDB/database contains all required holdings mart tables.
+- Processed data and data storage root targets missing.
+- Complete mart plus lineage inputs not available for live producer proof.
+
+This evidence does not claim any of the following:
+
+- Live producer proof.
+- Live holdings backfill.
+- Provider call from `subsystem-holdings`.
+- Production queue or live graph proof.
+- Graph-engine #55 entry.
+- Contracts or subtype change.
+
+Graph-engine #55 remains not entered. This handoff must not mix #55 and #56
+scope and must not revive the older financial-doc / contracts-subtype scope.
+
 ## Graph Relation Scope
 
 M4.9 narrows holdings graph production to these relation types:
@@ -189,8 +226,8 @@ This decision does not:
 - claim live producer execution;
 - claim live holdings backfill;
 - claim provider calls from `subsystem-holdings`;
-- claim production queue propagation;
-- claim live graph propagation;
+- claim production queue propagation or live graph propagation;
+- enter graph-engine #55;
 - claim that M4.7 or M4.8 is complete;
 - start `subsystem-financial-doc`.
 
