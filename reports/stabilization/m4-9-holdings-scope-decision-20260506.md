@@ -3,10 +3,10 @@
 This report records the assembly-owned M4.9 subsystem scope decision and
 handoff after M4.6, assembly PR #52
 (`a6bb671aff39cdd31db3ef28104e6119e13ad3ba`), and the first four
-`subsystem-holdings` PRs landed. It now also records the exact live producer
-blockers from `subsystem-holdings` PR #5. It is an assembly docs/report
-artifact only. It does not change code, does not change contracts, and does
-not perform derivations or backfill.
+`subsystem-holdings` PRs landed. It records the PR #5 blocker state and the
+newer attempt2 live proof handoff state after sibling repo progress. It is an
+assembly docs/report artifact only. It does not change code, does not change
+contracts, and does not perform derivations or backfill.
 
 ## Status
 
@@ -14,10 +14,13 @@ not perform derivations or backfill.
 - `subsystem-holdings` status: selected as the next P0 domain extension; its
   producer scaffold exists.
 - Read-only mart adapter proof: complete.
-- Proof boundary: non-live, fixture/local DuckDB backed, read-only SELECT path.
-- Not proven: live producer execution, live holdings backfill, provider calls
-  from `subsystem-holdings`, production queue propagation, live graph
-  propagation.
+- Proof boundary: attempt2 is reported as runtime-verified PASS, and tracked
+  sibling evidence is merged via data-platform PR #107 commit
+  `841f7c0f95e8c613e5bac9fe0fe78c09e1f9f152` and `subsystem-holdings`
+  PR #9 commit `b046ecf6b54220ceedf517089ebcc883571184d1`.
+- Not proven by assembly: queue submit, live graph propagation, graph-engine
+  #55 entry, provider/backfill execution from assembly, financial-doc scope, or
+  contracts/subtype change.
 - `subsystem-financial-doc` status: deferred.
 - M4.7 status: partial; real-document validation remains open.
 - M4.8 status: future validation gate.
@@ -32,6 +35,12 @@ not perform derivations or backfill.
   and evidence PRs landed.
 - PR #5 live producer blocker handoff: recorded after exact blocker evidence
   landed in `subsystem-holdings`.
+- Attempt2 live proof handoff: data-platform PR #105 / #106 and
+  `subsystem-holdings` PR #6 / #7 / #8 have landed in sibling repos. Runtime
+  attempt2 is reported PASS, with tracked evidence merged in data-platform
+  PR #107 commit `841f7c0f95e8c613e5bac9fe0fe78c09e1f9f152` and
+  `subsystem-holdings` PR #9 commit
+  `b046ecf6b54220ceedf517089ebcc883571184d1`.
 
 ## Decision
 
@@ -41,13 +50,15 @@ requiring new document parsing, new contract subtypes, or raw provider access.
 
 This PR only records the scope decision and updated handoff. The producer
 scaffold now exists in `subsystem-holdings`, and the real read-only mart
-adapter proof is complete. Live producer execution, live holdings backfill,
-provider calls from `subsystem-holdings`, production queue propagation, and
-live graph propagation remain unproven.
+adapter proof is complete. PR #5 blocker evidence is no longer the current
+terminal state: attempt2 live proof is reported as runtime PASS after
+data-platform PR #105 / #106 and `subsystem-holdings` PR #6 / #7 / #8 landed.
+Assembly now points to the merged sibling evidence PRs for repository-tracked
+handoff evidence.
 
 Assembly was already aligned at the boundary level. This update syncs assembly
-to the PR #5 exact live producer blockers without changing the boundary,
-contracts, subtype scope, graph-engine scope, or sibling repositories.
+to the current attempt2 handoff without changing the boundary, contracts,
+subtype scope, graph-engine scope, or sibling repositories.
 
 ## Subsystem-Holdings Adapter Handoff
 
@@ -76,9 +87,10 @@ contracts, subtype scope, graph-engine scope, or sibling repositories.
 
 The proof boundary is intentionally narrow:
 
-- Non-live proof only.
-- Fixture/local DuckDB backed.
-- Read-only SELECT path only.
+- Historical PR #1 through #5 evidence remains bounded to non-live adapter and
+  blocker evidence.
+- Attempt2 live proof is reported PASS in runtime, and tracked evidence is
+  merged in sibling evidence PRs #107 and #9.
 - No provider call from `subsystem-holdings`.
 - No live holdings backfill.
 - No production queue propagation proof.
@@ -89,8 +101,11 @@ The proof boundary is intentionally narrow:
 ## Data-Platform Readiness Handoff
 
 Data-platform holdings readiness is now available for downstream planning. The
-`subsystem-holdings` producer now has its own bounded non-live read-only mart
-adapter proof, while live execution remains separate and unproven.
+`subsystem-holdings` producer has bounded read-only mart adapter proof, PR #5
+blocker evidence, and newer attempt2 runtime PASS status with tracked sibling
+evidence merged via data-platform PR #107 commit
+`841f7c0f95e8c613e5bac9fe0fe78c09e1f9f152` and `subsystem-holdings` PR #9
+commit `b046ecf6b54220ceedf517089ebcc883571184d1`.
 
 - Holdings live smoke is complete in data-platform for five promoted
   interfaces: `top10_holders`, `top10_floatholders`, `fund_portfolio`,
@@ -107,8 +122,13 @@ adapter proof, while live execution remains separate and unproven.
   northbound z-score.
 - Data-platform evidence/docs are merged via PR #104 / commit
   `81f3a57ee3fde8d1dc2a157737af2cd2abba91e5`.
-- Live backfill was not executed. Credential status was redacted, and the
-  explicit live opt-in gate was absent.
+- Data-platform PR #105 / #106 are merged in sibling repo history. Assembly
+  does not record provider payloads, runtime paths, secrets, or live execution
+  traces for those changes.
+- Attempt2 live proof evidence is merged via data-platform PR #107 / commit
+  `841f7c0f95e8c613e5bac9fe0fe78c09e1f9f152` and
+  `subsystem-holdings` PR #9 / commit
+  `b046ecf6b54220ceedf517089ebcc883571184d1`.
 
 ## Producer Boundary
 
@@ -136,33 +156,43 @@ data-platform canonical / mart holdings outputs
 ```
 
 This path is not production-proven by the current holdings adapter evidence.
-The completed adapter proof stops at non-live, fixture/local DuckDB backed,
-read-only SELECT access.
+Assembly points to merged tracked attempt2 evidence PRs for handoff evidence,
+and this handoff still does not enter live graph propagation.
 
 ## PR #5 Live Producer Blocker Handoff
 
-`subsystem-holdings` PR #5 landed blocker evidence for the live producer proof:
+`subsystem-holdings` PR #5 landed blocker evidence for the live producer proof.
+This is historical blocker evidence, not the current terminal state:
 
 - Commit: `abfa7603484acc3a0bb09887a4332d490be05046`.
 - Evidence path:
   `subsystem-holdings/docs/evidence/live-producer-proof-blockers-20260506.md`.
-- Handoff meaning: assembly was already aligned at the boundary level and is
-  now synced to the PR #5 exact blockers.
+- Handoff meaning: assembly was already aligned at the boundary level and
+  keeps the PR #5 blocker evidence as historical context.
 
-Exact blockers:
+The blocker class was missing live backfill and complete mart/lineage inputs.
+It has been superseded for handoff purposes by the attempt2 runtime PASS state,
+with sibling evidence now merged via PR #107 and PR #9.
 
-- `DP_TUSHARE_LIVE_HOLDINGS_BACKFILL` missing.
-- Configured DuckDB target missing.
-- No available DuckDB/database contains all required holdings mart tables.
-- Processed data and data storage root targets missing.
-- Complete mart plus lineage inputs not available for live producer proof.
+## Attempt2 Live Proof Handoff
+
+- Data-platform PR #105 / #106 have landed in the sibling repo.
+- `subsystem-holdings` PR #6 / #7 / #8 have landed in the sibling repo.
+- Attempt2 live proof is reported as runtime-verified PASS.
+- Tracked sibling evidence is merged via data-platform PR #107 commit
+  `841f7c0f95e8c613e5bac9fe0fe78c09e1f9f152` and `subsystem-holdings`
+  PR #9 commit `b046ecf6b54220ceedf517089ebcc883571184d1`.
+- The subsystem-holdings adapter fix for incomplete top-holder QoQ rows is
+  fail-closed skip diagnostic behavior. It does not block `CO_HOLDING` /
+  `NORTHBOUND_HOLD`.
 
 This evidence does not claim any of the following:
 
-- Live producer proof.
-- Live holdings backfill.
-- Provider call from `subsystem-holdings`.
-- Production queue or live graph proof.
+- Queue submit.
+- Live graph proof.
+- Provider/backfill execution from assembly.
+- Financial-doc scope.
+- Live graph contracts subtype work.
 - Graph-engine #55 entry.
 - Contracts or subtype change.
 
@@ -191,9 +221,10 @@ scope and must not assume financial-doc availability.
 The dependency order is:
 
 1. Keep this M4.9 scope decision and handoff as the assembly boundary.
-2. Add a separate live producer proof only when live execution is intentionally
-   in scope.
-3. Only then enter graph-engine #55 propagation work.
+2. Treat the bounded live producer proof as merged sibling evidence through
+   `subsystem-holdings` PR #9.
+3. Enter queue propagation, live graph propagation, and graph-engine #55 only
+   when that work is explicitly planned.
 
 ## Financial-Doc Gate
 
@@ -218,16 +249,19 @@ unresolved entities.
 
 ## Scope Exclusions
 
+These exclusions do not negate the bounded live backfill and producer proof
+evidence already merged through data-platform PR #107 and `subsystem-holdings`
+PR #9.
+
 This decision does not:
 
 - modify `data-platform`, `contracts`, `graph-engine`, or any sibling repo;
-- add data derivations, backfill, or raw-provider ingestion;
+- add new data derivations, additional backfill, or raw-provider ingestion;
 - add holdings-specific contract classes, subtypes, or relation contracts;
-- claim live producer execution;
-- claim live holdings backfill;
-- claim provider calls from `subsystem-holdings`;
 - claim production queue propagation or live graph propagation;
 - enter graph-engine #55;
+- add contracts subtype scope;
+- claim financial-doc scope;
 - claim that M4.7 or M4.8 is complete;
 - start `subsystem-financial-doc`.
 
