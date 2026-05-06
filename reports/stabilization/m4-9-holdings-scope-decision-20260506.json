@@ -1,8 +1,8 @@
 {
-  "status": "decision_recorded",
+  "status": "handoff_updated",
   "recorded_at": "2026-05-06T00:00:00Z",
   "decision_date": "2026-05-06",
-  "scope": "M4.9 subsystem scope decision",
+  "scope": "M4.9 subsystem scope decision and holdings adapter handoff",
   "prerequisites": {
     "m4_6": "complete",
     "assembly_env_hygiene_pr_52_merge_commit": "a6bb671aff39cdd31db3ef28104e6119e13ad3ba"
@@ -10,12 +10,16 @@
   "milestones": {
     "m4_7": "partial_real_document_validation_open",
     "m4_8": "future_validation_gate",
-    "m4_9": "decision_recorded",
-    "post_pr1_3_readiness_handoff": "recorded"
+    "m4_9": "decision_and_handoff_recorded",
+    "post_pr1_3_readiness_handoff": "recorded",
+    "post_pr1_4_holdings_adapter_handoff": "recorded"
   },
   "decision": {
     "next_p0_domain_extension": "subsystem-holdings",
-    "subsystem_holdings_scaffolded_by_this_pr": false,
+    "assembly_pr_scaffolds_subsystem_holdings": false,
+    "subsystem_holdings_producer_scaffold_exists": true,
+    "read_only_mart_adapter_proof_complete": true,
+    "read_only_mart_adapter_proof_boundary": "non_live_fixture_local_duckdb_read_only_select",
     "subsystem_financial_doc": "deferred",
     "financial_doc_gate": [
       "M4.7 real-document validation",
@@ -42,6 +46,39 @@
     "issue_81_state": "CLOSED_NOT_PLANNED",
     "derivations_or_backfill_included": false
   },
+  "subsystem_holdings_adapter_handoff": {
+    "producer_scaffold": {
+      "status": "merged",
+      "subsystem_holdings_pr": "#1",
+      "commit": "e384b48a0260cf1b6636d3fd6de6177ca05f5db8"
+    },
+    "mart_shape_fidelity": {
+      "status": "merged",
+      "subsystem_holdings_pr": "#2",
+      "commit": "b62cb0b98348f5d5f090397200430edfae2c54b4"
+    },
+    "read_only_mart_adapter": {
+      "status": "merged",
+      "subsystem_holdings_pr": "#3",
+      "commit": "752c9842d75048a12b28472ed55c83615f7bd199",
+      "proof_status": "complete",
+      "proof_kind": "real_read_only_mart_adapter",
+      "execution_boundary": "non_live_fixture_local_duckdb",
+      "data_access": "read_only_select"
+    },
+    "evidence": {
+      "status": "merged",
+      "subsystem_holdings_pr": "#4",
+      "commit": "41ac033125fab3f810b98ad5e7ad5c5606ae227a"
+    },
+    "not_proven": {
+      "live_producer_execution": false,
+      "live_holdings_backfill": false,
+      "provider_call_from_subsystem_holdings": false,
+      "production_queue_propagation": false,
+      "live_graph_propagation": false
+    }
+  },
   "post_pr1_3_readiness_handoff": {
     "data_platform_holdings_live_smoke": {
       "status": "complete",
@@ -53,7 +90,7 @@
         "hsgt_hold_top10"
       ],
       "evidence_path": "data-platform/docs/evidence/holdings-live-smoke-20260506.md",
-      "token_and_code_scope": "redacted"
+      "credential_and_code_scope": "redacted"
     },
     "backfill_orchestration": {
       "status": "merged_available",
@@ -81,8 +118,8 @@
     },
     "live_backfill": {
       "executed": false,
-      "token_status": "DP_TUSHARE_TOKEN=SET/redacted",
-      "blocker": "DP_TUSHARE_LIVE_HOLDINGS_BACKFILL missing"
+      "credential_status": "redacted",
+      "explicit_live_opt_in_gate_present": false
     }
   },
   "graph_relation_scope": {
@@ -96,28 +133,34 @@
   },
   "graph_engine_follow_up": {
     "issue": "#55",
-    "state": "OPEN_UNIMPLEMENTED",
-    "required_future_scope": "holdings-only propagation after producer proof",
-    "must_supersede_old_scope": [
+    "state": "NOT_ENTERED_UNIMPLEMENTED",
+    "required_future_scope": "holdings-only propagation after separate live producer proof",
+    "does_not_shift_55_or_56_scope": true,
+    "must_not_revive_old_scope": [
       "financial-doc",
       "contracts-subtype"
     ],
-    "producer_proof_required_first": true
+    "live_producer_proof_required_first": true
   },
   "scope_exclusions": [
-    "no subsystem-holdings scaffold",
     "no data-platform changes",
     "no contracts changes",
     "no graph-engine changes",
     "no derivations",
     "no backfill",
     "no financial-doc implementation",
-    "no holdings producer completion claim"
+    "no live producer proof",
+    "no live holdings backfill",
+    "no provider call from subsystem-holdings",
+    "no production queue propagation proof",
+    "no live graph propagation proof",
+    "no M4.7 closure",
+    "no M4.8 closure"
   ],
   "evidence_hygiene": {
     "raw_logs_recorded": false,
     "secrets_recorded": false,
-    "dsn_recorded": false,
+    "database_connection_strings_recorded": false,
     "api_keys_recorded": false,
     "local_paths_recorded": false,
     "contract_files_touched": false,
