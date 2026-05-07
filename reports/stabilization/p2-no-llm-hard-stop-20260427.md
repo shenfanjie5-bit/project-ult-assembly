@@ -6,8 +6,8 @@ Status: prerequisite integration evidence only. This is not P2 dry run completed
 
 - Repo under test: `orchestrator`
 - Evidence repo: `assembly`
-- Runtime: `/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python`
-- PATH prefix: `/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin`
+- Runtime: `<workspace>/assembly/.venv-py312/bin/python`
+- PATH prefix: `<workspace>/assembly/.venv-py312/bin`
 
 ## What was proven
 
@@ -31,8 +31,8 @@ Assertions:
 Command:
 
 ```bash
-PATH="/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin:$PATH" \
-  /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python \
+PATH="<workspace>/assembly/.venv-py312/bin:$PATH" \
+  <workspace>/assembly/.venv-py312/bin/python \
   -m pytest tests/integration/test_daily_cycle_four_phase.py -q --tb=short
 ```
 

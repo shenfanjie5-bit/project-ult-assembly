@@ -38,7 +38,7 @@ The file defines `_assert_payload_is_provider_neutral(payload: pa.Table)` — a 
 ### 2.2 Validation
 
 ```
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform && \
+cd <workspace>/data-platform && \
   PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest \
     -p no:cacheprovider tests/serving/test_formal_no_source_leak.py
 ```
@@ -119,7 +119,7 @@ Keeping the guard test-only:
 ```
 Task: M1.4 followup — formal serving no-source-leak guard (test-only)
 Repo(s): data-platform + assembly
-Output (proof): /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/formal-serving-no-source-leak-followup-20260428.md
+Output (proof): <workspace>/assembly/reports/stabilization/formal-serving-no-source-leak-followup-20260428.md
 Output (test added): data-platform/tests/serving/test_formal_no_source_leak.py
 Validation command: cd data-platform && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest -p no:cacheprovider tests/serving/test_formal_no_source_leak.py
 Validation result: 10 passed in 0.48s

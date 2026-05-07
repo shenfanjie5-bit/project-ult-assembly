@@ -41,19 +41,19 @@ Key confirmations:
 Commands re-run by the supervisor:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+cd <workspace>/data-platform
 .venv/bin/python -m pytest -q tests/integration/test_real_data_mini_cycle_probe.py
 ```
 
 Result: pass, `2 passed`.
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+cd <workspace>/data-platform
 .venv/bin/python scripts/real_data_mini_cycle_probe.py \
   --dates 20260415 \
   --symbols 600519.SH,000001.SZ,000063.SZ \
-  --artifact-dir /tmp/project-ult-supervisor-real-mini-cycle-review/artifacts \
-  --json-report /tmp/project-ult-supervisor-real-mini-cycle-review/probe.json
+  --artifact-dir <proof-workspace>/artifacts \
+  --json-report <proof-workspace>/probe.json
 ```
 
 Result: exit `2`, expected hard block. The reproduced report had
@@ -61,14 +61,14 @@ Result: exit `2`, expected hard block. The reproduced report had
 `allow_p2_real_l1_l8_dry_run=false`.
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/orchestrator
+cd <workspace>/orchestrator
 .venv/bin/python -m pytest -q tests/cli/test_min_cycle.py tests/integration/test_daily_cycle_four_phase.py
 ```
 
 Result: pass, `27 passed, 2 skipped`.
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/audit-eval
+cd <workspace>/audit-eval
 .venv/bin/python -m pytest -q tests/test_spike_replay.py
 ```
 

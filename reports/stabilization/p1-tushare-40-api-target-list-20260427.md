@@ -70,10 +70,10 @@ models:
 
 ## Evidence Sources
 
-- Blueprint: `/Users/fanjie/Desktop/Cowork/project-ult/project_ult_v5_0_1.md`
+- Blueprint: `<workspace>/project_ult_v5_0_1.md`
 - Prior coverage table:
-  `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-tushare-coverage-table-20260427.md`
+  `<workspace>/assembly/reports/stabilization/p1-tushare-coverage-table-20260427.md`
 - Adapter inventory:
-  `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/adapters/tushare/assets.py`
+  `<workspace>/data-platform/src/data_platform/adapters/tushare/assets.py`
 - Staging models:
-  `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/dbt/models/staging/`
+  `<workspace>/data-platform/src/data_platform/dbt/models/staging/`

@@ -2,7 +2,7 @@
 
 Recorded: 2026-04-27T05:14:53Z
 
-Repo: `/Users/fanjie/Desktop/Cowork/project-ult/assembly`
+Repo: `<workspace>/assembly`
 
 Base commit before this change: `8423fc9be9865872307806cc255eaab7402253a5`
 

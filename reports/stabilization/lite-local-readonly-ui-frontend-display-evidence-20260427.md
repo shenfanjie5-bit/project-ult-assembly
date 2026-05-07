@@ -51,7 +51,7 @@ project_ult_write_routes = []
 frontend-api:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/frontend-api
+cd <workspace>/frontend-api
 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -q
 ```
 

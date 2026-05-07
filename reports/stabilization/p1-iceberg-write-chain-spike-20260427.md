@@ -81,19 +81,19 @@ result:
   postgres was published on 127.0.0.1:5432.
 
 set -a
-source /Users/fanjie/Desktop/Cowork/project-ult/assembly/.env
+source <workspace>/assembly/.env
 set +a
 export DATABASE_URL="postgresql://${POSTGRES_USER}:<redacted>@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}"
 export DP_PG_DSN="$DATABASE_URL"
-export PATH="/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin:$PATH"
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest \
+export PATH="<workspace>/assembly/.venv-py312/bin:$PATH"
+<workspace>/assembly/.venv-py312/bin/python -m pytest \
   tests/spike/test_iceberg_publish_manifest_chain.py \
   -q
 result:
   1 passed; PyIceberg emitted the expected overwrite warning:
   "Delete operation did not match any records".
 
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest \
+<workspace>/assembly/.venv-py312/bin/python -m pytest \
   tests/spike/test_iceberg_write_chain.py \
   tests/spike/test_iceberg_publish_manifest_chain.py \
   tests/cycle/test_publish_manifest.py \
@@ -108,7 +108,7 @@ result:
   passed; output reached 100%.
   Warnings were PyIceberg overwrite warnings only.
 
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest \
+<workspace>/assembly/.venv-py312/bin/python -m pytest \
   tests/dbt \
   tests/cycle \
   tests/queue \

@@ -31,9 +31,9 @@ cd <workspace-root>/data-platform
 DATABASE_URL=<set from local Docker PG env, value not printed> \
 DP_TUSHARE_TOKEN=<set from shell env, value not printed> \
 .venv/bin/python scripts/mini_cycle_runtime_bootstrap.py \
-  --base-dir <workspace-root>/assembly/reports/stabilization/real-data-mini-cycle-pg-runtime-artifacts/runtime \
+  --base-dir <evidence-artifact-root>/real-data-mini-cycle-pg-runtime-artifacts/runtime \
   --profile-name batch-b-20260427-090300 \
-  --json-report <workspace-root>/assembly/reports/stabilization/real-data-mini-cycle-pg-runtime-artifacts/runtime-preflight.json \
+  --json-report <evidence-artifact-root>/real-data-mini-cycle-pg-runtime-artifacts/runtime-preflight.json \
   --create-pg-database \
   --admin-dsn-env DATABASE_URL \
   --print-json
@@ -107,8 +107,8 @@ DP_ENV=test \
 .venv/bin/python scripts/real_data_mini_cycle_probe.py \
   --dates 20260415 \
   --symbols <redacted:bounded-ts-codes> \
-  --artifact-dir <workspace-root>/assembly/reports/stabilization/real-data-mini-cycle-pg-runtime-artifacts/probe-artifacts \
-  --json-report <workspace-root>/assembly/reports/stabilization/real-data-mini-cycle-pg-runtime-artifacts/real-data-mini-cycle-probe-pg-runtime.json \
+  --artifact-dir <evidence-artifact-root>/real-data-mini-cycle-pg-runtime-artifacts/probe-artifacts \
+  --json-report <evidence-artifact-root>/real-data-mini-cycle-pg-runtime-artifacts/real-data-mini-cycle-probe-pg-runtime.json \
   --print-json
 ```
 

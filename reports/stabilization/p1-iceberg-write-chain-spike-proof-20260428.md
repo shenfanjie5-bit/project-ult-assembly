@@ -12,7 +12,7 @@
 ### 1.1 Focused write-chain pytest sweep
 
 ```
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform && \
+cd <workspace>/data-platform && \
   PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest \
     -p no:cacheprovider --no-header \
     tests/ddl tests/serving/test_canonical_writer.py \
@@ -297,8 +297,8 @@ PyIceberg 0.x supports Python 3.8-3.12 historically; the data-platform venv runs
 ```
 Task: M1-B Iceberg write-chain spike proof
 Repo(s): data-platform + assembly (read + focused tests; no compose)
-Output: /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-iceberg-write-chain-spike-proof-20260428.md
-Validation command: cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest -p no:cacheprovider -q tests/ddl tests/serving/test_canonical_writer.py tests/serving/test_schema_evolution.py tests/serving/test_catalog.py tests/dbt
+Output: <workspace>/assembly/reports/stabilization/p1-iceberg-write-chain-spike-proof-20260428.md
+Validation command: cd <workspace>/data-platform && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest -p no:cacheprovider -q tests/ddl tests/serving/test_canonical_writer.py tests/serving/test_schema_evolution.py tests/serving/test_catalog.py tests/dbt
 Validation result: 103 passed, 7 skipped, 8 warnings in 3.76s. Skipped = 4 PG-dependent (need DATABASE_URL/DP_PG_DSN) + 3 dbt-runtime (Python 3.14 mashumaro crash).
 Per-subrepo git state:
   data-platform: rev-parse HEAD = 330f6b4; status =  M src/data_platform/raw/writer.py /  M tests/raw/test_writer.py (pre-existing); push = not pushed; branch = main; interpreter = data-platform/.venv/bin/python (Python 3.14.3)

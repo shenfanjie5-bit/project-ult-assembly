@@ -70,18 +70,18 @@ Docling/LlamaIndex model download, or P5 readiness.
 ## Validation Commands
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/entity-registry
-PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/entity-registry/src:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src \
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest -q \
+cd <workspace>/entity-registry
+PYTHONPATH=<workspace>/entity-registry/src:<workspace>/contracts/src \
+<workspace>/assembly/.venv-py312/bin/python -m pytest -q \
   tests/test_core.py tests/test_event_anchors.py tests/test_lookup_entity_refs.py
 
 result: pass, exit code 0
 ```
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/subsystem-sdk
-PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/subsystem-sdk:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src:/Users/fanjie/Desktop/Cowork/project-ult/entity-registry/src \
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest -q \
+cd <workspace>/subsystem-sdk
+PYTHONPATH=<workspace>/subsystem-sdk:<workspace>/contracts/src:<workspace>/entity-registry/src \
+<workspace>/assembly/.venv-py312/bin/python -m pytest -q \
   tests/integration/test_p4_core_vertical_slice.py \
   tests/backends/test_lite_pg_backend.py \
   tests/backends/test_lite_pg_heartbeat_backend.py \
@@ -91,9 +91,9 @@ result: pass, exit code 0
 ```
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/subsystem-news
-PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/subsystem-news/src:/Users/fanjie/Desktop/Cowork/project-ult/subsystem-sdk:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src \
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest -q \
+cd <workspace>/subsystem-news
+PYTHONPATH=<workspace>/subsystem-news/src:<workspace>/subsystem-sdk:<workspace>/contracts/src \
+<workspace>/assembly/.venv-py312/bin/python -m pytest -q \
   tests/integration/test_milestone4_graph_pipeline.py \
   tests/integration/test_sdk_wire_shape_integration.py
 
@@ -101,9 +101,9 @@ result: pass, exit code 0
 ```
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/subsystem-announcement
-PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/subsystem-announcement/src:/Users/fanjie/Desktop/Cowork/project-ult/subsystem-sdk:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src \
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest -q \
+cd <workspace>/subsystem-announcement
+PYTHONPATH=<workspace>/subsystem-announcement/src:<workspace>/subsystem-sdk:<workspace>/contracts/src \
+<workspace>/assembly/.venv-py312/bin/python -m pytest -q \
   tests/test_graph_delta_pipeline.py \
   tests/test_pipeline_e2e.py \
   tests/integration/test_sdk_wire_shape_integration.py
@@ -112,27 +112,27 @@ result: pass, exit code 0
 ```
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/subsystem-sdk
-PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/subsystem-sdk:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src:/Users/fanjie/Desktop/Cowork/project-ult/entity-registry/src \
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest -q \
+cd <workspace>/subsystem-sdk
+PYTHONPATH=<workspace>/subsystem-sdk:<workspace>/contracts/src:<workspace>/entity-registry/src \
+<workspace>/assembly/.venv-py312/bin/python -m pytest -q \
   tests/contract tests/validate/test_entity_registry_wiring.py tests/test_package_layout.py
 
 result: pass, exit code 0
 ```
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/entity-registry
-PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/entity-registry/src:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src \
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest -q \
+cd <workspace>/entity-registry
+PYTHONPATH=<workspace>/entity-registry/src:<workspace>/contracts/src \
+<workspace>/assembly/.venv-py312/bin/python -m pytest -q \
   tests/contract tests/test_contracts_alignment.py tests/unit/test_public_entrypoints.py
 
 result: pass, exit code 0
 ```
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/subsystem-news
-PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/subsystem-news/src:/Users/fanjie/Desktop/Cowork/project-ult/subsystem-sdk:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src \
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest -q \
+cd <workspace>/subsystem-news
+PYTHONPATH=<workspace>/subsystem-news/src:<workspace>/subsystem-sdk:<workspace>/contracts/src \
+<workspace>/assembly/.venv-py312/bin/python -m pytest -q \
   tests/contract tests/contract_stability/test_backend_config.py \
   tests/test_package_layout.py tests/smoke/test_public_smoke.py
 
@@ -140,9 +140,9 @@ result: pass, exit code 0
 ```
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/subsystem-announcement
-PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/subsystem-announcement/src:/Users/fanjie/Desktop/Cowork/project-ult/subsystem-sdk:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src \
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest -q \
+cd <workspace>/subsystem-announcement
+PYTHONPATH=<workspace>/subsystem-announcement/src:<workspace>/subsystem-sdk:<workspace>/contracts/src \
+<workspace>/assembly/.venv-py312/bin/python -m pytest -q \
   tests/contract tests/contracts tests/unit/test_public_entrypoints.py \
   tests/smoke/test_public_smoke.py
 

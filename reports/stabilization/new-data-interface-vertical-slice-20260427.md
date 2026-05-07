@@ -38,10 +38,10 @@ The test constructs a controlled event-impact payload:
 ## Validation
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/main-core
-PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin:$PATH \
-PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/main-core/src:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src:/Users/fanjie/Desktop/Cowork/project-ult/reasoner-runtime \
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest -q \
+cd <workspace>/main-core
+PATH=<workspace>/assembly/.venv-py312/bin:$PATH \
+PYTHONPATH=<workspace>/main-core/src:<workspace>/contracts/src:<workspace>/reasoner-runtime \
+<workspace>/assembly/.venv-py312/bin/python -m pytest -q \
   tests/integration/test_new_data_interface_vertical_slice.py \
   tests/integration/test_layer_b_candidate_signals.py \
   tests/integration/test_l6_multi_agent_enriched_inputs.py \
@@ -54,10 +54,10 @@ result:
 Frontend read-only graph route check:
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/frontend-api
-PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin:$PATH \
-PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/frontend-api/src \
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest -q \
+cd <workspace>/frontend-api
+PATH=<workspace>/assembly/.venv-py312/bin:$PATH \
+PYTHONPATH=<workspace>/frontend-api/src \
+<workspace>/assembly/.venv-py312/bin/python -m pytest -q \
   tests/test_graph_routes.py
 
 result:

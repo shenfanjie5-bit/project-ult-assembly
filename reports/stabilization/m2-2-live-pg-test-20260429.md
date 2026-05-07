@@ -32,7 +32,7 @@ gap is now closed.
 ## Prerequisites
 
 - M2.1 preflight (`2d86b06`): compose PG healthy at
-  `postgresql://postgres:changeme@localhost:5432/proj`.
+  `<postgres-dsn>`.
 - M1.14 baseline: 624 passed / 74 skipped / 0 failed (data-platform).
 
 ---
@@ -66,7 +66,7 @@ This mirrors the existing pattern in
 ## Test results (post review fold)
 
 ```
-$ DATABASE_URL=postgresql://postgres:changeme@localhost:5432/proj \
+$ DATABASE_URL=<postgres-dsn> \
    PYTHONPATH=src .venv/bin/python -m pytest \
    tests/integration/test_freeze_current_cycle_live_pg.py -v
 8 passed in 1.33s

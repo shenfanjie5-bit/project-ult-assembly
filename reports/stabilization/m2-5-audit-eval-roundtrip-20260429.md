@@ -47,7 +47,7 @@ audit-eval gateway no longer has any unverified production code path.
 
 - M2.2 closed blocker #1 → READY (live PG cycle freeze proven, commit
   `a18da75` on data-platform `m2-2-live-pg-integ-test`).
-- Compose PG healthy at `postgresql://postgres:changeme@localhost:5432/proj`.
+- Compose PG healthy at `<postgres-dsn>`.
 
 ---
 
@@ -109,7 +109,7 @@ hygiene step rather than a packaging change.
 ## Test results (post review fold)
 
 ```
-$ DATABASE_URL=postgresql://postgres:changeme@localhost:5432/proj \
+$ DATABASE_URL=<postgres-dsn> \
    PYTHONPATH=src:…/data-platform/src:…/contracts/src \
    PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest \
    tests/integration/test_data_platform_manifest_gateway_live_pg.py -v

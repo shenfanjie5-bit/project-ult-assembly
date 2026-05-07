@@ -12,7 +12,7 @@
 ### 1.1 New `current_cycle_inputs` boundary test (added in this round)
 
 ```
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform && \
+cd <workspace>/data-platform && \
   PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest \
     -p no:cacheprovider --tb=no \
     tests/cycle/test_current_cycle_inputs_lineage_absent.py 2>&1 | tail -3
@@ -30,7 +30,7 @@ This pins the temporary mitigation contract C2 §2.5 / C3 §3.4 identified — w
 ### 1.2 Pre-existing C3-era prefix-token tests still PASS
 
 ```
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform && \
+cd <workspace>/data-platform && \
   PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest \
     -p no:cacheprovider -q tests/provider_catalog/test_no_source_leak.py
 ```
@@ -38,7 +38,7 @@ cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform && \
 Result (per C3 baseline): `2 passed in 0.02s`.
 
 ```
-cd /Users/fanjie/Desktop/Cowork/project-ult/frontend-api && \
+cd <workspace>/frontend-api && \
   PYTHONDONTWRITEBYTECODE=1 ../assembly/.venv-py312/bin/python -m pytest \
     -p no:cacheprovider -q tests/test_no_source_leak.py
 ```
@@ -192,7 +192,7 @@ Per C3 §4.4: extend `FORBIDDEN_PAYLOAD_FIELDS` in `canonical_writer.py:34` to i
 ```
 Task: M1-E formal serving no-source hardening (test addition + plan)
 Repo(s): data-platform + frontend-api (read-only inspection only) + assembly
-Output (proof): /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/formal-serving-no-source-leak-proof-20260428.md
+Output (proof): <workspace>/assembly/reports/stabilization/formal-serving-no-source-leak-proof-20260428.md
 Output (test added): data-platform/tests/cycle/test_current_cycle_inputs_lineage_absent.py
 Validation commands:
   1. cd data-platform && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest -p no:cacheprovider tests/cycle/test_current_cycle_inputs_lineage_absent.py

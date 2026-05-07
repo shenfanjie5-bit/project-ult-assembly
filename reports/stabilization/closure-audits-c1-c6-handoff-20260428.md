@@ -3,7 +3,7 @@
 - Date: 2026-04-28
 - Scope: M0 evidence hygiene per `ult_milestone.md` §M0.
 - Mode: rollup only — does not modify source code, does not commit, does not push, does not run `git init`. Tushare remains a `provider="tushare"` adapter only.
-- Milestone authority: `/Users/fanjie/Desktop/Cowork/project-ult/ult_milestone.md` (recorded 2026-04-28). Blueprint authority: `/Users/fanjie/Desktop/Cowork/project-ult/project_ult_v5_0_1.md` (NOT modified).
+- Milestone authority: `<workspace>/ult_milestone.md` (recorded 2026-04-28). Blueprint authority: `<workspace>/project_ult_v5_0_1.md` (NOT modified).
 
 ## 1. Purpose
 
@@ -104,7 +104,7 @@ P5 shadow-run is **NOT STARTED** and **MUST REMAIN BLOCKED**. None of the C1-C6 
 ```
 Task: M0.1 evidence rollup
 Repo(s): assembly
-Output: /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/closure-audits-c1-c6-handoff-20260428.md
+Output: <workspace>/assembly/reports/stabilization/closure-audits-c1-c6-handoff-20260428.md
 Validation: source files referenced in §2 and §3 exist (verified by ls); compatibility matrix and module registry exist
 Per-subrepo git state (captured this session):
   assembly:                  rev-parse HEAD = a7f19c5994f807b2cf32eb2f45ef48f6fe23095f; status = 10 untracked stabilization reports + this rollup; push = not pushed; branch = main

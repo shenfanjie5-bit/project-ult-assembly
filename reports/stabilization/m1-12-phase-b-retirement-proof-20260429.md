@@ -11,12 +11,12 @@ Iceberg tables) are deferred to M1.14 cleanup per the M1.10 inventory plan.
 
 This round was authored in dedicated git worktrees:
 
-- `/Users/fanjie/Desktop/Cowork/project-ult-m1-12/data-platform` (branch `m1-12-phase-b`)
-- `/Users/fanjie/Desktop/Cowork/project-ult-m1-12/assembly` (branch `m1-12-phase-b`)
+- `<workspace>-m1-12/data-platform` (branch `m1-12-phase-b`)
+- `<workspace>-m1-12/assembly` (branch `m1-12-phase-b`)
 
 Branched from `m1-baseline-2026-04-29` which captures the M1.5→M1.11 work.
 M1.13 (precondition 9 implementation) ran in parallel under
-`/Users/fanjie/Desktop/Cowork/project-ult-m1-13/`.
+`<workspace>-m1-13/`.
 
 ## Atomic Steps (1–5)
 
@@ -126,7 +126,7 @@ Remaining: 1 decorator usage + 1 marker definition (deferred to M1.14).
 ```sh
 # Preflight (writer + reader + integration)
 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src \
-/Users/fanjie/Desktop/Cowork/project-ult/data-platform/.venv/bin/python -m pytest \
+<workspace>/data-platform/.venv/bin/python -m pytest \
   -p no:cacheprovider \
   tests/serving/test_canonical_writer.py tests/serving/test_reader.py tests/integration/test_daily_refresh.py
 # → 47 passed, 1 skipped, 6 warnings
@@ -135,7 +135,7 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src \
 
 # M1 standard
 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src \
-/Users/fanjie/Desktop/Cowork/project-ult/data-platform/.venv/bin/python -m pytest \
+<workspace>/data-platform/.venv/bin/python -m pytest \
   -p no:cacheprovider \
   tests/dbt/test_intermediate_models.py tests/dbt/test_marts_models.py \
   tests/dbt/test_dbt_skeleton.py tests/dbt/test_dbt_test_coverage.py \
@@ -146,7 +146,7 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src \
 
 # V2 default-on lane
 DP_CANONICAL_USE_V2=1 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src \
-/Users/fanjie/Desktop/Cowork/project-ult/data-platform/.venv/bin/python -m pytest \
+<workspace>/data-platform/.venv/bin/python -m pytest \
   -p no:cacheprovider \
   tests/serving tests/cycle/test_current_cycle_inputs.py \
   tests/cycle/test_current_cycle_inputs_lineage_absent.py tests/test_assets.py
@@ -156,7 +156,7 @@ DP_CANONICAL_USE_V2=1 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src \
 
 # Strict provider-neutrality with override env
 DP_ENFORCE_M1D_PROVIDER_NEUTRALITY=1 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src \
-/Users/fanjie/Desktop/Cowork/project-ult/data-platform/.venv/bin/python -m pytest \
+<workspace>/data-platform/.venv/bin/python -m pytest \
   -p no:cacheprovider \
   tests/serving/test_canonical_writer_provider_neutrality.py \
   tests/dbt/test_marts_provider_neutrality.py \
@@ -166,8 +166,8 @@ DP_ENFORCE_M1D_PROVIDER_NEUTRALITY=1 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src \
 #    assertions strict-pass)
 
 # Hygiene
-git -C /Users/fanjie/Desktop/Cowork/project-ult-m1-12/data-platform diff --check  # exit 0
-git -C /Users/fanjie/Desktop/Cowork/project-ult-m1-12/assembly diff --check       # exit 0
+git -C <workspace>-m1-12/data-platform diff --check  # exit 0
+git -C <workspace>-m1-12/assembly diff --check       # exit 0
 ```
 
 ## xfail Delta

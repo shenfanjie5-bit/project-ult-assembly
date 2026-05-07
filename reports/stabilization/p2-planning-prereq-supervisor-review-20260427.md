@@ -39,8 +39,8 @@ Verified properties:
 Supervisor validation:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/audit-eval
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest tests/test_real_cycle_binding.py tests/test_replay_query.py -q
+cd <workspace>/audit-eval
+<workspace>/assembly/.venv-py312/bin/python -m pytest tests/test_real_cycle_binding.py tests/test_replay_query.py -q
 ```
 
 Result: `27 passed`.
@@ -48,7 +48,7 @@ Result: `27 passed`.
 Additional audit-eval contract/read-history validation:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/audit-eval
+cd <workspace>/audit-eval
 .venv/bin/python -m pytest tests/test_contracts_write_bundle.py tests/test_replay_query.py tests/test_contracts_retrospective.py -q
 ```
 
@@ -78,14 +78,14 @@ Correction:
 
 - `orchestrator` commit `16f35bf` updated the stale test expectations from L7 to L8.
 - Validation was re-run with Python 3.12, matching the orchestrator `pyproject.toml` `requires-python` range.
-- The Python 3.12 runtime command placed `/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin` on `PATH` so `dbt` was available to the integration fixtures.
+- The Python 3.12 runtime command placed `<workspace>/assembly/.venv-py312/bin` on `PATH` so `dbt` was available to the integration fixtures.
 
 Targeted L8 validation:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/orchestrator
-PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin:$PATH \
-  /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest \
+cd <workspace>/orchestrator
+PATH=<workspace>/assembly/.venv-py312/bin:$PATH \
+  <workspace>/assembly/.venv-py312/bin/python -m pytest \
   tests/integration/test_phase2_main_core_wiring.py::test_phase2_provider_contributes_daily_cycle_assets_and_checks \
   tests/integration/test_phase3_publish_wiring.py::test_phase3_formal_commit_without_phase2_dependency_is_rejected \
   tests/integration/test_phase2_pool_failure_gate.py::test_daily_cycle_phase2_pool_failure_rate_gate_fails_and_alerts \
@@ -98,9 +98,9 @@ Result: `4 passed`, with no skipped summary.
 Expanded orchestrator validation:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/orchestrator
-PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin:$PATH \
-  /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest \
+cd <workspace>/orchestrator
+PATH=<workspace>/assembly/.venv-py312/bin:$PATH \
+  <workspace>/assembly/.venv-py312/bin/python -m pytest \
   tests/integration/test_phase2_main_core_wiring.py \
   tests/integration/test_daily_cycle_four_phase.py \
   tests/integration/test_phase3_publish_wiring.py \

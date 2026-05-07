@@ -9,7 +9,7 @@ P5 shadow-run readiness.
 
 ## Scope
 
-This batch treats `/Users/fanjie/Desktop/Cowork/tushare全部可用接口.csv` as the
+This batch treats `<provider-catalog-source>/tushare全部可用接口.csv` as the
 current `provider=tushare` availability inventory. Tushare remains a source
 adapter only. Raw/staging may remain source-specific, but curated marts,
 canonical writer, formal serving inputs, graph, reasoner, frontend-api, and
@@ -27,15 +27,15 @@ Out of scope for this batch:
 
 Committed provider catalog:
 
-- `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/provider_catalog/tushare_available_interfaces.csv`
+- `<workspace>/data-platform/src/data_platform/provider_catalog/tushare_available_interfaces.csv`
 
 Registry implementation:
 
-- `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/provider_catalog/registry.py`
+- `<workspace>/data-platform/src/data_platform/provider_catalog/registry.py`
 
 Artifact:
 
-- `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-provider-neutral-tushare-catalog-artifacts/provider-neutral-tushare-catalog-20260428.json`
+- `<workspace>/assembly/reports/stabilization/p1-provider-neutral-tushare-catalog-artifacts/provider-neutral-tushare-catalog-20260428.json`
 
 Observed counts:
 
@@ -125,13 +125,13 @@ Older suggested APIs that are not in the source CSV, such as
 
 Added tests:
 
-- `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tests/provider_catalog/test_provider_catalog.py`
-- `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tests/provider_catalog/test_no_source_leak.py`
-- `/Users/fanjie/Desktop/Cowork/project-ult/frontend-api/tests/test_no_source_leak.py`
+- `<workspace>/data-platform/tests/provider_catalog/test_provider_catalog.py`
+- `<workspace>/data-platform/tests/provider_catalog/test_no_source_leak.py`
+- `<workspace>/frontend-api/tests/test_no_source_leak.py`
 
 Strengthened existing formal serving test:
 
-- `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tests/serving/test_formal.py`
+- `<workspace>/data-platform/tests/serving/test_formal.py`
 
 Guardrails now check:
 
@@ -152,8 +152,8 @@ Guardrails now check:
 Data-platform focused gate:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest -q \
+cd <workspace>/data-platform
+<workspace>/assembly/.venv-py312/bin/python -m pytest -q \
   tests/provider_catalog \
   tests/dbt/test_dbt_skeleton.py \
   tests/serving/test_formal.py::test_formal_table_identifier_validates_object_type
@@ -168,8 +168,8 @@ Result:
 Frontend-api no-source-leak gate:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/frontend-api
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest -q \
+cd <workspace>/frontend-api
+<workspace>/assembly/.venv-py312/bin/python -m pytest -q \
   tests/test_no_source_leak.py
 ```
 

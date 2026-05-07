@@ -42,7 +42,7 @@ The file contains **7 tests**:
 Focused M4.7 run in the local subsystem-announcement venv:
 
 ```text
-$ cd /Users/fanjie/Desktop/Cowork/project-ult/subsystem-announcement
+$ cd <workspace>/subsystem-announcement
 $ PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -p no:cacheprovider \
     tests/integration/test_docling_llamaindex_offline_preflight.py -v
 6 passed, 1 skipped

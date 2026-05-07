@@ -4,7 +4,7 @@
 
 - Task: C5 — P4 Controlled Slice Caveat Closure Audit
 - Repos in scope: subsystem-sdk + entity-registry + subsystem-news + subsystem-announcement + data-platform + assembly
-- Output: `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p4-controlled-slice-caveat-closure-audit-20260428.md`
+- Output: `<workspace>/assembly/reports/stabilization/p4-controlled-slice-caveat-closure-audit-20260428.md`
 - Date: 2026-04-28
 - Audit mode: read-only inventory; no source changes, no commits, no `git init`, no new news/Polymarket production hookups, no SDK / graph-engine / new test code.
 
@@ -21,12 +21,12 @@ frontend-api in the same cycle.
 
 | Subrepo | toplevel | HEAD | branch | `git status -s` |
 |---------|----------|------|--------|------------------|
-| subsystem-sdk | `/Users/fanjie/Desktop/Cowork/project-ult/subsystem-sdk` | `5f131237df9101bde0a41293df151f6f9ea47fe7` | main | clean |
-| entity-registry | `/Users/fanjie/Desktop/Cowork/project-ult/entity-registry` | `a38944533a2aae2191ee07e699156453a5bf708d` | main | clean |
-| subsystem-news | `/Users/fanjie/Desktop/Cowork/project-ult/subsystem-news` | `c27f044ebb97646fe583dfa5e1a737f62903f647` | main | clean |
-| subsystem-announcement | `/Users/fanjie/Desktop/Cowork/project-ult/subsystem-announcement` | `36555beb69ce565ee9a8d2b0f926a01158c32335` | main | clean |
-| data-platform | `/Users/fanjie/Desktop/Cowork/project-ult/data-platform` | `330f6b4d82a96d36c8fd150cc1a0a432d7c6cb9c` | main | ` M src/data_platform/raw/writer.py` / ` M tests/raw/test_writer.py` |
-| assembly | `/Users/fanjie/Desktop/Cowork/project-ult/assembly` | `a7f19c5994f807b2cf32eb2f45ef48f6fe23095f` | main | 4 untracked stabilization reports (incl. this one being created) |
+| subsystem-sdk | `<workspace>/subsystem-sdk` | `5f131237df9101bde0a41293df151f6f9ea47fe7` | main | clean |
+| entity-registry | `<workspace>/entity-registry` | `a38944533a2aae2191ee07e699156453a5bf708d` | main | clean |
+| subsystem-news | `<workspace>/subsystem-news` | `c27f044ebb97646fe583dfa5e1a737f62903f647` | main | clean |
+| subsystem-announcement | `<workspace>/subsystem-announcement` | `36555beb69ce565ee9a8d2b0f926a01158c32335` | main | clean |
+| data-platform | `<workspace>/data-platform` | `330f6b4d82a96d36c8fd150cc1a0a432d7c6cb9c` | main | ` M src/data_platform/raw/writer.py` / ` M tests/raw/test_writer.py` |
+| assembly | `<workspace>/assembly` | `a7f19c5994f807b2cf32eb2f45ef48f6fe23095f` | main | 4 untracked stabilization reports (incl. this one being created) |
 
 Push status: not pushed by this audit; no commits created.
 Dirty files: data-platform `src/data_platform/raw/writer.py` and
@@ -42,7 +42,7 @@ source tree.
 ### 2.1 Symbol presence: subsystem_submit_queue / candidate_queue / CANDIDATE_QUEUE_TABLE
 
 ```
-cd /Users/fanjie/Desktop/Cowork/project-ult && rg -n 'subsystem_submit_queue|candidate_queue|CANDIDATE_QUEUE_TABLE' subsystem-sdk/ data-platform/src 2>&1 | head -60
+cd <workspace> && rg -n 'subsystem_submit_queue|candidate_queue|CANDIDATE_QUEUE_TABLE' subsystem-sdk/ data-platform/src 2>&1 | head -60
 ```
 
 Verbatim result (key matches; full output had ~50 lines, truncated to
@@ -84,7 +84,7 @@ production module.
 ### 2.2 PG atomic locking predicate in cycle / queue
 
 ```
-cd /Users/fanjie/Desktop/Cowork/project-ult && rg -n 'FOR UPDATE|SKIP LOCKED' data-platform/src/data_platform/cycle data-platform/src/data_platform/queue 2>&1 | head -30
+cd <workspace> && rg -n 'FOR UPDATE|SKIP LOCKED' data-platform/src/data_platform/cycle data-platform/src/data_platform/queue 2>&1 | head -30
 ```
 
 Verbatim:
@@ -106,7 +106,7 @@ freeze CTE runs.
 ### 2.3 Bridge code search: submit_queue ↔ candidate_queue
 
 ```
-cd /Users/fanjie/Desktop/Cowork/project-ult && rg -n 'submit_queue.*candidate_queue|candidate_queue.*submit_queue' subsystem-sdk/ data-platform/src 2>&1 | head -20
+cd <workspace> && rg -n 'submit_queue.*candidate_queue|candidate_queue.*submit_queue' subsystem-sdk/ data-platform/src 2>&1 | head -20
 ```
 
 Verbatim result: **no output** — pattern does not match in either
@@ -118,7 +118,7 @@ table names in a single file or transfer flow.
 ### 2.4 subsystem-sdk pytest
 
 ```
-cd /Users/fanjie/Desktop/Cowork/project-ult/subsystem-sdk && PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -p no:cacheprovider -q tests 2>&1 | tail -10
+cd <workspace>/subsystem-sdk && PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -p no:cacheprovider -q tests 2>&1 | tail -10
 ```
 
 Verbatim tail:
@@ -139,7 +139,7 @@ A re-run that ignores this single file confirms the rest of the SDK
 suite passes:
 
 ```
-cd /Users/fanjie/Desktop/Cowork/project-ult/subsystem-sdk && PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -p no:cacheprovider tests --ignore=tests/regression/test_with_shared_fixtures.py 2>&1 | tail -1
+cd <workspace>/subsystem-sdk && PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -p no:cacheprovider tests --ignore=tests/regression/test_with_shared_fixtures.py 2>&1 | tail -1
 ```
 
 ```
@@ -153,7 +153,7 @@ Interpreter: `subsystem-sdk/.venv/bin/python` →
 ### 2.5 data-platform queue + cycle pytest
 
 ```
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest -p no:cacheprovider -q tests/queue tests/cycle 2>&1 | tail -15
+cd <workspace>/data-platform && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest -p no:cacheprovider -q tests/queue tests/cycle 2>&1 | tail -15
 ```
 
 Verbatim summary:
@@ -613,7 +613,7 @@ controlled subset only) remain **NOT upgraded** by this audit.
 ```
 Task: C5
 Repo(s): subsystem-sdk + entity-registry + subsystem-news + subsystem-announcement + data-platform + assembly
-Output report: /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p4-controlled-slice-caveat-closure-audit-20260428.md
+Output report: <workspace>/assembly/reports/stabilization/p4-controlled-slice-caveat-closure-audit-20260428.md
 Validation commands:
   rg -n 'subsystem_submit_queue|candidate_queue|CANDIDATE_QUEUE_TABLE' subsystem-sdk/ data-platform/src
   rg -n 'FOR UPDATE|SKIP LOCKED' data-platform/src/data_platform/cycle data-platform/src/data_platform/queue

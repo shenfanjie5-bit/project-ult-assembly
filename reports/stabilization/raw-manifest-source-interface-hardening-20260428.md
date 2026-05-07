@@ -15,8 +15,8 @@ daily-cycle proof, or P5 readiness.
 
 Changed files:
 
-- `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/raw/writer.py`
-- `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tests/raw/test_writer.py`
+- `<workspace>/data-platform/src/data_platform/raw/writer.py`
+- `<workspace>/data-platform/tests/raw/test_writer.py`
 
 ## What Changed
 
@@ -37,7 +37,7 @@ Changed files:
 ## Validation
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+cd <workspace>/data-platform
 PYTHONPATH=src PYTHONDONTWRITEBYTECODE=1 .venv/bin/python \
   -m pytest -p no:cacheprovider -q \
   tests/raw/test_writer.py tests/provider_catalog/test_provider_catalog.py

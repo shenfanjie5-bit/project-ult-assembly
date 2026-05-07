@@ -57,9 +57,9 @@ Resolution:
 Supervisor validation:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/orchestrator
-PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin:$PATH \
-  /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python \
+cd <workspace>/orchestrator
+PATH=<workspace>/assembly/.venv-py312/bin:$PATH \
+  <workspace>/assembly/.venv-py312/bin/python \
   -m pytest \
   tests/integration/test_phase2_main_core_wiring.py \
   tests/integration/test_phase2_pool_failure_gate.py \
@@ -92,9 +92,9 @@ Resolution:
 Supervisor validation:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
-PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin:$PATH \
-  /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python \
+cd <workspace>/data-platform
+PATH=<workspace>/assembly/.venv-py312/bin:$PATH \
+  <workspace>/assembly/.venv-py312/bin/python \
   -m pytest tests/cycle/test_publish_manifest.py -q -rs
 ```
 
@@ -103,10 +103,10 @@ Result: `27 passed, 15 skipped`.
 PG-backed validation:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+cd <workspace>/data-platform
 # DP_PG_DSN was constructed in-process from local compose-postgres-1 and was not printed.
-PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin:$PATH \
-  /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest \
+PATH=<workspace>/assembly/.venv-py312/bin:$PATH \
+  <workspace>/assembly/.venv-py312/bin/python -m pytest \
   tests/cycle/test_publish_manifest.py \
   tests/serving/test_formal.py \
   tests/serving/test_formal_manifest_consistency.py \

@@ -35,7 +35,7 @@ Master checklist:
 Command evidence:
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/assembly
+cd <workspace>/assembly
 
 PYTHONDONTWRITEBYTECODE=1 .venv-py312/bin/python -m pytest -q -p no:cacheprovider \
   tests/release/test_docs.py \

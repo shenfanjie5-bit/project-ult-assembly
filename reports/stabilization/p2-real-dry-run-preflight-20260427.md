@@ -31,27 +31,27 @@ publish.
 
 - orchestrator targeted P2 dry-run handoff:
   - Command:
-    `PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/orchestrator/src:/Users/fanjie/Desktop/Cowork/project-ult/main-core/src:/Users/fanjie/Desktop/Cowork/project-ult/reasoner-runtime:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src:/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src:/Users/fanjie/Desktop/Cowork/project-ult/audit-eval/src PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin:$PATH /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest tests/integration/test_p2_dry_run_handoff.py -q -rs`
+    `PYTHONPATH=<workspace>/orchestrator/src:<workspace>/main-core/src:<workspace>/reasoner-runtime:<workspace>/contracts/src:<workspace>/data-platform/src:<workspace>/audit-eval/src PATH=<workspace>/assembly/.venv-py312/bin:$PATH <workspace>/assembly/.venv-py312/bin/python -m pytest tests/integration/test_p2_dry_run_handoff.py -q -rs`
   - Result: `3 passed`.
 
 - orchestrator related integration regression:
   - Command:
-    `PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/orchestrator/src:/Users/fanjie/Desktop/Cowork/project-ult/main-core/src:/Users/fanjie/Desktop/Cowork/project-ult/reasoner-runtime:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src:/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src:/Users/fanjie/Desktop/Cowork/project-ult/audit-eval/src PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin:$PATH /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest tests/integration/test_p2_dry_run_handoff.py tests/integration/test_phase2_main_core_wiring.py tests/integration/test_phase3_publish_wiring.py tests/integration/test_daily_cycle_four_phase.py -q -rs`
+    `PYTHONPATH=<workspace>/orchestrator/src:<workspace>/main-core/src:<workspace>/reasoner-runtime:<workspace>/contracts/src:<workspace>/data-platform/src:<workspace>/audit-eval/src PATH=<workspace>/assembly/.venv-py312/bin:$PATH <workspace>/assembly/.venv-py312/bin/python -m pytest tests/integration/test_p2_dry_run_handoff.py tests/integration/test_phase2_main_core_wiring.py tests/integration/test_phase3_publish_wiring.py tests/integration/test_daily_cycle_four_phase.py -q -rs`
   - Result: pass.
 
 - orchestrator core boundary scan:
   - Command:
-    `PYTHONPATH=src /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python scripts/check_boundaries.py --root .`
+    `PYTHONPATH=src <workspace>/assembly/.venv-py312/bin/python scripts/check_boundaries.py --root .`
   - Result: exit code `0`.
 
 - data-platform manifest/provenance tests without PG DSN:
   - Command:
-    `PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin:$PATH /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest tests/cycle/test_publish_manifest.py -q -rs`
+    `PATH=<workspace>/assembly/.venv-py312/bin:$PATH <workspace>/assembly/.venv-py312/bin/python -m pytest tests/cycle/test_publish_manifest.py -q -rs`
   - Result: `28 passed / 15 skipped`.
 
 - data-platform PG-backed manifest/provenance tests:
   - Command:
-    `DP_PG_DSN=<constructed from local docker compose-postgres-1; not printed> PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin:$PATH /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest tests/cycle/test_publish_manifest.py -q -rs`
+    `DP_PG_DSN=<constructed from local docker compose-postgres-1; not printed> PATH=<workspace>/assembly/.venv-py312/bin:$PATH <workspace>/assembly/.venv-py312/bin/python -m pytest tests/cycle/test_publish_manifest.py -q -rs`
   - Result: `43 passed`.
 
 ## Independent Gate Review

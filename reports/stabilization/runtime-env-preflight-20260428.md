@@ -8,7 +8,7 @@ not a production daily-cycle pass certificate and not P5 readiness.
 ## Command
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/assembly
+cd <workspace>/assembly
 .venv-py312/bin/python scripts/production_daily_cycle_proof.py \
   --preflight-only \
   --run-current-selection-tests
@@ -17,7 +17,7 @@ cd /Users/fanjie/Desktop/Cowork/project-ult/assembly
 Result:
 
 ```text
-RUNTIME_PREFLIGHT_PASS /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T194812Z/production-daily-cycle-proof.json
+RUNTIME_PREFLIGHT_PASS <evidence-artifact-root>/p1-p2-production-daily-cycle-proof-artifacts/20260427T194812Z/production-daily-cycle-proof.json
 ```
 
 ## Redacted Environment
@@ -56,9 +56,9 @@ configured provider is `openai-codex` with Codex OAuth enabled.
 
 ## Artifact
 
-- `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T194812Z/production-daily-cycle-proof.json`
-- `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T194812Z/data-platform-current-selection-tests.stdout.txt`
-- `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T194812Z/data-platform-current-selection-tests.stderr.txt`
+- `<evidence-artifact-root>/p1-p2-production-daily-cycle-proof-artifacts/20260427T194812Z/production-daily-cycle-proof.json`
+- `<evidence-artifact-root>/p1-p2-production-daily-cycle-proof-artifacts/20260427T194812Z/data-platform-current-selection-tests.stdout.txt`
+- `<evidence-artifact-root>/p1-p2-production-daily-cycle-proof-artifacts/20260427T194812Z/data-platform-current-selection-tests.stderr.txt`
 
 ## Non-Claims
 

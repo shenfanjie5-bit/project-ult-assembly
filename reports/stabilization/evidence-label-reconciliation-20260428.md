@@ -74,7 +74,7 @@ The 2026-04-27 reports referenced by `ult_milestone.md` (e.g., `frontend-raw-rou
 ```
 Task: M0.4 evidence label reconciliation
 Repo(s): assembly
-Output: /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/evidence-label-reconciliation-20260428.md
+Output: <workspace>/assembly/reports/stabilization/evidence-label-reconciliation-20260428.md
 Validation: existence of every filename listed in §2 verified by ls (all six files exist under assembly/reports/stabilization/)
 Per-subrepo git state: see closure-audits-c1-c6-handoff-20260428.md §9 (assembly: a7f19c5; data-platform: 330f6b4 with pre-existing dirty raw writer files; frontend-api: 0c24fad with pre-existing README.md edit; all other in-scope subrepos clean)
 Dirty files added by this task: assembly/reports/stabilization/evidence-label-reconciliation-20260428.md (untracked)

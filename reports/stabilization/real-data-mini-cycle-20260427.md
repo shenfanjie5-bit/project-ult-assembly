@@ -35,7 +35,7 @@ Checked without printing secret values:
 Command:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+cd <workspace>/data-platform
 .venv/bin/python -m pytest -q tests/integration/test_real_data_mini_cycle_probe.py
 ```
 
@@ -46,12 +46,12 @@ Result: pass, `2 passed`.
 Command:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+cd <workspace>/data-platform
 .venv/bin/python scripts/real_data_mini_cycle_probe.py \
   --dates 20260415 \
   --symbols 600519.SH,000001.SZ,000063.SZ \
-  --artifact-dir /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-artifacts \
-  --json-report /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-probe-20260427.json \
+  --artifact-dir <evidence-artifact-root>/real-data-mini-cycle-artifacts \
+  --json-report <evidence-artifact-root>/real-data-mini-cycle-probe-20260427.json \
   --print-json
 ```
 
@@ -64,20 +64,20 @@ Result: exit `2`, expected blocked real-cycle status. Key evidence:
 
 Artifacts:
 
-- `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-probe-20260427.json`
-- `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-artifacts/daily-refresh-real-probe-20260415.json`
+- `<evidence-artifact-root>/real-data-mini-cycle-probe-20260427.json`
+- `<evidence-artifact-root>/real-data-mini-cycle-artifacts/daily-refresh-real-probe-20260415.json`
 
 ### orchestrator min-cycle probe
 
 Command:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/orchestrator
+cd <workspace>/orchestrator
 .venv/bin/python -m orchestrator.cli.main min-cycle \
   --profile lite-local \
-  --fixture /Users/fanjie/Desktop/Cowork/project-ult/assembly/src/assembly/tests/e2e/fixtures/minimal_cycle/manifest.yaml \
-  --run-artifacts-dir /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-artifacts/orchestrator-min-cycle \
-  --report /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-artifacts/orchestrator-min-cycle-report.json
+  --fixture <workspace>/assembly/src/assembly/tests/e2e/fixtures/minimal_cycle/manifest.yaml \
+  --run-artifacts-dir <evidence-artifact-root>/real-data-mini-cycle-artifacts/orchestrator-min-cycle \
+  --report <evidence-artifact-root>/real-data-mini-cycle-artifacts/orchestrator-min-cycle-report.json
 ```
 
 Result: exit `0`. The report status is `success`, and the runtime artifact records:
@@ -91,15 +91,15 @@ Interpretation: this proves Dagster Phase 0-3 job assembly/import works. It does
 
 Artifacts:
 
-- `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-artifacts/orchestrator-min-cycle-report.json`
-- `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-artifacts/orchestrator-min-cycle/cycle_summary.json`
+- `<evidence-artifact-root>/real-data-mini-cycle-artifacts/orchestrator-min-cycle-report.json`
+- `<evidence-artifact-root>/real-data-mini-cycle-artifacts/orchestrator-min-cycle/cycle_summary.json`
 
 ### orchestrator focused tests
 
 Command:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/orchestrator
+cd <workspace>/orchestrator
 .venv/bin/python -m pytest -q tests/cli/test_min_cycle.py tests/integration/test_daily_cycle_four_phase.py
 ```
 
@@ -110,7 +110,7 @@ Result: pass, `27 passed, 2 skipped`.
 Command:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/audit-eval
+cd <workspace>/audit-eval
 .venv/bin/python -m pytest -q tests/test_spike_replay.py
 ```
 

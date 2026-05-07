@@ -93,7 +93,7 @@ Recommended path:
    should be:
 
    ```bash
-   cd /Users/fanjie/Desktop/Cowork/project-ult/assembly
+   cd <workspace>/assembly
 
    PYTHONDONTWRITEBYTECODE=1 .venv-py312/bin/python -m assembly.cli.main \
      smoke \
@@ -133,7 +133,7 @@ Required guardrails for implementation:
 Pre-promotion validation commands:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/assembly
+cd <workspace>/assembly
 
 PYTHONDONTWRITEBYTECODE=1 .venv-py312/bin/python -m pytest -q -p no:cacheprovider \
   tests/registry \

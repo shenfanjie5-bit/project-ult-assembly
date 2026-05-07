@@ -44,7 +44,7 @@ Key review points:
 ```text
 orchestrator:
   File:
-    /Users/fanjie/Desktop/Cowork/project-ult/orchestrator/src/orchestrator/cli/min_cycle.py
+    <workspace>/orchestrator/src/orchestrator/cli/min_cycle.py
   Key location:
     line 338
   Result:
@@ -56,7 +56,7 @@ orchestrator:
 
 graph-engine reload timeout:
   File:
-    /Users/fanjie/Desktop/Cowork/project-ult/graph-engine/graph_engine/reload/service.py
+    <workspace>/graph-engine/graph_engine/reload/service.py
   Key locations:
     line 166
     line 208
@@ -67,7 +67,7 @@ graph-engine reload timeout:
 
 graph-engine readonly simulation:
   File:
-    /Users/fanjie/Desktop/Cowork/project-ult/graph-engine/graph_engine/query/simulation.py
+    <workspace>/graph-engine/graph_engine/query/simulation.py
   Key location:
     line 296
   Result:
@@ -76,9 +76,9 @@ graph-engine readonly simulation:
 
 data-platform:
   Files:
-    /Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/raw/writer.py
-    /Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/cycle/manifest.py
-    /Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/formal_registry.py
+    <workspace>/data-platform/src/data_platform/raw/writer.py
+    <workspace>/data-platform/src/data_platform/cycle/manifest.py
+    <workspace>/data-platform/src/data_platform/formal_registry.py
   Key locations:
     raw/writer.py line 417
     cycle/manifest.py line 288

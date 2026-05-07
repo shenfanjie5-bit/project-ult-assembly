@@ -31,15 +31,15 @@ Command:
 
 ```bash
 set -euo pipefail
-ARTIFACT_ROOT=/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/live-tushare-mini-ingestion-artifacts
+ARTIFACT_ROOT=<workspace>/assembly/reports/stabilization/live-tushare-mini-ingestion-artifacts
 rm -rf "$ARTIFACT_ROOT"
 mkdir -p "$ARTIFACT_ROOT/raw" "$ARTIFACT_ROOT/warehouse"
 set -a
-source /Users/fanjie/Desktop/Cowork/project-ult/assembly/.env
+source <workspace>/assembly/.env
 set +a
-PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src:/Users/fanjie/Desktop/Cowork/project-ult/data-platform \
-  /Users/fanjie/Desktop/Cowork/project-ult/data-platform/.venv/bin/python \
-  /Users/fanjie/Desktop/Cowork/project-ult/data-platform/scripts/live_tushare_bounded_raw_probe.py \
+PYTHONPATH=<workspace>/data-platform/src:<workspace>/data-platform \
+  <workspace>/data-platform/.venv/bin/python \
+  <workspace>/data-platform/scripts/live_tushare_bounded_raw_probe.py \
   --date 20260415 \
   --symbols 600519.SH,000001.SZ \
   --datasets daily,trade_cal \
@@ -61,42 +61,42 @@ Result: exit `0`.
   - requests: `2`
   - upstream rows: `2`
   - written rows: `2`
-  - artifact: `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/live-tushare-mini-ingestion-artifacts/raw/tushare/daily/dt=20260415/a8ef0d4d-b89e-4ca2-8249-3030aa4b094b.parquet`
-  - manifest: `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/live-tushare-mini-ingestion-artifacts/raw/tushare/daily/dt=20260415/_manifest.json`
+  - artifact: `<workspace>/assembly/reports/stabilization/live-tushare-mini-ingestion-artifacts/raw/tushare/daily/dt=20260415/a8ef0d4d-b89e-4ca2-8249-3030aa4b094b.parquet`
+  - manifest: `<workspace>/assembly/reports/stabilization/live-tushare-mini-ingestion-artifacts/raw/tushare/daily/dt=20260415/_manifest.json`
 - `trade_cal`:
   - bounded strategy: single-day `start_date=end_date`; no symbol dimension
   - requests: `1`
   - upstream rows: `1`
   - written rows: `1`
-  - artifact: `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/live-tushare-mini-ingestion-artifacts/raw/tushare/trade_cal/dt=20260415/774c86fa-b70b-4157-b3ed-c40f80887cca.parquet`
-  - manifest: `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/live-tushare-mini-ingestion-artifacts/raw/tushare/trade_cal/dt=20260415/_manifest.json`
-- JSON report: `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/live-tushare-mini-ingestion-artifacts/live-tushare-bounded-raw-probe-20260415.json`
+  - artifact: `<workspace>/assembly/reports/stabilization/live-tushare-mini-ingestion-artifacts/raw/tushare/trade_cal/dt=20260415/774c86fa-b70b-4157-b3ed-c40f80887cca.parquet`
+  - manifest: `<workspace>/assembly/reports/stabilization/live-tushare-mini-ingestion-artifacts/raw/tushare/trade_cal/dt=20260415/_manifest.json`
+- JSON report: `<workspace>/assembly/reports/stabilization/live-tushare-mini-ingestion-artifacts/live-tushare-bounded-raw-probe-20260415.json`
 
 ## Verification
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+cd <workspace>/data-platform
 .venv/bin/python -m pytest tests/scripts/test_live_tushare_bounded_raw_probe.py tests/integration/test_real_data_mini_cycle_probe.py
 ```
 
 Result: pass, `5 passed`.
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+cd <workspace>/data-platform
 .venv/bin/ruff check scripts/live_tushare_bounded_raw_probe.py tests/scripts/test_live_tushare_bounded_raw_probe.py
 ```
 
 Result: pass, `All checks passed!`.
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+cd <workspace>/data-platform
 git diff --check
 ```
 
 Result: pass.
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/assembly
+cd <workspace>/assembly
 git diff --check
 ```
 

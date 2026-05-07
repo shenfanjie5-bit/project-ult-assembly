@@ -75,7 +75,7 @@
 ### 3.1 Focused test sweep (M1.3 batch acceptance)
 
 ```
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform && \
+cd <workspace>/data-platform && \
   PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest \
     -p no:cacheprovider --tb=no \
     tests/ddl/test_iceberg_tables.py tests/serving/test_canonical_writer.py \
@@ -91,7 +91,7 @@ cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform && \
 ### 3.2 Parity-tests-only summary (RED scoreboard)
 
 ```
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform && \
+cd <workspace>/data-platform && \
   PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest \
     -p no:cacheprovider --tb=no \
     tests/ddl/test_canonical_provider_neutrality.py \
@@ -111,7 +111,7 @@ The 44 RED tests still parametrize over the 9 legacy `canonical.*` specs (1 stoc
 ### 3.3 Broader sweep (data-platform, no live PG)
 
 ```
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform && \
+cd <workspace>/data-platform && \
   PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest \
     -p no:cacheprovider --tb=no \
     tests/ddl tests/serving tests/dbt tests/provider_catalog \
@@ -124,7 +124,7 @@ cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform && \
 ### 3.4 Frontend-api regression check (read-only)
 
 ```
-cd /Users/fanjie/Desktop/Cowork/project-ult/frontend-api && \
+cd <workspace>/frontend-api && \
   .venv/bin/pytest tests/test_cycle_routes.py tests/test_no_source_leak.py -q
 ```
 
@@ -280,8 +280,8 @@ These remain unchanged from M1-D and resolve only when the legacy specs are reti
 ```
 Task: M1.3 second batch — 7 paired canonical_v2 + canonical_lineage migrations + reader cutover + formal guard
 Repo(s): data-platform + assembly
-Output (proof): /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/canonical-v2-full-migration-progress-20260428.md
-Output (formal followup): /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/formal-serving-no-source-leak-followup-20260428.md
+Output (proof): <workspace>/assembly/reports/stabilization/canonical-v2-full-migration-progress-20260428.md
+Output (formal followup): <workspace>/assembly/reports/stabilization/formal-serving-no-source-leak-followup-20260428.md
 Output (source code modified): see §2.1 + §2.2 (4 modules + 14 dbt SQL + 2 schema yml).
 Output (tests modified): see §2.3 (3 modified + 3 new test files).
 Validation commands:

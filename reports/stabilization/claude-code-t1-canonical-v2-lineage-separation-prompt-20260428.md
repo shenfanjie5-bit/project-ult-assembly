@@ -4,15 +4,15 @@ You are Claude Code working in the Project ULT v5.0.1 workspace.
 
 Workspace root:
 
-`/Users/fanjie/Desktop/Cowork/project-ult`
+`<workspace>`
 
 Authoritative blueprint:
 
-`/Users/fanjie/Desktop/Cowork/project-ult/project_ult_v5_0_1.md`
+`<workspace>/project_ult_v5_0_1.md`
 
 Current execution milestone:
 
-`/Users/fanjie/Desktop/Cowork/project-ult/ult_milestone.md`
+`<workspace>/ult_milestone.md`
 
 ## Mission
 
@@ -46,40 +46,40 @@ Do not proceed to M2, M3, M4, or P5 in this run.
 
 Read these files first and cite the relevant lines in your implementation notes:
 
-- `/Users/fanjie/Desktop/Cowork/project-ult/ult_milestone.md`
-- `/Users/fanjie/Desktop/Cowork/project-ult/project_ult_v5_0_1.md`
-- `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/canonical-physical-schema-alignment-audit-20260428.md`
-- `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/formal-serving-no-source-leak-hardening-plan-20260428.md`
-- `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-provider-neutral-canonical-promotion-readiness-20260428.md`
-- `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-provider-neutral-tushare-catalog-20260428.md`
-- `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-provider-neutral-raw-canonical-runtime-20260428.md`
-- `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p2-canonical-current-cycle-provider-preflight-20260428.md`
-- `/Users/fanjie/Desktop/Cowork/project-ult/assembly/compatibility-matrix.yaml`
-- `/Users/fanjie/Desktop/Cowork/project-ult/assembly/module-registry.yaml`
+- `<workspace>/ult_milestone.md`
+- `<workspace>/project_ult_v5_0_1.md`
+- `<workspace>/assembly/reports/stabilization/canonical-physical-schema-alignment-audit-20260428.md`
+- `<workspace>/assembly/reports/stabilization/formal-serving-no-source-leak-hardening-plan-20260428.md`
+- `<workspace>/assembly/reports/stabilization/p1-provider-neutral-canonical-promotion-readiness-20260428.md`
+- `<workspace>/assembly/reports/stabilization/p1-provider-neutral-tushare-catalog-20260428.md`
+- `<workspace>/assembly/reports/stabilization/p1-provider-neutral-raw-canonical-runtime-20260428.md`
+- `<workspace>/assembly/reports/stabilization/p2-canonical-current-cycle-provider-preflight-20260428.md`
+- `<workspace>/assembly/compatibility-matrix.yaml`
+- `<workspace>/assembly/module-registry.yaml`
 
 Then inspect the data-platform implementation using `rg` before editing. Start with:
 
-- `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/ddl/iceberg_tables.py`
-- `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/serving/canonical_writer.py`
-- `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/serving/formal.py`
-- `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/serving/canonical_datasets.py`
-- `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/provider_catalog/registry.py`
-- `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/cycle/current_cycle_inputs.py`
-- `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/cycle/manifest.py`
-- `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/dbt/models/intermediate/`
-- `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/dbt/models/marts/`
-- `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tests/ddl/`
-- `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tests/serving/`
-- `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tests/cycle/`
-- `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tests/provider_catalog/`
-- `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tests/dbt/`
+- `<workspace>/data-platform/src/data_platform/ddl/iceberg_tables.py`
+- `<workspace>/data-platform/src/data_platform/serving/canonical_writer.py`
+- `<workspace>/data-platform/src/data_platform/serving/formal.py`
+- `<workspace>/data-platform/src/data_platform/serving/canonical_datasets.py`
+- `<workspace>/data-platform/src/data_platform/provider_catalog/registry.py`
+- `<workspace>/data-platform/src/data_platform/cycle/current_cycle_inputs.py`
+- `<workspace>/data-platform/src/data_platform/cycle/manifest.py`
+- `<workspace>/data-platform/src/data_platform/dbt/models/intermediate/`
+- `<workspace>/data-platform/src/data_platform/dbt/models/marts/`
+- `<workspace>/data-platform/tests/ddl/`
+- `<workspace>/data-platform/tests/serving/`
+- `<workspace>/data-platform/tests/cycle/`
+- `<workspace>/data-platform/tests/provider_catalog/`
+- `<workspace>/data-platform/tests/dbt/`
 
 ## Baseline Commands
 
 Before edits, capture dirty state:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult
+cd <workspace>
 for repo in assembly data-platform frontend-api orchestrator graph-engine main-core subsystem-sdk entity-registry subsystem-news subsystem-announcement reasoner-runtime audit-eval; do
   echo "## $repo"
   git -C "$repo" status -s
@@ -167,7 +167,7 @@ Minimum expected coverage:
 Run the narrowest meaningful test set first. Suggested commands, adjust to the repo's actual tooling:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+cd <workspace>/data-platform
 python -m pytest tests/ddl tests/serving tests/cycle tests/provider_catalog tests/dbt -q
 ```
 

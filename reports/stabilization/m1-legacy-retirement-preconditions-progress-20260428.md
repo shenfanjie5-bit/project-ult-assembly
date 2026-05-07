@@ -237,7 +237,7 @@ for each source.
 
 Round M1.12 executed the **Phase B atomic retirement** (steps 1–5 from
 the M1.10 inventory). It branched from `m1-baseline-2026-04-29` in a
-dedicated worktree (`/Users/fanjie/Desktop/Cowork/project-ult-m1-12/`)
+dedicated worktree (`<workspace>-m1-12/`)
 running in parallel with M1.13.
 
 - **Step 1** (route writer to v2 only): `daily_refresh._run_canonical_step`

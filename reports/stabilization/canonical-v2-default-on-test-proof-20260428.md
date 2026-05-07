@@ -11,7 +11,7 @@ Show that the data-platform's core reader / cycle / formal-serving paths work co
 ## Exact command
 
 ```sh
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+cd <workspace>/data-platform
 DP_CANONICAL_USE_V2=1 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest \
     -p no:cacheprovider \
     tests/serving \

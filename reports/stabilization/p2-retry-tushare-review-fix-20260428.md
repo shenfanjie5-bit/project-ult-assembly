@@ -59,9 +59,9 @@ Key behavior:
 ## Verification
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/orchestrator
-PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin:$PATH \
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python \
+cd <workspace>/orchestrator
+PATH=<workspace>/assembly/.venv-py312/bin:$PATH \
+<workspace>/assembly/.venv-py312/bin/python \
   -m pytest -q tests/integration/test_p2_dry_run_handoff.py -rs
 ```
 
@@ -69,7 +69,7 @@ Result: `16 passed`. Warnings are existing Dagster/dbt/Pydantic
 deprecations.
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/orchestrator
+cd <workspace>/orchestrator
 /opt/homebrew/bin/ruff check \
   src/orchestrator_adapters/p2_dry_run.py \
   tests/integration/test_p2_dry_run_handoff.py \
@@ -79,17 +79,17 @@ cd /Users/fanjie/Desktop/Cowork/project-ult/orchestrator
 Result: `All checks passed`.
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/audit-eval
-PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin:$PATH \
-PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/audit-eval/src \
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python \
+cd <workspace>/audit-eval
+PATH=<workspace>/assembly/.venv-py312/bin:$PATH \
+PYTHONPATH=<workspace>/audit-eval/src \
+<workspace>/assembly/.venv-py312/bin/python \
   -m pytest -q tests/test_audit_writer.py -rs
 ```
 
 Result: `35 passed`.
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/orchestrator
+cd <workspace>/orchestrator
 uv run --extra dev python -m pytest -q \
   tests/integration/test_p2_dry_run_handoff.py \
   -k 'handoff_uses_data_platform_tushare_provider or loads_current_cycle_evidence or rejects_synthetic' \
@@ -99,7 +99,7 @@ uv run --extra dev python -m pytest -q \
 Result: `8 passed, 8 deselected`.
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/orchestrator
+cd <workspace>/orchestrator
 git diff --check
 ```
 

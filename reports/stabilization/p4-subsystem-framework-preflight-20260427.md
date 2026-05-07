@@ -54,37 +54,37 @@ Docling/LlamaIndex production chain.
 
 - Requested command as written:
   - Command:
-    `cd /Users/fanjie/Desktop/Cowork/project-ult/subsystem-sdk && python -m pytest -q tests/contract tests/validate tests/submit tests/heartbeat tests/backends/test_lite_pg_backend.py tests/integration/test_reference_subsystem.py`
+    `cd <workspace>/subsystem-sdk && python -m pytest -q tests/contract tests/validate tests/submit tests/heartbeat tests/backends/test_lite_pg_backend.py tests/integration/test_reference_subsystem.py`
   - Result: blocked by local shell, `python: command not found`.
 
 - Requested SDK suite with available interpreter:
   - Command:
-    `cd /Users/fanjie/Desktop/Cowork/project-ult/subsystem-sdk && python3 -m pytest -q tests/contract tests/validate tests/submit tests/heartbeat tests/backends/test_lite_pg_backend.py tests/integration/test_reference_subsystem.py`
+    `cd <workspace>/subsystem-sdk && python3 -m pytest -q tests/contract tests/validate tests/submit tests/heartbeat tests/backends/test_lite_pg_backend.py tests/integration/test_reference_subsystem.py`
   - Result: pass, exit code `0`.
 
 - Focused SDK Lite PG / heartbeat / preflight suite:
   - Command:
-    `cd /Users/fanjie/Desktop/Cowork/project-ult/subsystem-sdk && python3 -m pytest -q tests/backends/test_lite_pg_backend.py tests/backends/test_lite_pg_heartbeat_backend.py tests/submit/test_client_preflight.py`
+    `cd <workspace>/subsystem-sdk && python3 -m pytest -q tests/backends/test_lite_pg_backend.py tests/backends/test_lite_pg_heartbeat_backend.py tests/submit/test_client_preflight.py`
   - Result: `12 passed / 1 skipped`.
 
 - Review follow-up SDK Ex-2/Ex-3 preflight suite:
   - Command:
-    `cd /Users/fanjie/Desktop/Cowork/project-ult/subsystem-sdk && python3 -m pytest -q tests/validate/test_preflight.py tests/submit/test_client_preflight.py tests/backends/test_lite_pg_backend.py`
+    `cd <workspace>/subsystem-sdk && python3 -m pytest -q tests/validate/test_preflight.py tests/submit/test_client_preflight.py tests/backends/test_lite_pg_backend.py`
   - Result: `32 passed`.
 
 - Review follow-up requested SDK suite:
   - Command:
-    `cd /Users/fanjie/Desktop/Cowork/project-ult/subsystem-sdk && python3 -m pytest -q tests/contract tests/validate tests/submit tests/heartbeat tests/backends/test_lite_pg_backend.py tests/integration/test_reference_subsystem.py`
+    `cd <workspace>/subsystem-sdk && python3 -m pytest -q tests/contract tests/validate tests/submit tests/heartbeat tests/backends/test_lite_pg_backend.py tests/integration/test_reference_subsystem.py`
   - Result: pass, exit code `0`.
 
 - Focused announcement real SDK adapter suite:
   - Command:
-    `cd /Users/fanjie/Desktop/Cowork/project-ult/subsystem-announcement && PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/subsystem-sdk:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src:/Users/fanjie/Desktop/Cowork/project-ult/subsystem-announcement/src python3 -m pytest -q tests/test_runtime_sdk.py tests/integration/test_sdk_wire_shape_integration.py`
+    `cd <workspace>/subsystem-announcement && PYTHONPATH=<workspace>/subsystem-sdk:<workspace>/contracts/src:<workspace>/subsystem-announcement/src python3 -m pytest -q tests/test_runtime_sdk.py tests/integration/test_sdk_wire_shape_integration.py`
   - Result: `22 passed / 5 skipped`.
 
 - Focused news real SDK adapter suite:
   - Command:
-    `cd /Users/fanjie/Desktop/Cowork/project-ult/subsystem-news && PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/subsystem-sdk:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src:/Users/fanjie/Desktop/Cowork/project-ult/subsystem-news/src python3 -m pytest -q tests/integration/test_sdk_wire_shape_integration.py`
+    `cd <workspace>/subsystem-news && PYTHONPATH=<workspace>/subsystem-sdk:<workspace>/contracts/src:<workspace>/subsystem-news/src python3 -m pytest -q tests/integration/test_sdk_wire_shape_integration.py`
   - Result: `5 passed`.
 
 ## Dependency Decision Evidence

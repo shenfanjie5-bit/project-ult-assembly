@@ -106,10 +106,10 @@ runtime outside the repo, and writes evidence under
 ```sh
 set -euo pipefail
 
-ULT_ROOT=/Users/fanjie/Desktop/Cowork/project-ult
+ULT_ROOT=<workspace>
 PROOF_DATE=20260429
 PROOF_ROOT="$ULT_ROOT/assembly/tmp-runtime/m1-controlled-v2-proof"
-PROOF_VENV=/tmp/project-ult-m1-controlled-v2-proof-py312
+PROOF_VENV=<proof-workspace>
 
 cd "$ULT_ROOT"
 mkdir -p "$PROOF_ROOT"

@@ -24,7 +24,7 @@ Runtime reused the P1 temporary data-platform runtime described by:
 
 - `real-data-mini-cycle-close-loop-20260427-artifacts/runtime-env-status.json`
 - Temporary DB: `dp_real_mini_cycle_20260427_batch_d_091540`
-- Runtime root: `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tmp/real-data-mini-cycle-close-loop-20260427/20260427_batch_d_091540`
+- Runtime root: `<proof-workspace>/real-data-mini-cycle-close-loop-20260427/20260427_batch_d_091540`
 
 Secrets:
 
@@ -55,9 +55,9 @@ Artifacts:
 ## Verification
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/audit-eval
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest tests/test_real_cycle_binding.py tests/test_replay_query.py
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m compileall -q src/audit_eval/audit scripts/real_cycle_replay_smoke.py
+cd <workspace>/audit-eval
+<workspace>/assembly/.venv-py312/bin/python -m pytest tests/test_real_cycle_binding.py tests/test_replay_query.py
+<workspace>/assembly/.venv-py312/bin/python -m compileall -q src/audit_eval/audit scripts/real_cycle_replay_smoke.py
 ```
 
 Result:
@@ -68,15 +68,15 @@ Result:
 Real smoke command shape:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult
+cd <workspace>
 source assembly/.env
-export PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/audit-eval/src:/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src
-export DP_RAW_ZONE_PATH=/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tmp/real-data-mini-cycle-close-loop-20260427/20260427_batch_d_091540/raw
-export DP_ICEBERG_WAREHOUSE_PATH=/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tmp/real-data-mini-cycle-close-loop-20260427/20260427_batch_d_091540/warehouse
-export DP_DUCKDB_PATH=/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tmp/real-data-mini-cycle-close-loop-20260427/20260427_batch_d_091540/duckdb/data_platform.duckdb
+export PYTHONPATH=<workspace>/audit-eval/src:<workspace>/data-platform/src
+export DP_RAW_ZONE_PATH=<proof-workspace>/real-data-mini-cycle-close-loop-20260427/20260427_batch_d_091540/raw
+export DP_ICEBERG_WAREHOUSE_PATH=<proof-workspace>/real-data-mini-cycle-close-loop-20260427/20260427_batch_d_091540/warehouse
+export DP_DUCKDB_PATH=<proof-workspace>/real-data-mini-cycle-close-loop-20260427/20260427_batch_d_091540/duckdb/data_platform.duckdb
 export DP_ICEBERG_CATALOG_NAME=data_platform_real_mini_cycle_close_loop_20260427
 # DP_PG_DSN was constructed in-process for dp_real_mini_cycle_20260427_batch_d_091540.
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python audit-eval/scripts/real_cycle_replay_smoke.py \
+<workspace>/assembly/.venv-py312/bin/python audit-eval/scripts/real_cycle_replay_smoke.py \
   --cycle-id CYCLE_20260415 \
   --object-ref recommendation_snapshot \
   --json-output assembly/reports/stabilization/audit-real-cycle-binding-20260427-artifacts/real-cycle-replay-smoke.json

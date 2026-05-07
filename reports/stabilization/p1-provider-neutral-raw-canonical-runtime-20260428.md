@@ -33,7 +33,7 @@ a runtime admission gate:
 Command:
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+cd <workspace>/data-platform
 PYTHONPATH=src .venv/bin/python - <<'PY'
 from collections import Counter
 from data_platform.provider_catalog import TUSHARE_INTERFACE_REGISTRY, catalog_summary
@@ -77,7 +77,7 @@ Interpretation:
 Command:
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+cd <workspace>/data-platform
 PYTHONPATH=src .venv/bin/python - <<'PY'
 import json
 from data_platform.adapters.tushare.assets import TUSHARE_ASSETS
@@ -110,7 +110,7 @@ legacy manifests without v2 metadata.
 Data-platform focused registry/raw/dbt/canonical suite:
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+cd <workspace>/data-platform
 PYTHONPATH=src .venv/bin/python -m pytest -q \
   tests/provider_catalog \
   tests/raw \

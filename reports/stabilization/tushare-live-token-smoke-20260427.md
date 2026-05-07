@@ -29,16 +29,16 @@ Checked without printing secret values:
 Command:
 
 ```bash
-rm -rf /tmp/project-ult-live-tushare-token-probe
-mkdir -p /tmp/project-ult-live-tushare-token-probe/raw \
-  /tmp/project-ult-live-tushare-token-probe/warehouse
+rm -rf <proof-workspace>
+mkdir -p <proof-workspace>/raw \
+  <proof-workspace>/warehouse
 bash -lc '
   set -a
-  source /Users/fanjie/Desktop/Cowork/project-ult/assembly/.env
+  source <workspace>/assembly/.env
   set +a
-  export DP_RAW_ZONE_PATH=/tmp/project-ult-live-tushare-token-probe/raw
-  export DP_ICEBERG_WAREHOUSE_PATH=/tmp/project-ult-live-tushare-token-probe/warehouse
-  cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+  export DP_RAW_ZONE_PATH=<proof-workspace>/raw
+  export DP_ICEBERG_WAREHOUSE_PATH=<proof-workspace>/warehouse
+  cd <workspace>/data-platform
   .venv/bin/python -m data_platform.adapters.tushare.adapter \
     --asset tushare_stock_basic \
     --date 20260415
@@ -54,7 +54,7 @@ Raw Zone manifest summary:
 - partition date: `2026-04-15`
 - artifact count: `1`
 - row count: `5510`
-- artifact path: `/tmp/project-ult-live-tushare-token-probe/raw/tushare/stock_basic/dt=20260415/5604bc93-e254-48a3-8393-a6c17b1d31d7.parquet`
+- artifact path: `<proof-workspace>/raw/tushare/stock_basic/dt=20260415/5604bc93-e254-48a3-8393-a6c17b1d31d7.parquet`
 
 ## Gate Decision
 

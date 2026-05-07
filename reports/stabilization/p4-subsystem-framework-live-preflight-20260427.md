@@ -46,9 +46,9 @@ interface, Docling/LlamaIndex model download, or P5 readiness.
 Main-thread focused validation:
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/subsystem-sdk
-PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/contracts/src:/Users/fanjie/Desktop/Cowork/project-ult/entity-registry/src \
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest -q \
+cd <workspace>/subsystem-sdk
+PYTHONPATH=<workspace>/contracts/src:<workspace>/entity-registry/src \
+<workspace>/assembly/.venv-py312/bin/python -m pytest -q \
   tests/validate/test_entity_registry_wiring.py \
   tests/validate/test_preflight.py \
   tests/submit/test_client_preflight.py \
@@ -59,9 +59,9 @@ result:
 ```
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/entity-registry
-PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/entity-registry/src \
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest -q \
+cd <workspace>/entity-registry
+PYTHONPATH=<workspace>/entity-registry/src \
+<workspace>/assembly/.venv-py312/bin/python -m pytest -q \
   tests/test_lookup_entity_refs.py
 
 result:
@@ -69,7 +69,7 @@ result:
 ```
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/subsystem-sdk
+cd <workspace>/subsystem-sdk
 /opt/homebrew/bin/ruff check \
   subsystem_sdk/submit/client.py \
   subsystem_sdk/validate/__init__.py \
@@ -86,7 +86,7 @@ All checks passed
 ```
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/entity-registry
+cd <workspace>/entity-registry
 /opt/homebrew/bin/ruff check src/entity_registry/__init__.py tests/test_lookup_entity_refs.py
 
 result:

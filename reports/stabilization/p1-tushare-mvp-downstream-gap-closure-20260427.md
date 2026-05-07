@@ -21,16 +21,16 @@ sidecar, command/run/freeze, or release-freeze surfaces.
 ## Code Evidence
 
 - dbt intermediate models:
-  - `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/dbt/models/intermediate/int_market_daily_features.sql`
-  - `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/dbt/models/intermediate/int_index_price_bars.sql`
-  - `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/dbt/models/intermediate/int_forecast_events.sql`
+  - `<workspace>/data-platform/src/data_platform/dbt/models/intermediate/int_market_daily_features.sql`
+  - `<workspace>/data-platform/src/data_platform/dbt/models/intermediate/int_index_price_bars.sql`
+  - `<workspace>/data-platform/src/data_platform/dbt/models/intermediate/int_forecast_events.sql`
 - dbt mart models:
-  - `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/dbt/models/marts/mart_fact_market_daily_feature.sql`
-  - `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/dbt/models/marts/mart_fact_index_price_bar.sql`
-  - `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/dbt/models/marts/mart_fact_forecast_event.sql`
+  - `<workspace>/data-platform/src/data_platform/dbt/models/marts/mart_fact_market_daily_feature.sql`
+  - `<workspace>/data-platform/src/data_platform/dbt/models/marts/mart_fact_index_price_bar.sql`
+  - `<workspace>/data-platform/src/data_platform/dbt/models/marts/mart_fact_forecast_event.sql`
 - Canonical mart load specs:
-  - `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/ddl/iceberg_tables.py`
-  - `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/serving/canonical_writer.py`
+  - `<workspace>/data-platform/src/data_platform/ddl/iceberg_tables.py`
+  - `<workspace>/data-platform/src/data_platform/serving/canonical_writer.py`
 - The `index_daily` + `trade_cal` path is exchange-aware: index suffixes
   `.SH`, `.SZ`, and `.BJ` map to `SSE`, `SZSE`, and `BSE` before calendar
   enrichment, preventing a Shenzhen index from inheriting an SSE calendar row.
@@ -43,9 +43,9 @@ sidecar, command/run/freeze, or release-freeze surfaces.
 User-requested P1 verification command:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
-PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin:$PATH \
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest -q \
+cd <workspace>/data-platform
+PATH=<workspace>/assembly/.venv-py312/bin:$PATH \
+<workspace>/assembly/.venv-py312/bin/python -m pytest -q \
   tests/adapters/test_tushare*.py \
   tests/dbt/test_tushare_staging_models.py \
   tests/dbt/test_intermediate_models.py \
@@ -59,9 +59,9 @@ Result: passed.
 Additional impacted tests:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
-PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin:$PATH \
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest -q \
+cd <workspace>/data-platform
+PATH=<workspace>/assembly/.venv-py312/bin:$PATH \
+<workspace>/assembly/.venv-py312/bin/python -m pytest -q \
   tests/dbt/test_dbt_skeleton.py \
   tests/ddl/test_iceberg_tables.py \
   tests/test_assets.py \

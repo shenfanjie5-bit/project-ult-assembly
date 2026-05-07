@@ -266,7 +266,7 @@ Each item below is a **precondition for proof**, not a deliverable of this audit
 ```
 Task: C1
 Repo(s): orchestrator + assembly
-Output report: /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/production-daily-cycle-gap-audit-20260428.md
+Output report: <workspace>/assembly/reports/stabilization/production-daily-cycle-gap-audit-20260428.md
 Validation command: cd orchestrator && PYTHONDONTWRITEBYTECODE=1 ../assembly/.venv-py312/bin/python -m pytest -p no:cacheprovider -q tests/integration/test_production_daily_cycle_provider.py
 Validation result: 12 passed, 1 skipped, 80 warnings in 1.43s. Skipped = test_production_daily_cycle_factory_assembles_real_provider_surface (line 73), reason "dbt CLI is not installed".
 Per-subrepo git state:

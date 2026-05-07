@@ -52,14 +52,14 @@ P2 recommendation.
 
 Commands run from `data-platform`:
 
-- `PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin:$PATH /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest tests/cycle/test_publish_manifest.py -q`
+- `PATH=<workspace>/assembly/.venv-py312/bin:$PATH <workspace>/assembly/.venv-py312/bin/python -m pytest tests/cycle/test_publish_manifest.py -q`
   - result: `26 passed, 15 skipped`
-- `PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin:$PATH /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m compileall -q src/data_platform/cycle tests/cycle/test_publish_manifest.py`
+- `PATH=<workspace>/assembly/.venv-py312/bin:$PATH <workspace>/assembly/.venv-py312/bin/python -m compileall -q src/data_platform/cycle tests/cycle/test_publish_manifest.py`
   - result: passed
 - `ruff check src/data_platform/cycle/manifest.py src/data_platform/cycle/recommendation_provenance.py src/data_platform/cycle/__init__.py tests/cycle/test_publish_manifest.py`
   - result: passed
 - `DP_PG_DSN` constructed in-process from `compose-postgres-1`, then
-  `PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin:$PATH /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest tests/spike/test_iceberg_publish_manifest_chain.py tests/serving/test_formal.py tests/serving/test_formal_manifest_consistency.py tests/cycle/test_cycle_metadata.py tests/integration/test_p1c_smoke.py -q -rs`
+  `PATH=<workspace>/assembly/.venv-py312/bin:$PATH <workspace>/assembly/.venv-py312/bin/python -m pytest tests/spike/test_iceberg_publish_manifest_chain.py tests/serving/test_formal.py tests/serving/test_formal_manifest_consistency.py tests/cycle/test_cycle_metadata.py tests/integration/test_p1c_smoke.py -q -rs`
   - result: `43 passed`
   - warnings: six PyIceberg warnings that delete operations did not match any
     records

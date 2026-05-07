@@ -628,12 +628,12 @@ This is the current authoritative sweep block for M2.6f1 graph-writer
 evidence. It supersedes the initial/r1/r2 count blocks above.
 
 ```
-$ cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+$ cd <workspace>/data-platform
 # uv-managed minimal venv lacks pytest at clone time:
 $ uv pip install --python .venv/bin/python 'pytest>=8,<10' 'pytest-cov>=5,<8'
 
 $ PYTHONDONTWRITEBYTECODE=1 \
-  PYTHONPATH=src:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src \
+  PYTHONPATH=src:<workspace>/contracts/src \
   .venv/bin/python -m pytest -p no:cacheprovider \
     tests/cycle/test_graph_phase1_adapters.py \
     tests/integration/test_iceberg_canonical_graph_writer_live.py \
@@ -641,7 +641,7 @@ $ PYTHONDONTWRITEBYTECODE=1 \
 59 passed, 5 warnings in 1.28s
 
 $ PYTHONDONTWRITEBYTECODE=1 \
-  PYTHONPATH=src:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src \
+  PYTHONPATH=src:<workspace>/contracts/src \
   .venv/bin/python -m pytest -p no:cacheprovider --ignore=tests/dbt
 603 passed, 70 skipped, 12 warnings in 42.32s
 ```

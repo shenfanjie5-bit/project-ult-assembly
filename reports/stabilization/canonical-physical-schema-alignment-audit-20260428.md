@@ -21,7 +21,7 @@
 Command:
 
 ```
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform && \
+cd <workspace>/data-platform && \
   PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest -p no:cacheprovider -q \
   tests/provider_catalog tests/serving/test_canonical_datasets.py \
   tests/cycle/test_current_cycle_inputs.py 2>&1 | tail -10
@@ -484,15 +484,15 @@ Total: 7 findings (6 CONFIRMED + 1 PARTIAL).
 ```
 Task: C2
 Repo(s): data-platform + assembly
-Output report: /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/canonical-physical-schema-alignment-audit-20260428.md
-Validation command: cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest -p no:cacheprovider -q tests/provider_catalog tests/serving/test_canonical_datasets.py tests/cycle/test_current_cycle_inputs.py 2>&1 | tail -10
+Output report: <workspace>/assembly/reports/stabilization/canonical-physical-schema-alignment-audit-20260428.md
+Validation command: cd <workspace>/data-platform && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest -p no:cacheprovider -q tests/provider_catalog tests/serving/test_canonical_datasets.py tests/cycle/test_current_cycle_inputs.py 2>&1 | tail -10
 Validation result: PASS (21 passed in 0.28s; tail-truncated summary, full log saved to /tmp/pytest_c2.log)
 Per-subrepo git state:
   data-platform: rev-parse HEAD = 330f6b4d82a96d36c8fd150cc1a0a432d7c6cb9c
                  status =  M src/data_platform/raw/writer.py
                            M tests/raw/test_writer.py
                  push status = N/A (audit did not push; pre-existing dirty files unrelated to C2)
-                 interpreter = /Users/fanjie/Desktop/Cowork/project-ult/data-platform/.venv/bin/python — Python 3.14.3
+                 interpreter = <workspace>/data-platform/.venv/bin/python — Python 3.14.3
                  branch = main
   assembly:      rev-parse HEAD = a7f19c5994f807b2cf32eb2f45ef48f6fe23095f
                  status = ?? reports/stabilization/frontend-raw-route-alignment-fix-20260428.md

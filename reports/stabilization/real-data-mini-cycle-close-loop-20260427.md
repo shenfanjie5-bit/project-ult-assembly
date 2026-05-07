@@ -10,28 +10,28 @@
 ## Runtime
 
 - Temporary PostgreSQL database: `dp_real_mini_cycle_20260427_batch_d_091540`
-- Runtime root: `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tmp/real-data-mini-cycle-close-loop-20260427/20260427_batch_d_091540`
-- Artifact directory: `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-close-loop-20260427-artifacts`
-- Python runtime: `/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python`
-- dbt runtime: `/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/dbt`
+- Runtime root: `<proof-workspace>/real-data-mini-cycle-close-loop-20260427/20260427_batch_d_091540`
+- Artifact directory: `<evidence-artifact-root>/real-data-mini-cycle-close-loop-20260427-artifacts`
+- Python runtime: `<workspace>/assembly/.venv-py312/bin/python`
+- dbt runtime: `<workspace>/assembly/.venv-py312/bin/dbt`
 - Environment status artifact: `real-data-mini-cycle-close-loop-20260427-artifacts/runtime-env-status.json`
 
 ## Commands
 
 ```bash
-source /Users/fanjie/Desktop/Cowork/project-ult/assembly/.env
-export PYTHON=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python
-export DP_DBT_EXECUTABLE=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/dbt
-export DP_RAW_ZONE_PATH=/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tmp/real-data-mini-cycle-close-loop-20260427/20260427_batch_d_091540/raw
-export DP_ICEBERG_WAREHOUSE_PATH=/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tmp/real-data-mini-cycle-close-loop-20260427/20260427_batch_d_091540/warehouse
-export DP_DUCKDB_PATH=/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tmp/real-data-mini-cycle-close-loop-20260427/20260427_batch_d_091540/duckdb/data_platform.duckdb
+source <workspace>/assembly/.env
+export PYTHON=<workspace>/assembly/.venv-py312/bin/python
+export DP_DBT_EXECUTABLE=<workspace>/assembly/.venv-py312/bin/dbt
+export DP_RAW_ZONE_PATH=<proof-workspace>/real-data-mini-cycle-close-loop-20260427/20260427_batch_d_091540/raw
+export DP_ICEBERG_WAREHOUSE_PATH=<proof-workspace>/real-data-mini-cycle-close-loop-20260427/20260427_batch_d_091540/warehouse
+export DP_DUCKDB_PATH=<proof-workspace>/real-data-mini-cycle-close-loop-20260427/20260427_batch_d_091540/duckdb/data_platform.duckdb
 export DP_ICEBERG_CATALOG_NAME=data_platform_real_mini_cycle_close_loop_20260427
 # DP_PG_DSN and DP_TUSHARE_TOKEN were set in-process only and are intentionally omitted.
 
 bash scripts/daily_refresh.sh \
   --date 20260415 \
   --select stock_basic,daily \
-  --json-report /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-close-loop-20260427-artifacts/daily-refresh-20260415.json
+  --json-report <evidence-artifact-root>/real-data-mini-cycle-close-loop-20260427-artifacts/daily-refresh-20260415.json
 ```
 
 Follow-up Python probes used existing `data_platform.cycle`, `data_platform.serving.catalog`, and `data_platform.serving.formal` APIs to create/freeze the cycle, write minimal formal snapshots, publish the manifest, and read `latest`, `by_id`, and `by_snapshot`.

@@ -40,7 +40,7 @@ the active blocker framing for this assembly slice.
 YAML/config validation:
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/assembly
+cd <workspace>/assembly
 
 .venv-py312/bin/python - <<'PY'
 from pathlib import Path

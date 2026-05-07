@@ -48,23 +48,23 @@ Tushare provider regression:
 ## Verification
 
 ```bash
-PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/audit-eval/src \
-PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin:$PATH \
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python \
+PYTHONPATH=<workspace>/audit-eval/src \
+PATH=<workspace>/assembly/.venv-py312/bin:$PATH \
+<workspace>/assembly/.venv-py312/bin/python \
 -m pytest \
-/Users/fanjie/Desktop/Cowork/project-ult/audit-eval/tests/test_audit_writer.py \
-/Users/fanjie/Desktop/Cowork/project-ult/audit-eval/tests/test_replay_storage_integration.py \
+<workspace>/audit-eval/tests/test_audit_writer.py \
+<workspace>/audit-eval/tests/test_replay_storage_integration.py \
 -q
 ```
 
 Result: `36 passed`.
 
 ```bash
-PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/orchestrator/src:/Users/fanjie/Desktop/Cowork/project-ult/main-core/src:/Users/fanjie/Desktop/Cowork/project-ult/reasoner-runtime:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src:/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src:/Users/fanjie/Desktop/Cowork/project-ult/audit-eval/src \
-PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin:$PATH \
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python \
+PYTHONPATH=<workspace>/orchestrator/src:<workspace>/main-core/src:<workspace>/reasoner-runtime:<workspace>/contracts/src:<workspace>/data-platform/src:<workspace>/audit-eval/src \
+PATH=<workspace>/assembly/.venv-py312/bin:$PATH \
+<workspace>/assembly/.venv-py312/bin/python \
 -m pytest \
-/Users/fanjie/Desktop/Cowork/project-ult/orchestrator/tests/integration/test_p2_dry_run_handoff.py \
+<workspace>/orchestrator/tests/integration/test_p2_dry_run_handoff.py \
 -q -rs
 ```
 
