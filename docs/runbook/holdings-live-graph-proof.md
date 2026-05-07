@@ -44,8 +44,12 @@ Fail closed rules:
 
 - `DP_ENV` must be `test`.
 - PostgreSQL database name must contain `proof`, `smoke`, or `test`.
+- `--pg-dsn`, when supplied, is bound to `DP_PG_DSN` and `DATABASE_URL`
+  before queue submit, worker, freeze, frozen reads, and graph proof steps.
 - `NEO4J_DATABASE` is required, must not be `neo4j` or another shared/default
   name, and must contain `proof`, `smoke`, or `test`.
+- `--neo4j-database`, when supplied, is bound to `NEO4J_DATABASE` before any
+  live side effect.
 - `DP_DUCKDB_PATH` or `--duckdb-path` must point to an existing verified
   holdings DuckDB file.
 - Payload, frozen candidate, and Neo4j edge counts must be greater than zero.

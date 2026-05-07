@@ -105,6 +105,49 @@ class FakeServices:
         }
 
 
+class EnvCapturingServices(FakeServices):
+    def __init__(self) -> None:
+        super().__init__()
+        self.env_by_step: dict[str, dict[str, str | None]] = {}
+
+    def _capture_env(self, step: str) -> None:
+        import os
+
+        self.env_by_step[step] = {
+            "DP_PG_DSN": os.environ.get("DP_PG_DSN"),
+            "DATABASE_URL": os.environ.get("DATABASE_URL"),
+            "NEO4J_DATABASE": os.environ.get("NEO4J_DATABASE"),
+        }
+
+    def submit_holdings_payloads(self, config: Any) -> dict[str, Any]:
+        self._capture_env("submit")
+        return super().submit_holdings_payloads(config)
+
+    def accept_queue_candidates(self, config: Any) -> dict[str, Any]:
+        self._capture_env("worker")
+        return super().accept_queue_candidates(config)
+
+    def freeze_cycle(self, config: Any) -> dict[str, Any]:
+        self._capture_env("freeze")
+        return super().freeze_cycle(config)
+
+    def read_frozen_candidates(
+        self,
+        config: Any,
+        freeze_summary: dict[str, Any],
+    ) -> dict[str, Any]:
+        self._capture_env("reader")
+        return super().read_frozen_candidates(config, freeze_summary)
+
+    def run_graph_live_proof(
+        self,
+        config: Any,
+        frozen_summary: dict[str, Any],
+    ) -> dict[str, Any]:
+        self._capture_env("graph")
+        return super().run_graph_live_proof(config, frozen_summary)
+
+
 def _config(tmp_path: Path, *, execute: bool = True, **overrides: Any) -> Any:
     module = _load_module()
     duckdb_path = tmp_path / "holdings.duckdb"
@@ -178,6 +221,55 @@ def test_execute_runs_fake_services_in_order(tmp_path: Path) -> None:
         "production_entity_registry_m4_8": False,
         "production_queue_propagation": False,
     }
+
+
+def test_execute_binds_pg_env_before_queue_submit(
+    tmp_path: Path,
+    monkeypatch: Any,
+) -> None:
+    module = _load_module()
+    stale_dsn = _dsn("proj")
+    proof_dsn = _dsn("dp_graph_live_proof_test")
+    monkeypatch.setenv("DP_PG_DSN", stale_dsn)
+    monkeypatch.setenv("DATABASE_URL", stale_dsn)
+    services = EnvCapturingServices()
+
+    module.run_holdings_live_graph_proof(
+        _config(tmp_path, pg_dsn=proof_dsn),
+        services,
+        env=_env(),
+    )
+
+    assert services.env_by_step["submit"]["DP_PG_DSN"] == proof_dsn
+    assert services.env_by_step["submit"]["DATABASE_URL"] == proof_dsn
+    assert services.env_by_step["submit"]["DP_PG_DSN"] != stale_dsn
+    assert services.env_by_step["worker"]["DP_PG_DSN"] == proof_dsn
+    assert services.env_by_step["freeze"]["DATABASE_URL"] == proof_dsn
+    assert services.env_by_step["reader"]["DP_PG_DSN"] == proof_dsn
+    assert services.env_by_step["graph"]["DATABASE_URL"] == proof_dsn
+    assert module.os.environ["DP_PG_DSN"] == stale_dsn
+    assert module.os.environ["DATABASE_URL"] == stale_dsn
+
+
+def test_execute_binds_neo4j_env_before_graph_step(
+    tmp_path: Path,
+    monkeypatch: Any,
+) -> None:
+    module = _load_module()
+    proof_database = "projectultproof_test"
+    monkeypatch.setenv("NEO4J_DATABASE", "neo4j")
+    services = EnvCapturingServices()
+
+    module.run_holdings_live_graph_proof(
+        _config(tmp_path, neo4j_database=proof_database),
+        services,
+        env=_env(),
+    )
+
+    assert services.env_by_step["submit"]["NEO4J_DATABASE"] == proof_database
+    assert services.env_by_step["graph"]["NEO4J_DATABASE"] == proof_database
+    assert services.env_by_step["graph"]["NEO4J_DATABASE"] != "neo4j"
+    assert module.os.environ["NEO4J_DATABASE"] == "neo4j"
 
 
 @pytest.mark.parametrize(

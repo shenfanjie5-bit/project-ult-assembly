@@ -14,7 +14,8 @@ import re
 import sys
 import traceback
 from collections import Counter
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterator, Mapping, Sequence
+from contextlib import contextmanager
 from dataclasses import asdict, dataclass, is_dataclass
 from datetime import UTC, date, datetime
 from pathlib import Path
@@ -119,6 +120,7 @@ class LiveProofServices:
 
     def submit_holdings_payloads(self, config: ProofConfig) -> Mapping[str, Any]:
         _ensure_project_paths()
+        _set_runtime_env(config)
         module = _load_subsystem_holdings_submit_runner()
         return module.run_real_queue_submit_proof(
             _require_path(config.duckdb_path, "duckdb_path"),
@@ -128,7 +130,7 @@ class LiveProofServices:
 
     def accept_queue_candidates(self, config: ProofConfig) -> Mapping[str, Any]:
         _ensure_project_paths()
-        _set_pg_env(config.pg_dsn)
+        _set_runtime_env(config)
         from data_platform.queue.worker import validate_pending_candidates
 
         result = validate_pending_candidates(limit=config.worker_limit)
@@ -136,7 +138,7 @@ class LiveProofServices:
 
     def freeze_cycle(self, config: ProofConfig) -> Mapping[str, Any]:
         _ensure_project_paths()
-        _set_pg_env(config.pg_dsn)
+        _set_runtime_env(config)
         from data_platform.cycle import (
             create_cycle,
             freeze_cycle_candidates,
@@ -159,7 +161,7 @@ class LiveProofServices:
         freeze_summary: Mapping[str, Any],
     ) -> Mapping[str, Any]:
         _ensure_project_paths()
-        _set_pg_env(config.pg_dsn)
+        _set_runtime_env(config)
         from data_platform.cycle.graph_phase1_adapters import PostgresCandidateDeltaReader
 
         cycle_id = str(freeze_summary["cycle_id"])
@@ -185,7 +187,7 @@ class LiveProofServices:
         frozen_summary: Mapping[str, Any],
     ) -> Mapping[str, Any]:
         _ensure_project_paths()
-        _set_pg_env(config.pg_dsn)
+        _set_runtime_env(config)
         from graph_engine import Neo4jClient, load_config_from_env
         from graph_engine.proofs import run_holdings_live_graph_proof
         from graph_engine.status import GraphStatusManager
@@ -288,24 +290,25 @@ def run_holdings_live_graph_proof(
         summary["mode"] = "dry_run"
         return summary
 
-    submit_summary = services.submit_holdings_payloads(config)
-    _require_positive_count(submit_summary, "payload_count")
-    _assert_required_relations(_relation_counts_from(submit_summary))
+    with _bound_runtime_env(config):
+        submit_summary = services.submit_holdings_payloads(config)
+        _require_positive_count(submit_summary, "payload_count")
+        _assert_required_relations(_relation_counts_from(submit_summary))
 
-    worker_summary = services.accept_queue_candidates(config)
-    _require_positive_count(worker_summary, "accepted")
+        worker_summary = services.accept_queue_candidates(config)
+        _require_positive_count(worker_summary, "accepted")
 
-    freeze_summary = services.freeze_cycle(config)
-    _require_positive_count(freeze_summary, "frozen_candidate_count")
+        freeze_summary = services.freeze_cycle(config)
+        _require_positive_count(freeze_summary, "frozen_candidate_count")
 
-    frozen_summary = services.read_frozen_candidates(config, freeze_summary)
-    _require_positive_count(frozen_summary, "candidate_count")
-    _assert_required_relations(_relation_counts_from(frozen_summary))
+        frozen_summary = services.read_frozen_candidates(config, freeze_summary)
+        _require_positive_count(frozen_summary, "candidate_count")
+        _assert_required_relations(_relation_counts_from(frozen_summary))
 
-    graph_summary = services.run_graph_live_proof(config, frozen_summary)
-    edge_summary = _edge_verification_from(graph_summary)
-    _require_positive_count(edge_summary, "edge_count")
-    _assert_required_relations(_relation_counts_from(edge_summary))
+        graph_summary = services.run_graph_live_proof(config, frozen_summary)
+        edge_summary = _edge_verification_from(graph_summary)
+        _require_positive_count(edge_summary, "edge_count")
+        _assert_required_relations(_relation_counts_from(edge_summary))
 
     summary.update(
         {
@@ -602,11 +605,43 @@ def _postgres_database_name(dsn: str) -> str:
     return without_query.rsplit("/", 1)[-1]
 
 
+@contextmanager
+def _bound_runtime_env(config: ProofConfig) -> Iterator[None]:
+    previous = {
+        "DP_PG_DSN": os.environ.get("DP_PG_DSN"),
+        "DATABASE_URL": os.environ.get("DATABASE_URL"),
+        "NEO4J_DATABASE": os.environ.get("NEO4J_DATABASE"),
+    }
+    try:
+        _set_runtime_env(config)
+        yield
+    finally:
+        for key, value in previous.items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
+
+
+def _set_runtime_env(config: ProofConfig) -> None:
+    _set_pg_env(config.pg_dsn)
+    _set_neo4j_env(config.neo4j_database)
+
+
 def _set_pg_env(pg_dsn: str | None) -> None:
     if not pg_dsn:
         raise ProofError("DP_PG_DSN or DATABASE_URL missing", 2)
+    if not _database_name_is_proof_like(_postgres_database_name(pg_dsn)):
+        raise ProofError("PG database name must contain proof, smoke, or test", 2)
     os.environ["DP_PG_DSN"] = pg_dsn
     os.environ["DATABASE_URL"] = pg_dsn
+
+
+def _set_neo4j_env(database: str | None) -> None:
+    if database is None:
+        raise ProofError("NEO4J_DATABASE missing", 2)
+    _validate_neo4j_database(database)
+    os.environ["NEO4J_DATABASE"] = str(database)
 
 
 def _ensure_project_paths() -> None:
