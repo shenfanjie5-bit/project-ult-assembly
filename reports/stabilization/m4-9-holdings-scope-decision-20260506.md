@@ -355,9 +355,11 @@ The dependency order is:
    `reports/stabilization/m4-8-entity-resolution-proof-20260507.md`.
 6. Treat production hardening prerequisites and guards as landed through
    `reports/stabilization/holdings-production-hardening-prereqs-20260507.md`.
-7. Enter gated canary/live production evidence review before any claim of
-   production entity registry rollout, production queue propagation, live
-   Neo4j graph propagation, or default/full propagation.
+7. Treat gated canary/live production evidence as passed through
+   `reports/stabilization/holdings-bounded-canary-live-production-evidence-20260507.md`,
+   while continuing to block any claim of production entity registry rollout,
+   production queue propagation, live Neo4j graph propagation, or
+   default/full propagation.
 
 ## Production Hardening Prerequisites Handoff - 2026-05-07
 
@@ -382,9 +384,13 @@ graph and M4.8 entity-resolution proof closeouts:
   `612bd5cda3c8054c06e5cbd51de66955a7f0ed58`, adding the production queue
   submit runner using SDK idempotent-required mode.
 
-The combined handoff meaning is narrow: production hardening prerequisites
-and guards have landed. The next state is still gated canary/live production
-evidence, not a completed rollout.
+The combined handoff meaning for this prerequisite subsection is historical
+and narrow: production hardening prerequisites and guards had landed, and the
+previous prerequisite state was to enter gated canary/live production evidence
+before any rollout claim. That bounded gated canary/live production evidence
+has since passed, as recorded in
+`reports/stabilization/holdings-bounded-canary-live-production-evidence-20260507.md`.
+The current boundary is still not a completed rollout.
 
 This prerequisite handoff does not claim:
 
