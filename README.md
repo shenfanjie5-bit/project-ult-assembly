@@ -154,9 +154,12 @@ Source of truth:
   merged at `612bd5cda3c8054c06e5cbd51de66955a7f0ed58` with the production
   queue submit runner using SDK idempotent-required mode. Evidence:
   `reports/stabilization/holdings-production-hardening-prereqs-20260507.md`.
-  The next step remains gated canary/live production evidence. This does not
-  claim production rollout complete, default/full propagation enabled, M4.7
-  real-doc, financial-doc, contracts subtype, or new relations.
+  That prerequisite state has been superseded by the bounded gated canary/live
+  production evidence recorded below; the next step is production rollout
+  operationalization and runbook hardening before any controlled
+  opt-in/default propagation canary. This does not claim production rollout
+  complete, default/full propagation enabled, M4.7 real-doc, financial-doc,
+  contracts subtype, or new relations.
 - M4.9 bounded gated canary/live production evidence passed on 2026-05-07.
   The curated assembly report records disposable PostgreSQL/Neo4j canary
   resources with data-platform migrations `0001` through `0006`, readiness
@@ -194,33 +197,45 @@ Source of truth:
   `tests/release/test_docs.py tests/smoke tests/registry tests/compat`
   passed on 2026-04-27.
 
-## Production bridge closure plan
+## Next Roadmap - post-canary rollout operationalization
 
-Next assembly-owned planning focus is M4 production bridge closure. Keep the
-historical verified compatibility matrix rows intact; the frontend-api-inclusive
-row already has its own smoke/e2e/contract evidence, and any future
-frontend-api matrix change needs a fresh context-bound evidence set.
+Next assembly-owned planning focus is production rollout operationalization and
+runbook hardening after assembly #66 passed bounded gated canary/live
+production evidence. The next gate is a controlled opt-in/default propagation
+canary only after rollback, monitoring, incident response, ownership, audit,
+and fail-closed operating procedures are hardened. Keep the historical verified
+compatibility matrix rows intact; the frontend-api-inclusive row already has
+its own smoke/e2e/contract evidence, and any future frontend-api matrix change
+needs a fresh context-bound evidence set.
 
-M4 priority order:
+Priority order:
 
-1. **M4.1-M4.4 bridge closeout**: the direct SDK
+1. **Operationalize post-canary production rollout runbooks**: harden rollback,
+   monitoring, incident response, ownership, audit, and escalation procedures
+   before any broader production rollout claim. This remains an operational
+   hardening phase, not default/full propagation.
+2. **Prepare controlled opt-in/default propagation canary**: keep propagation
+   explicit, bounded, observable, auditable, and fail-closed for unresolved
+   entities. Do not claim default/full propagation until a controlled canary
+   passes and its rollback criteria are reviewable.
+3. **Keep M4.1-M4.4 bridge closeout as historical evidence**: the direct SDK
    `data_platform_queue` backend is the selected bridge. Live
    `make smoke-p1c` evidence proves non-skipped PG queue/freeze behavior,
    and the Ex-3 proof shows `payload_type='Ex-3'` candidates validate
    through public queue/freeze outputs and become graph-engine promotion
    input with edge output.
-2. **M4.5 L6 graph-context implementation**: deterministic component proof
+4. **Keep M4.5 L6 graph-context proof bounded**: deterministic component proof
    is complete. Graph context injection stays on the orchestrator/main-core
    side; sanitized Ex-3 graph-delta summaries may enter reasoner input through
    `AlphaAnalysisContext.feature_bundle.graph_features`; do not add
    holdings-specific subtypes, financial-doc scope, graph-engine #55
    algorithms, or reasoner-runtime imports of graph-engine/data-platform.
-3. **M4.6 frontend read-only proof**: deterministic component proof is
+5. **Keep M4.6 frontend read-only proof bounded**: deterministic component proof is
    complete. The merged frontend-api endpoint reads sanitized same-cycle
    Ex-3 signal artifacts through GET-only TestClient evidence. Live API/UI
    smoke remains blocked when required env/server setup is absent, and this
    proof does not close G4/P5.
-4. **M4.7/M4.8 validation gates**: M4.7 remains partial until
+6. **Keep M4.7/M4.8 validation gates explicit**: M4.7 remains partial until
    representative A-share documents parse successfully. M4.8 entity-resolution
    proof is complete as a bounded evidence closeout for deterministic
    exact/code/rule resolution, ambiguous fuzzy non-selection, unresolved
@@ -228,7 +243,7 @@ M4 priority order:
    projection. Production entity registry rollout, real Splink production
    backend rollout, production queue/live graph rollout, and default/full
    propagation remain future planning work.
-5. **M4.9 subsystem scope decision**: scope decision and handoff are recorded.
+7. **Use M4.9 holdings scope decision as the domain boundary**: scope decision and handoff are recorded.
    `subsystem-holdings` is the next P0 domain extension. Its producer scaffold
    exists, the real read-only mart adapter proof is complete, and PR #5 blocker
    evidence is no longer the current terminal state. Data-platform PR #105 /
@@ -254,7 +269,7 @@ M4 priority order:
    plus properties. `contracts #81` remains CLOSED / NOT_PLANNED.
    `subsystem-financial-doc` remains gated behind M4.7 real-document validation
    and holdings usefulness.
-6. **M4.9 production hardening prerequisites**: prerequisites and guards are
+8. **Treat M4.9 hardening/canary as passed evidence, not rollout completion**: prerequisites and guards are
    landed across entity-registry PR #61, data-platform PR #110, graph-engine
    PR #61, subsystem-sdk PR #44 / release `v0.1.4`, and subsystem-holdings
    PR #13. Assembly records this as prerequisites/guards landed only, followed
@@ -263,7 +278,7 @@ M4 priority order:
    Production rollout remains not default-enabled, and this is not production
    rollout complete, default/full propagation enabled, M4.7 real-doc closure,
    financial-doc scope, contracts subtype, or new relation scope.
-7. **Graph-engine #55 follow-up**: graph-engine #55 is closed through PR #59,
+9. **Graph-engine #55 follow-up**: graph-engine #55 is closed through PR #59,
    narrowed to holdings-only algorithms. It remains explicit-entry-only and
    does not shift into production live graph writeback, default full
    propagation, financial-doc, guarantees, related-party, or contracts subtype
@@ -369,6 +384,16 @@ fails the test suite if MD ⇄ YAML drifts.
 
 ## Next steps
 
+- **Production rollout operationalization/runbook hardening** — this is the
+  current next step after assembly #66 passed bounded gated canary/live
+  production evidence. Harden rollback, monitoring, incident response,
+  ownership, audit, and fail-closed operating procedures before any broader
+  rollout claim.
+- **Controlled opt-in/default propagation canary preparation** — after
+  runbooks are hardened, prepare a bounded, explicit opt-in/default
+  propagation canary with observable acceptance/rejection metrics and rollback
+  criteria. Do not enable or claim default/full propagation before that canary
+  passes.
 - **M4.8 entity-resolution proof closeout** — use
   `reports/stabilization/m4-8-entity-resolution-proof-20260507.md` as the
   bounded evidence handoff. Entity-registry PR #60, subsystem-holdings PR #12,
@@ -406,7 +431,10 @@ fails the test suite if MD ⇄ YAML drifts.
   `reports/stabilization/holdings-production-hardening-prereqs-20260507.md`
   as the handoff for landed prerequisites/guards. Entity-registry PR #61,
   data-platform PR #110, graph-engine PR #61, subsystem-sdk PR #44 / release
-  `v0.1.4`, and subsystem-holdings PR #13 are merged.
+  `v0.1.4`, and subsystem-holdings PR #13 are merged. Its historical next
+  step was bounded gated canary/live production evidence; that gate has since
+  passed via assembly #66, so current planning moves to rollout
+  operationalization/runbook hardening.
 - **M4.9 bounded gated canary evidence** — use
   `reports/stabilization/holdings-bounded-canary-live-production-evidence-20260507.md`
   as the curated assembly report for the passed canary/live production
@@ -415,7 +443,7 @@ fails the test suite if MD ⇄ YAML drifts.
   use this handoff to claim production rollout complete, default/full
   propagation enabled, M4.7 real-doc closure, financial-doc work, contracts
   subtype, or new relations.
-- **M4 production bridge closure upkeep** — keep the M4.1-M4.6 bridge and
+- **M4 bridge evidence upkeep** — keep the M4.1-M4.6 bridge and
   read-only evidence linked to their recorded reports. The current holdings
   handoff now points to merged sibling attempt2 evidence PRs #107 and #9, plus
   queue/freeze/promotion proof PRs #108, #10, #43, and #58, plus #55
