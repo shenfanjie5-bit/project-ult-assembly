@@ -12,7 +12,7 @@ Source of truth:
 - `CLAUDE.md` (project-specific guardrails — boundary rules, blocker
   triggers, KPI baselines)
 
-## Current state — stabilization gate passed + M4.9 holdings algorithms handoff
+## Current state — stabilization gate passed + M4.8 proof closeout
 
 - 13 of 15 module slots are `integration_status: verified` per
   `module-registry.yaml`. The two frozen slots (`feature-store`,
@@ -63,6 +63,23 @@ Source of truth:
   frontend UI changes. Evidence:
   `reports/stabilization/m4-ex3-frontend-readonly-proof-20260505.md` and
   `reports/stabilization/m4-ex3-frontend-readonly-proof-20260505.json`.
+- M4.8 entity-resolution proof closeout is complete on 2026-05-07 as an
+  assembly evidence aggregation. Entity-registry PR #60 merged at
+  `6debd8cc137ee57572fd862959cd845c6dffcab5`, covering deterministic
+  exact/code/rule resolution, ambiguous fuzzy candidates not being selected
+  automatically, unresolved fail-closed behavior, `ResolutionCase` and audit
+  payload shape, and contracts projection. The focused fuzzy backend is
+  `injected_fake`, not a real Splink production rollout.
+  `subsystem-holdings` PR #12 merged at
+  `11c1b1cf62be32c49940293c2e04e89d93ae1ecc`, keeping
+  `EntityRegistryAdapter` on public `lookup_alias` / `lookup_entity_refs`,
+  preserving unresolved fail-closed behavior, and adding SDK entity preflight
+  before queue submit. Holdings live graph proof PR #62 merged at
+  `3736799bf362970670b0769e363c75bc15123f79` as adjacent handoff evidence.
+  This closeout does not claim production entity registry rollout, production
+  queue or live graph rollout, default/full propagation, M4.7 real-document
+  completion, financial-doc scope, or contracts subtype work. Evidence:
+  `reports/stabilization/m4-8-entity-resolution-proof-20260507.md`.
 - M4.9 holdings handoff was updated on 2026-05-07:
   `subsystem-holdings` is the next P0 domain extension, and its producer
   scaffold now exists via PR #1 commit
@@ -99,8 +116,8 @@ Source of truth:
   default full-propagation rollout, provider/backfill execution from assembly,
   financial-doc scope, guarantees or related-party scope, `MAJOR_CUSTOMER` /
   `MAJOR_SUPPLIER`, or contracts/subtype change. `contracts #81` remains
-  CLOSED / NOT_PLANNED. M4.7 remains partial; M4.8 remains a future
-  validation gate.
+  CLOSED / NOT_PLANNED. M4.7 remains partial; M4.8 proof is complete only as a
+  bounded evidence closeout, not production rollout.
   Evidence:
   `reports/stabilization/m4-9-holdings-scope-decision-20260506.md` and
   `reports/stabilization/m4-9-holdings-scope-decision-20260506.json`.
@@ -169,9 +186,13 @@ M4 priority order:
    smoke remains blocked when required env/server setup is absent, and this
    proof does not close G4/P5.
 4. **M4.7/M4.8 validation gates**: M4.7 remains partial until
-   representative A-share documents parse successfully; M4.8 remains the
-   future validation gate for entity resolution and fail-closed unresolved
-   cases.
+   representative A-share documents parse successfully. M4.8 entity-resolution
+   proof is complete as a bounded evidence closeout for deterministic
+   exact/code/rule resolution, ambiguous fuzzy non-selection, unresolved
+   fail-closed handling, `ResolutionCase` / audit payload shape, and contracts
+   projection. Production entity registry rollout, real Splink production
+   backend rollout, production queue/live graph rollout, and default/full
+   propagation remain future planning work.
 5. **M4.9 subsystem scope decision**: scope decision and handoff are recorded.
    `subsystem-holdings` is the next P0 domain extension. Its producer scaffold
    exists, the real read-only mart adapter proof is complete, and PR #5 blocker
@@ -304,6 +325,14 @@ fails the test suite if MD ⇄ YAML drifts.
 
 ## Next steps
 
+- **M4.8 entity-resolution proof closeout** — use
+  `reports/stabilization/m4-8-entity-resolution-proof-20260507.md` as the
+  bounded evidence handoff. Entity-registry PR #60, subsystem-holdings PR #12,
+  and holdings live graph proof PR #62 are merged. This proves deterministic
+  resolution and fail-closed integration behavior only; it does not claim
+  production entity registry rollout, production queue or live graph rollout,
+  default/full propagation, M4.7 real-document completion, financial-doc scope,
+  or contracts subtype work.
 - **M4.9 holdings scope handoff** — use
   `reports/stabilization/m4-9-holdings-scope-decision-20260506.md` as the
   boundary for the next P0 domain extension. Data-platform PR #102 through
@@ -323,13 +352,17 @@ fails the test suite if MD ⇄ YAML drifts.
   holdings-only algorithms: `CO_HOLDING` co-holding crowding and
   `NORTHBOUND_HOLD` northbound anomaly.
   Do not use M4.9 to claim production queue propagation, live Neo4j graph
-  propagation, default full-propagation rollout, M4.7, M4.8, financial-doc
-  work, guarantees or related-party scope, `MAJOR_CUSTOMER` /
+  propagation, default full-propagation rollout, production entity registry
+  rollout, M4.7, financial-doc work, guarantees or related-party scope,
+  `MAJOR_CUSTOMER` /
   `MAJOR_SUPPLIER`, or contracts subtype changes.
-- **M4.7/M4.8 validation gates** — M4.7 remains partial until
-  real-document parsing is validated on representative A-share documents.
-  M4.8 remains the future entity-resolution validation gate with unresolved
-  cases handled fail-closed.
+- **M4.7 validation gate** — M4.7 remains partial until real-document parsing
+  is validated on representative A-share documents.
+- **M4.9 production rollout hardening planning** — now that the bounded M4.8
+  proof is complete, the next planning step may cover production entity
+  registry rollout, production queue/live graph rollout, and default/full
+  propagation hardening. Those are not claimed by the M4.8 closeout or the
+  current M4.9 holdings handoff.
 - **M4 production bridge closure upkeep** — keep the M4.1-M4.6 bridge and
   read-only evidence linked to their recorded reports. The current holdings
   handoff now points to merged sibling attempt2 evidence PRs #107 and #9, plus

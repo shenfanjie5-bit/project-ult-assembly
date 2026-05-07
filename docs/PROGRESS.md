@@ -15,6 +15,16 @@
 | 阶段 4 | Full 扩展 profile 与可选 bundle 槽位 | not-started | ISSUE-010 | 不改变 Lite 合同边界 |
 | 阶段 5 | 发布与运维材料完善 | not-started | ISSUE-011 | 文档可评审、版本锁定可追溯、verified matrix 成为集成基线 |
 
+## M4 evidence handoff overlay
+
+本节只记录 M4 证据聚合状态，不替代上方阶段制 Issue 清单。
+
+| Milestone | 状态 | assembly 记录 | 边界 |
+|---|---|---|---|
+| M4.7 | parked / partial | `reports/stabilization/p4-docling-llamaindex-offline-preflight-20260430.md` | 代表性 A 股真实文档解析与抽取仍未关闭。 |
+| M4.8 | proof complete | `reports/stabilization/m4-8-entity-resolution-proof-20260507.md` | 仅声明 deterministic exact/code/rule、ambiguous fuzzy 不自动选择、unresolved fail-closed、`ResolutionCase` / audit payload、contracts projection 与 `subsystem-holdings` public adapter boundary；不声明 production entity registry rollout、production queue/live graph rollout、default/full propagation、financial-doc 或 contracts subtype。 |
+| M4.9 | handoff updated | `reports/stabilization/m4-9-holdings-scope-decision-20260506.md` | M4.8 proof 已完成，下一步才允许规划 production rollout hardening；当前 handoff 仍不声明 production rollout。 |
+
 ## Issue 清单
 
 | Issue | 标题 | 阶段 | 优先级 | 状态 | 依赖 |
