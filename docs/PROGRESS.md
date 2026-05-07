@@ -4,16 +4,23 @@
 > module_id: `assembly`
 > 首版覆盖范围：12 固定长期模块 + N=2 子系统 = 14 项
 
-## 阶段总览
+## Legacy 阶段表（reference only）
+
+下表保留早期 assembly 阶段制 Issue 映射，作为 legacy/reference
+索引使用；它已被下方 M4 stabilization overlay 取代为当前状态视图。
+不要将本表解读为全项目仍未开始。当前 verified/parked 状态以
+M4 overlay 为准：M4.8 proof 已完成，holdings live graph proof 已完成，
+M4.7 real-doc / financial-doc 仍 parked，production rollout hardening 是下一步，
+contracts subtype 不在计划内。
 
 | 阶段 | 名称 | 状态 | Issues | 退出条件 |
 |------|------|------|--------|----------|
-| 阶段 0 | 系统级入口冻结 | not-started | ISSUE-001, ISSUE-002, ISSUE-003 | profile schema / 模块公开入口契约 / 首版 MODULE_REGISTRY 覆盖 14 项（未开工项 `not-started`） |
-| 阶段 1 | Lite profile 与 bootstrap | not-started | ISSUE-004, ISSUE-005 | lite-local 下 PostgreSQL / Neo4j / Dagster daemon / Dagster webserver 4 常驻进程 healthy |
-| 阶段 2 | registry + health + smoke | not-started | ISSUE-006, ISSUE-007 | registry 覆盖率 100%、smoke 自动可运行 |
-| 阶段 3 | contract compatibility + minimal e2e | not-started | ISSUE-008, ISSUE-009 | contract suite pass 100%、minimal cycle e2e 可在冻结 fixture 上运行 |
-| 阶段 4 | Full 扩展 profile 与可选 bundle 槽位 | not-started | ISSUE-010 | 不改变 Lite 合同边界 |
-| 阶段 5 | 发布与运维材料完善 | not-started | ISSUE-011 | 文档可评审、版本锁定可追溯、verified matrix 成为集成基线 |
+| 阶段 0 | 系统级入口冻结 | legacy/reference; superseded by M4 overlay | ISSUE-001, ISSUE-002, ISSUE-003 | profile schema / 模块公开入口契约 / 首版 MODULE_REGISTRY 覆盖 14 项；当前 registry stabilization 状态见 M4 overlay |
+| 阶段 1 | Lite profile 与 bootstrap | legacy/reference; superseded by M4 overlay | ISSUE-004, ISSUE-005 | lite-local 下 PostgreSQL / Neo4j / Dagster daemon / Dagster webserver 4 常驻进程 healthy；当前 proof 状态见 M4 overlay |
+| 阶段 2 | registry + health + smoke | legacy/reference; superseded by M4 overlay | ISSUE-006, ISSUE-007 | registry 覆盖率 100%、smoke 自动可运行；当前 proof 状态见 M4 overlay |
+| 阶段 3 | contract compatibility + minimal e2e | legacy/reference; superseded by M4 overlay | ISSUE-008, ISSUE-009 | contract suite pass 100%、minimal cycle e2e 可在冻结 fixture 上运行；contracts subtype 不在计划内 |
+| 阶段 4 | Full 扩展 profile 与可选 bundle 槽位 | legacy/reference; superseded by M4 overlay | ISSUE-010 | 不改变 Lite 合同边界；不声明 default/full propagation 或 production rollout 完成 |
+| 阶段 5 | 发布与运维材料完善 | legacy/reference; superseded by M4 overlay | ISSUE-011 | 文档可评审、版本锁定可追溯、verified matrix 成为集成基线；当前 production rollout hardening 仍是 next |
 
 ## M4 evidence handoff overlay
 
@@ -21,9 +28,10 @@
 
 | Milestone | 状态 | assembly 记录 | 边界 |
 |---|---|---|---|
-| M4.7 | parked / partial | `reports/stabilization/p4-docling-llamaindex-offline-preflight-20260430.md` | 代表性 A 股真实文档解析与抽取仍未关闭。 |
+| M4.7 | parked / partial | `reports/stabilization/p4-docling-llamaindex-offline-preflight-20260430.md` | 代表性 real-doc 解析与抽取仍未关闭；financial-doc 仍 parked。 |
 | M4.8 | proof complete | `reports/stabilization/m4-8-entity-resolution-proof-20260507.md` | 仅声明 deterministic exact/code/rule、ambiguous fuzzy 不自动选择、unresolved fail-closed、`ResolutionCase` / audit payload、contracts projection 与 `subsystem-holdings` public adapter boundary；不声明 production entity registry rollout、production queue/live graph rollout、default/full propagation、financial-doc 或 contracts subtype。 |
-| M4.9 | handoff updated | `reports/stabilization/m4-9-holdings-scope-decision-20260506.md` | M4.8 proof 已完成，下一步才允许规划 production rollout hardening；当前 handoff 仍不声明 production rollout。 |
+| holdings live graph | proof complete | `reports/stabilization/holdings-live-graph-proof-20260507.md` | 已完成 proof-only queue submit 到 explicit holdings algorithms 的证据链；不声明 production rollout、contracts subtype 或 financial-doc scope。 |
+| M4.9 | handoff updated | `reports/stabilization/m4-9-holdings-scope-decision-20260506.md` | M4.8 proof 与 holdings live graph proof 已完成，下一步才允许规划 production rollout hardening；当前 handoff 仍不声明 production rollout。 |
 
 ## Issue 清单
 
