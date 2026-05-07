@@ -3,10 +3,11 @@
 This report records the assembly-owned M4.9 subsystem scope decision and
 handoff after M4.6, assembly PR #52
 (`a6bb671aff39cdd31db3ef28104e6119e13ad3ba`), and the first four
-`subsystem-holdings` PRs landed. It records the PR #5 blocker state and the
-newer attempt2 live proof handoff state after sibling repo progress. It is an
-assembly docs/report artifact only. It does not change code, does not change
-contracts, and does not perform derivations or backfill.
+`subsystem-holdings` PRs landed. It records the PR #5 blocker state, the newer
+attempt2 live proof handoff state, and the post queue/freeze/promotion handoff
+after sibling repo progress. It is an assembly docs/report artifact only. It
+does not change code, does not change contracts, and does not perform
+derivations or backfill.
 
 ## Status
 
@@ -18,9 +19,12 @@ contracts, and does not perform derivations or backfill.
   sibling evidence is merged via data-platform PR #107 commit
   `841f7c0f95e8c613e5bac9fe0fe78c09e1f9f152` and `subsystem-holdings`
   PR #9 commit `b046ecf6b54220ceedf517089ebcc883571184d1`.
-- Not proven by assembly: queue submit, live graph propagation, graph-engine
-  #55 entry, provider/backfill execution from assembly, financial-doc scope, or
-  contracts/subtype change.
+- Queue/freeze/promotion handoff: proof-only queue submit path, holdings Ex-3
+  queue/freeze bridge, and offline Layer A promotion/query/channel proof are
+  merged in sibling repos.
+- Not proven by assembly: production queue propagation, live Neo4j graph
+  propagation, graph-engine #55 algorithms, provider/backfill execution from
+  assembly, financial-doc scope, or contracts/subtype change.
 - `subsystem-financial-doc` status: deferred.
 - M4.7 status: partial; real-document validation remains open.
 - M4.8 status: future validation gate.
@@ -41,6 +45,9 @@ contracts, and does not perform derivations or backfill.
   PR #107 commit `841f7c0f95e8c613e5bac9fe0fe78c09e1f9f152` and
   `subsystem-holdings` PR #9 commit
   `b046ecf6b54220ceedf517089ebcc883571184d1`.
+- Post queue/freeze/promotion handoff: data-platform PR #108,
+  `subsystem-holdings` PR #10, `subsystem-sdk` PR #43 / tag `v0.1.3`, and
+  graph-engine PR #58 have landed.
 
 ## Decision
 
@@ -57,8 +64,8 @@ Assembly now points to the merged sibling evidence PRs for repository-tracked
 handoff evidence.
 
 Assembly was already aligned at the boundary level. This update syncs assembly
-to the current attempt2 handoff without changing the boundary, contracts,
-subtype scope, graph-engine scope, or sibling repositories.
+to the current queue/freeze/promotion handoff without changing the boundary,
+contracts, subtype scope, graph-engine #55 scope, or sibling repositories.
 
 ## Subsystem-Holdings Adapter Handoff
 
@@ -155,9 +162,12 @@ data-platform canonical / mart holdings outputs
   -> existing assembly / data-platform / graph-engine promotion path
 ```
 
-This path is not production-proven by the current holdings adapter evidence.
-Assembly points to merged tracked attempt2 evidence PRs for handoff evidence,
-and this handoff still does not enter live graph propagation.
+This path is proof-covered through the current sibling handoff only up to
+proof-only queue submit, data-platform queue/freeze bridge, and offline Layer A
+promotion/query/channel compatibility. Assembly points to merged tracked
+attempt2 evidence and queue/freeze/promotion PRs for handoff evidence, and
+this handoff still does not enter production queue propagation or live Neo4j
+graph propagation.
 
 ## PR #5 Live Producer Blocker Handoff
 
@@ -186,18 +196,47 @@ with sibling evidence now merged via PR #107 and PR #9.
   fail-closed skip diagnostic behavior. It does not block `CO_HOLDING` /
   `NORTHBOUND_HOLD`.
 
-This evidence does not claim any of the following:
+This attempt2 evidence does not claim any of the following:
 
-- Queue submit.
-- Live graph proof.
+- Queue submit; that is covered later only by proof-only handoff evidence.
+- Live Neo4j graph propagation.
 - Provider/backfill execution from assembly.
 - Financial-doc scope.
 - Live graph contracts subtype work.
-- Graph-engine #55 entry.
+- Graph-engine #55 algorithms.
 - Contracts or subtype change.
 
 Graph-engine #55 remains not entered. This handoff must not mix #55 and #56
 scope and must not revive the older financial-doc / contracts-subtype scope.
+
+## Post Queue/Freeze/Promotion Handoff - 2026-05-07
+
+The next holdings handoff layer has landed after the attempt2 producer proof:
+
+- `subsystem-sdk` PR #43 merged as
+  `9c220b7a7a9f5f50b3c57131b501b83fab2e75ce` and released
+  `data_platform_queue` backend support as tag `v0.1.3`.
+- `subsystem-holdings` PR #10 merged as
+  `63a09b7ca6e6d152279a51857cd497fd8be60fb7`, adding a proof-only queue
+  submit path through the SDK backend.
+- Data-platform PR #108 merged as
+  `138b78c27b68b1d9b5e7395aec0c396d99dc4202`, proving holdings Ex-3
+  queue/freeze bridge behavior for frozen candidates.
+- Graph-engine PR #58 merged as
+  `7eb363cc74325699de5ac46c1362e93cdf470651`, proving `edge_upsert`
+  compatibility for holdings Layer A promotion, query, and propagation-channel
+  declarations.
+
+The combined meaning is narrow: proof-only queue submit path plus holdings Ex-3
+queue/freeze bridge plus offline Layer A promotion/query/channel proof are
+landed. This does not claim:
+
+- production queue propagation;
+- live Neo4j graph propagation;
+- graph-engine #55 algorithms;
+- provider/backfill execution from assembly;
+- financial-doc scope;
+- holdings-specific contracts subtype or any contracts change.
 
 ## Graph Relation Scope
 
@@ -213,18 +252,22 @@ subtypes in this scope decision.
 ## Graph-Engine Follow-Up
 
 `graph-engine #55` remains not entered and unimplemented. This handoff records
-that the producer scaffold and non-live read-only adapter proof now exist, but
-it does not shift #56/#55 scope and does not enter graph propagation work. The
-future #55 scope must not revive the older financial-doc / contracts-subtype
-scope and must not assume financial-doc availability.
+that producer scaffold, read-only adapter proof, proof-only queue submit path,
+holdings Ex-3 queue/freeze bridge, and offline Layer A promotion/query/channel
+proof now exist, but it does not shift #56/#55 scope and does not enter #55
+algorithm work. The future #55 scope must not revive the older financial-doc /
+contracts-subtype scope and must not assume financial-doc availability.
 
 The dependency order is:
 
 1. Keep this M4.9 scope decision and handoff as the assembly boundary.
 2. Treat the bounded live producer proof as merged sibling evidence through
    `subsystem-holdings` PR #9.
-3. Enter queue propagation, live graph propagation, and graph-engine #55 only
-   when that work is explicitly planned.
+3. Treat proof-only queue submit, holdings Ex-3 queue/freeze bridge, and
+   offline Layer A promotion/query/channel proof as merged sibling evidence
+   through PRs #10, #108, #43, and #58.
+4. Enter production queue propagation, live Neo4j graph propagation, and
+   graph-engine #55 algorithms only when that work is explicitly planned.
 
 ## Financial-Doc Gate
 
@@ -251,15 +294,17 @@ unresolved entities.
 
 These exclusions do not negate the bounded live backfill and producer proof
 evidence already merged through data-platform PR #107 and `subsystem-holdings`
-PR #9.
+PR #9, or the queue/freeze/promotion proof evidence merged through
+data-platform PR #108, `subsystem-holdings` PR #10, `subsystem-sdk` PR #43,
+and graph-engine PR #58.
 
 This decision does not:
 
 - modify `data-platform`, `contracts`, `graph-engine`, or any sibling repo;
 - add new data derivations, additional backfill, or raw-provider ingestion;
 - add holdings-specific contract classes, subtypes, or relation contracts;
-- claim production queue propagation or live graph propagation;
-- enter graph-engine #55;
+- claim production queue propagation or live Neo4j graph propagation;
+- enter graph-engine #55 algorithms;
 - add contracts subtype scope;
 - claim financial-doc scope;
 - claim that M4.7 or M4.8 is complete;
