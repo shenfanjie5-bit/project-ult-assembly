@@ -1,8 +1,8 @@
 {
-  "status": "production_hardening_prereqs_landed_not_rollout",
+  "status": "bounded_gated_canary_evidence_passed_not_rollout",
   "recorded_at": "2026-05-07T00:00:00Z",
   "decision_date": "2026-05-06",
-  "scope": "M4.9 subsystem scope decision, holdings adapter handoff, PR #5 live producer blockers, attempt2 live proof handoff, queue/freeze/promotion proof handoff, holdings-only algorithms handoff, M4.8 proof closeout handoff, and production hardening prerequisites handoff",
+  "scope": "M4.9 subsystem scope decision, holdings adapter handoff, PR #5 live producer blockers, attempt2 live proof handoff, queue/freeze/promotion proof handoff, holdings-only algorithms handoff, M4.8 proof closeout handoff, production hardening prerequisites handoff, and bounded gated canary/live production evidence handoff",
   "prerequisites": {
     "m4_6": "complete",
     "assembly_env_hygiene_pr_52_merge_commit": "a6bb671aff39cdd31db3ef28104e6119e13ad3ba"
@@ -10,14 +10,15 @@
   "milestones": {
     "m4_7": "partial_real_document_validation_open",
     "m4_8": "proof_closeout_complete_bounded_evidence",
-    "m4_9": "decision_and_handoff_recorded",
+    "m4_9": "bounded_gated_canary_evidence_passed_not_rollout",
     "post_pr1_3_readiness_handoff": "recorded",
     "post_pr1_4_holdings_adapter_handoff": "recorded",
     "pr_5_live_producer_blocker_handoff": "recorded_historical",
     "attempt2_live_proof_handoff": "runtime_pass_sibling_evidence_merged",
     "queue_freeze_promotion_handoff": "sibling_proofs_merged",
     "holdings_only_algorithms_handoff": "sibling_proof_merged_issue_55_closed",
-    "production_hardening_prereqs": "guards_landed_not_rollout",
+    "production_hardening_prereqs": "guards_landed_previous_prerequisite_state_not_rollout",
+    "bounded_gated_canary_live_production_evidence": "passed_not_rollout",
     "m4_8_proof_closeout": "complete_not_production_rollout"
   },
   "decision": {
@@ -40,7 +41,9 @@
     "m4_8_evidence_path": "reports/stabilization/m4-8-entity-resolution-proof-20260507.md",
     "m4_8_production_rollout_claimed": false,
     "m4_9_production_hardening_prereqs": "landed",
-    "m4_9_next_step": "gated_canary_live_production_evidence",
+    "m4_9_previous_prerequisite_state": "gated_canary_live_production_evidence",
+    "m4_9_bounded_gated_canary_live_production_evidence": "passed",
+    "m4_9_current_boundary": "canary_passed_not_default_enabled_not_broad_rollout",
     "production_rollout_complete_claimed": false,
     "default_or_full_propagation_enabled": false,
     "financial_doc_gate": [
@@ -250,7 +253,7 @@
     ]
   },
   "production_hardening_prereqs": {
-    "status": "guards_landed_not_rollout",
+    "status": "guards_landed_previous_prerequisite_state_not_rollout",
     "recorded_at": "2026-05-07T00:00:00Z",
     "evidence_path": "reports/stabilization/holdings-production-hardening-prereqs-20260507.md",
     "sibling_prs": {
@@ -288,7 +291,8 @@
         "handoff": "production queue submit runner using SDK idempotent-required mode"
       }
     },
-    "next_step": "gated_canary_live_production_evidence",
+    "previous_prerequisite_state": "gated_canary_live_production_evidence",
+    "superseded_by_evidence_path": "reports/stabilization/holdings-bounded-canary-live-production-evidence-20260507.md",
     "not_claimed": {
       "production_rollout_complete": false,
       "production_queue_propagation_complete": false,
@@ -299,6 +303,20 @@
       "financial_doc_scope": false,
       "contracts_subtype_changes": false,
       "new_relation_types": false
+    }
+  },
+  "bounded_gated_canary_live_production_evidence": {
+    "status": "passed_not_rollout",
+    "recorded_at": "2026-05-07T00:00:00Z",
+    "evidence_path": "reports/stabilization/holdings-bounded-canary-live-production-evidence-20260507.md",
+    "current_boundary": "canary_passed_not_default_enabled_not_broad_rollout",
+    "not_claimed": {
+      "broad_production_rollout_complete": false,
+      "production_rollout_complete": false,
+      "default_full_propagation_enabled": false,
+      "m4_7_real_doc_complete": false,
+      "financial_doc_scope": false,
+      "contracts_subtype_changes": false
     }
   },
   "post_pr1_3_readiness_handoff": {
@@ -423,7 +441,8 @@
     "no contracts/subtype change",
     "no M4.7 closure",
     "no production rollout claim from M4.8 proof closeout",
-    "no production rollout claim from production hardening prerequisites"
+    "no production rollout claim from production hardening prerequisites",
+    "no broad production rollout claim from bounded gated canary evidence"
   ],
   "evidence_hygiene": {
     "raw_logs_recorded": false,
