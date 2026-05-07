@@ -61,8 +61,17 @@ does not change contracts, and does not perform derivations or backfill.
 - Production hardening prerequisites handoff: entity-registry PR #61,
   data-platform PR #110, graph-engine PR #61, subsystem-sdk PR #44 / release
   tag `v0.1.4`, and subsystem-holdings PR #13 have landed as guard/prereq
-  work. Assembly records this as prerequisites/guards landed only; the next
-  step remains gated canary/live production evidence.
+  work. Assembly records this as prerequisites/guards landed only.
+- Bounded gated canary/live production evidence handoff: passed in curated
+  assembly evidence at
+  `reports/stabilization/holdings-bounded-canary-live-production-evidence-20260507.md`.
+  Readiness was ready for 55 payloads; selected queue execute/receipts/accepted
+  count was 46; worker rejected count was 0; targeted freeze count was 46;
+  frozen reader and graph readback relation counts were `CO_HOLDING=45` and
+  `NORTHBOUND_HOLD=1`; graph expected/readback edges were 46 with no missing
+  edge ids and no disallowed relation types; explicit holdings algorithm path
+  counts were 0 with threshold diagnostics. Runtime environment details are
+  redacted.
 - M4.8 proof closeout handoff: entity-registry PR #60 merged as
   `6debd8cc137ee57572fd862959cd845c6dffcab5`, `subsystem-holdings` PR #12
   merged as `11c1b1cf62be32c49940293c2e04e89d93ae1ecc`, and holdings live
@@ -98,8 +107,11 @@ The production hardening prerequisite work has now landed in sibling repos and
 is recorded in
 `reports/stabilization/holdings-production-hardening-prereqs-20260507.md`.
 This updates the M4.9 handoff from planning-only to prerequisites/guards
-landed. It still does not declare production rollout complete; canary/live
-production evidence remains the next gated step.
+landed. The bounded gated canary/live production evidence has also passed and
+is recorded in
+`reports/stabilization/holdings-bounded-canary-live-production-evidence-20260507.md`.
+It still does not declare production rollout complete, and production rollout
+remains not default-enabled.
 
 ## Subsystem-Holdings Adapter Handoff
 
