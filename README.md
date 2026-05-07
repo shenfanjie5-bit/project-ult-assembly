@@ -12,7 +12,7 @@ Source of truth:
 - `CLAUDE.md` (project-specific guardrails — boundary rules, blocker
   triggers, KPI baselines)
 
-## Current state — stabilization gate passed + M4.8 proof closeout
+## Current state — stabilization gate passed + hardening prereqs landed
 
 - 13 of 15 module slots are `integration_status: verified` per
   `module-registry.yaml`. The two frozen slots (`feature-store`,
@@ -138,6 +138,25 @@ Source of truth:
   compatibility. Graph-engine PR #59 closes #55 with holdings-only algorithms,
   but this assembly handoff still does not enter production queue propagation,
   live Neo4j graph propagation, or default full-propagation rollout.
+- M4.9 production hardening prerequisites are landed as guards, not as
+  rollout completion. Entity-registry PR #61 merged at
+  `ad00cb726ad0576330756f37bf2155a43e4b0e71` with the production readiness
+  gate and evidence runner. Data-platform PR #110 merged at
+  `74c12cd36b404882ec4425eea3f1b6a14fbfdf02` with Ex-3 `delta_id`
+  idempotency, safe receipt, targeted freeze, and worker rejection metrics.
+  Graph-engine PR #61 merged at
+  `dea63caeec89b16bbd89fb7d5a4174b677e2c394` with rollout guard, canary,
+  and evidence support while default propagation stays disabled.
+  Subsystem-sdk PR #44 merged at
+  `82177a4627d2ce1ac59738da2a13c6e4baee3994`, release PR #45 bumped the
+  release, and tag `v0.1.4` points at
+  `8d18ccb1877d4243196412322654ab2e8e9d999a`. Subsystem-holdings PR #13
+  merged at `612bd5cda3c8054c06e5cbd51de66955a7f0ed58` with the production
+  queue submit runner using SDK idempotent-required mode. Evidence:
+  `reports/stabilization/holdings-production-hardening-prereqs-20260507.md`.
+  The next step remains gated canary/live production evidence. This does not
+  claim production rollout complete, default/full propagation enabled, M4.7
+  real-doc, financial-doc, contracts subtype, or new relations.
 - Compatibility matrix records 4 verified rows:
   - `lite-local` (default): `verified_at: 2026-04-24T05:24:14Z` (Stage
     5 re-verification after audit-eval pin sync 0.2.2 → 0.2.5;
@@ -219,7 +238,15 @@ M4 priority order:
    plus properties. `contracts #81` remains CLOSED / NOT_PLANNED.
    `subsystem-financial-doc` remains gated behind M4.7 real-document validation
    and holdings usefulness.
-6. **Graph-engine #55 follow-up**: graph-engine #55 is closed through PR #59,
+6. **M4.9 production hardening prerequisites**: prerequisites and guards are
+   landed across entity-registry PR #61, data-platform PR #110, graph-engine
+   PR #61, subsystem-sdk PR #44 / release `v0.1.4`, and subsystem-holdings
+   PR #13. Assembly records this as prerequisites/guards landed only. The next
+   step remains gated canary/live production evidence, and this is not
+   production rollout complete, default/full propagation enabled, M4.7
+   real-doc closure, financial-doc scope, contracts subtype, or new relation
+   scope.
+7. **Graph-engine #55 follow-up**: graph-engine #55 is closed through PR #59,
    narrowed to holdings-only algorithms. It remains explicit-entry-only and
    does not shift into production live graph writeback, default full
    propagation, financial-doc, guarantees, related-party, or contracts subtype
@@ -358,11 +385,15 @@ fails the test suite if MD ⇄ YAML drifts.
   `MAJOR_SUPPLIER`, or contracts subtype changes.
 - **M4.7 validation gate** — M4.7 remains partial until real-document parsing
   is validated on representative A-share documents.
-- **M4.9 production rollout hardening planning** — now that the bounded M4.8
-  proof is complete, the next planning step may cover production entity
-  registry rollout, production queue/live graph rollout, and default/full
-  propagation hardening. Those are not claimed by the M4.8 closeout or the
-  current M4.9 holdings handoff.
+- **M4.9 production hardening prerequisites** — use
+  `reports/stabilization/holdings-production-hardening-prereqs-20260507.md`
+  as the handoff for landed prerequisites/guards. Entity-registry PR #61,
+  data-platform PR #110, graph-engine PR #61, subsystem-sdk PR #44 / release
+  `v0.1.4`, and subsystem-holdings PR #13 are merged. The next step remains
+  gated canary/live production evidence, not completed rollout. Do not use
+  this handoff to claim production rollout complete, default/full propagation
+  enabled, M4.7 real-doc closure, financial-doc work, contracts subtype, or
+  new relations.
 - **M4 production bridge closure upkeep** — keep the M4.1-M4.6 bridge and
   read-only evidence linked to their recorded reports. The current holdings
   handoff now points to merged sibling attempt2 evidence PRs #107 and #9, plus
