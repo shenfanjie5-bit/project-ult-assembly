@@ -213,7 +213,10 @@ Priority order:
 1. **Operationalize post-canary production rollout runbooks**: harden rollback,
    monitoring, incident response, ownership, audit, and escalation procedures
    before any broader production rollout claim. This remains an operational
-   hardening phase, not default/full propagation.
+   hardening phase, not default/full propagation. The assembly runbook is
+   `docs/runbook/holdings-post-canary-production-rollout.md`; the evidence
+   template is
+   `reports/stabilization/holdings-post-canary-rollout-evidence-template-20260508.md`.
 2. **Prepare controlled opt-in/default propagation canary**: keep propagation
    explicit, bounded, observable, auditable, and fail-closed for unresolved
    entities. Do not claim default/full propagation until a controlled canary
@@ -388,7 +391,10 @@ fails the test suite if MD ⇄ YAML drifts.
   current next step after assembly #66 passed bounded gated canary/live
   production evidence. Harden rollback, monitoring, incident response,
   ownership, audit, and fail-closed operating procedures before any broader
-  rollout claim.
+  rollout claim. Use
+  `docs/runbook/holdings-post-canary-production-rollout.md` and
+  `reports/stabilization/holdings-post-canary-rollout-evidence-template-20260508.md`
+  as the operator gate and evidence-template baseline.
 - **Controlled opt-in/default propagation canary preparation** — after
   runbooks are hardened, prepare a bounded, explicit opt-in/default
   propagation canary with observable acceptance/rejection metrics and rollback
