@@ -81,11 +81,22 @@ Source of truth:
   PR #9 commit `b046ecf6b54220ceedf517089ebcc883571184d1`. The
   subsystem-holdings adapter fix for incomplete top-holder QoQ rows is
   fail-closed skip diagnostic behavior and is not a blocker for `CO_HOLDING` /
-  `NORTHBOUND_HOLD`. No queue submit, live
-  graph proof, graph-engine #55 entry, provider/backfill execution from
-  assembly, financial-doc scope, or contracts/subtype change is claimed.
-  `contracts #81` remains CLOSED / NOT_PLANNED. M4.7 remains partial; M4.8
-  remains a future validation gate.
+  `NORTHBOUND_HOLD`. The follow-on queue/freeze/promotion proof is now merged:
+  `subsystem-sdk` PR #43 released `data_platform_queue` backend support as
+  tag `v0.1.3` at merge
+  `9c220b7a7a9f5f50b3c57131b501b83fab2e75ce`;
+  `subsystem-holdings` PR #10 merged proof-only queue submit path commit
+  `63a09b7ca6e6d152279a51857cd497fd8be60fb7`; data-platform PR #108 merged
+  holdings Ex-3 queue/freeze bridge proof commit
+  `138b78c27b68b1d9b5e7395aec0c396d99dc4202`; graph-engine PR #58 merged
+  `edge_upsert` holdings Layer A promotion/query/channel proof commit
+  `7eb363cc74325699de5ac46c1362e93cdf470651`. This is proof-only queue submit
+  path plus holdings Ex-3 queue/freeze bridge plus offline Layer A
+  promotion/query/channel proof. It still does not claim production queue,
+  live Neo4j graph propagation, graph-engine #55 algorithms,
+  provider/backfill execution from assembly, financial-doc scope, or
+  contracts/subtype change. `contracts #81` remains CLOSED / NOT_PLANNED.
+  M4.7 remains partial; M4.8 remains a future validation gate.
   Evidence:
   `reports/stabilization/m4-9-holdings-scope-decision-20260506.md` and
   `reports/stabilization/m4-9-holdings-scope-decision-20260506.json`.
@@ -101,8 +112,10 @@ Source of truth:
   Data-platform evidence/docs are merged via PR #104 commit
   `81f3a57ee3fde8d1dc2a157737af2cd2abba91e5`. That earlier no-live-backfill
   blocker was superseded by attempt2 bounded live backfill evidence merged in
-  data-platform PR #107; this assembly handoff still does not enter queue
-  propagation, live graph propagation, or graph-engine #55.
+  data-platform PR #107. The later PR #108 / #10 / #43 / #58 handoff proves
+  queue submit shape, holdings queue/freeze, and offline Layer A promotion
+  compatibility, but this assembly handoff still does not enter production
+  queue propagation, live Neo4j graph propagation, or graph-engine #55.
 - Compatibility matrix records 4 verified rows:
   - `lite-local` (default): `verified_at: 2026-04-24T05:24:14Z` (Stage
     5 re-verification after audit-eval pin sync 0.2.2 → 0.2.5;
@@ -163,13 +176,18 @@ M4 priority order:
    via data-platform PR #107 commit
    `841f7c0f95e8c613e5bac9fe0fe78c09e1f9f152` and `subsystem-holdings`
    PR #9 commit `b046ecf6b54220ceedf517089ebcc883571184d1`.
-   Assembly still claims no queue submit, live graph proof, graph-engine #55
-   entry, provider/backfill execution from assembly, financial-doc scope, or
-   contracts/subtype change. It must continue to use existing
-   `Ex3CandidateGraphDelta` submission through `subsystem-sdk` and avoid
-   contract/subtype changes. Relations are limited to `CO_HOLDING` /
-   `NORTHBOUND_HOLD`; top-shareholder and pledge facts stay on `OWNERSHIP`
-   plus properties. `contracts #81` remains CLOSED / NOT_PLANNED.
+   Follow-on proof work is now landed through `subsystem-sdk` PR #43
+   (`v0.1.3`), `subsystem-holdings` PR #10, data-platform PR #108, and
+   graph-engine PR #58: proof-only queue submit path, holdings Ex-3
+   queue/freeze bridge, and offline Layer A promotion/query/channel proof.
+   Assembly still claims no production queue propagation, live Neo4j graph
+   propagation, graph-engine #55 algorithms, provider/backfill execution from
+   assembly, financial-doc scope, or contracts/subtype change. It must
+   continue to use existing `Ex3CandidateGraphDelta` submission through
+   `subsystem-sdk` and avoid contract/subtype changes. Relations are limited
+   to `CO_HOLDING` / `NORTHBOUND_HOLD`; top-shareholder and pledge facts stay
+   on `OWNERSHIP` plus properties. `contracts #81` remains CLOSED /
+   NOT_PLANNED.
    `subsystem-financial-doc` remains gated behind M4.7 real-document validation
    and holdings usefulness.
 6. **Graph-engine #55 follow-up**: graph-engine #55 remains not entered and
@@ -279,21 +297,29 @@ fails the test suite if MD ⇄ YAML drifts.
 - **M4.9 holdings scope handoff** — use
   `reports/stabilization/m4-9-holdings-scope-decision-20260506.md` as the
   boundary for the next P0 domain extension. Data-platform PR #102 through
-  #107 are merged, and `subsystem-holdings` PR #1 through #9 have landed.
-  Attempt2 live proof is reported as runtime PASS, and sibling evidence is
-  merged in data-platform PR #107 commit
+  #108 are merged, `subsystem-holdings` PR #1 through #10 have landed,
+  `subsystem-sdk` PR #43 is merged and tagged `v0.1.3`, and graph-engine
+  PR #58 is merged. Attempt2 live proof is reported as runtime PASS, and
+  sibling evidence is merged in data-platform PR #107 commit
   `841f7c0f95e8c613e5bac9fe0fe78c09e1f9f152` plus `subsystem-holdings`
-  PR #9 commit `b046ecf6b54220ceedf517089ebcc883571184d1`. Do not use M4.9
-  to claim queue submit, live graph propagation, M4.7, M4.8, financial-doc
-  work, contracts subtype changes, or graph-engine #55 propagation.
+  PR #9 commit `b046ecf6b54220ceedf517089ebcc883571184d1`. Queue/freeze/
+  promotion proof is merged via data-platform PR #108 commit
+  `138b78c27b68b1d9b5e7395aec0c396d99dc4202`, subsystem-holdings PR #10
+  commit `63a09b7ca6e6d152279a51857cd497fd8be60fb7`, subsystem-sdk PR #43
+  commit `9c220b7a7a9f5f50b3c57131b501b83fab2e75ce` with tag `v0.1.3`, and
+  graph-engine PR #58 commit `7eb363cc74325699de5ac46c1362e93cdf470651`.
+  Do not use M4.9 to claim production queue propagation, live Neo4j graph
+  propagation, M4.7, M4.8, financial-doc work, contracts subtype changes, or
+  graph-engine #55 algorithms.
 - **M4.7/M4.8 validation gates** — M4.7 remains partial until
   real-document parsing is validated on representative A-share documents.
   M4.8 remains the future entity-resolution validation gate with unresolved
   cases handled fail-closed.
 - **M4 production bridge closure upkeep** — keep the M4.1-M4.6 bridge and
   read-only evidence linked to their recorded reports. The current holdings
-  handoff now points to merged sibling attempt2 evidence PRs #107 and #9, but
-  it must not be treated as graph propagation closure.
+  handoff now points to merged sibling attempt2 evidence PRs #107 and #9, plus
+  queue/freeze/promotion proof PRs #108, #10, #43, and #58, but it must not be
+  treated as production queue or live Neo4j graph propagation closure.
 - **frontend-api matrix evidence upkeep** — keep the
   `lite-local-readonly-ui` verified row bound to its recorded
   smoke/e2e/contract-suite evidence. Do not mutate historical verified
