@@ -22,8 +22,13 @@ relevant sibling repos:
 - Subsystem-holdings has a production queue submit runner using the SDK
   idempotent-required mode.
 
-The next step remains gated canary/live production evidence and independent
-review. This report claims only that the prerequisites and guards have landed.
+The historical next step for this prerequisite report was gated canary/live
+production evidence and independent review. That bounded evidence has since
+passed in assembly #66 and is recorded in
+`reports/stabilization/holdings-bounded-canary-live-production-evidence-20260507.md`.
+The current next step is production rollout operationalization/runbook
+hardening, followed by a controlled opt-in/default propagation canary. This
+report still claims only that the prerequisites and guards have landed.
 
 ## Landed Inputs
 
