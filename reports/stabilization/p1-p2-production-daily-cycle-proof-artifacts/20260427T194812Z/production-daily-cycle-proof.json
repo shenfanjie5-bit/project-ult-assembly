@@ -26,20 +26,9 @@
       "under_report_artifact_dir": true
     },
     {
-      "exists_at_write_time": true,
-      "git_tracked_at_write_time": false,
-      "path": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T194812Z/data-platform-current-selection-tests.stderr.txt",
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "size_bytes": 0,
-      "under_report_artifact_dir": true
-    },
-    {
-      "exists_at_write_time": true,
-      "git_tracked_at_write_time": false,
-      "path": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T194812Z/data-platform-current-selection-tests.stdout.txt",
-      "sha256": "7040371af15613c02e821ec0eecc1d1330f691ace4cef93a41bfa358822c4103",
-      "size_bytes": 80,
-      "under_report_artifact_dir": true
+      "process_stream_artifacts_removed": true,
+      "stream_artifact_count": 2,
+      "stream_output_removed": true
     },
     {
       "exists_at_write_time": true,
