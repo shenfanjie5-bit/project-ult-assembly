@@ -1,8 +1,8 @@
 {
-  "status": "holdings_only_algorithms_handoff_sibling_proof_merged",
+  "status": "production_hardening_prereqs_landed_not_rollout",
   "recorded_at": "2026-05-07T00:00:00Z",
   "decision_date": "2026-05-06",
-  "scope": "M4.9 subsystem scope decision, holdings adapter handoff, PR #5 live producer blockers, attempt2 live proof handoff, queue/freeze/promotion proof handoff, holdings-only algorithms handoff, and M4.8 proof closeout handoff",
+  "scope": "M4.9 subsystem scope decision, holdings adapter handoff, PR #5 live producer blockers, attempt2 live proof handoff, queue/freeze/promotion proof handoff, holdings-only algorithms handoff, M4.8 proof closeout handoff, and production hardening prerequisites handoff",
   "prerequisites": {
     "m4_6": "complete",
     "assembly_env_hygiene_pr_52_merge_commit": "a6bb671aff39cdd31db3ef28104e6119e13ad3ba"
@@ -17,6 +17,7 @@
     "attempt2_live_proof_handoff": "runtime_pass_sibling_evidence_merged",
     "queue_freeze_promotion_handoff": "sibling_proofs_merged",
     "holdings_only_algorithms_handoff": "sibling_proof_merged_issue_55_closed",
+    "production_hardening_prereqs": "guards_landed_not_rollout",
     "m4_8_proof_closeout": "complete_not_production_rollout"
   },
   "decision": {
@@ -38,7 +39,10 @@
     "subsystem_financial_doc": "deferred",
     "m4_8_evidence_path": "reports/stabilization/m4-8-entity-resolution-proof-20260507.md",
     "m4_8_production_rollout_claimed": false,
-    "m4_9_next_allowed_planning": "production_rollout_hardening_after_m4_8_proof_closeout",
+    "m4_9_production_hardening_prereqs": "landed",
+    "m4_9_next_step": "gated_canary_live_production_evidence",
+    "production_rollout_complete_claimed": false,
+    "default_or_full_propagation_enabled": false,
     "financial_doc_gate": [
       "M4.7 real-document validation",
       "holdings usefulness evidence"
@@ -245,6 +249,58 @@
       "MAJOR_SUPPLIER"
     ]
   },
+  "production_hardening_prereqs": {
+    "status": "guards_landed_not_rollout",
+    "recorded_at": "2026-05-07T00:00:00Z",
+    "evidence_path": "reports/stabilization/holdings-production-hardening-prereqs-20260507.md",
+    "sibling_prs": {
+      "entity_registry": {
+        "pr": "#61",
+        "status": "merged",
+        "merge_commit": "ad00cb726ad0576330756f37bf2155a43e4b0e71",
+        "handoff": "production readiness gate and evidence runner"
+      },
+      "data_platform": {
+        "pr": "#110",
+        "status": "merged",
+        "merge_commit": "74c12cd36b404882ec4425eea3f1b6a14fbfdf02",
+        "handoff": "Ex-3 delta_id idempotency, safe receipt, targeted freeze, worker rejection metrics"
+      },
+      "graph_engine": {
+        "pr": "#61",
+        "status": "merged",
+        "merge_commit": "dea63caeec89b16bbd89fb7d5a4174b677e2c394",
+        "handoff": "rollout guard, canary, evidence, no default propagation"
+      },
+      "subsystem_sdk": {
+        "pr": "#44",
+        "status": "merged",
+        "merge_commit": "82177a4627d2ce1ac59738da2a13c6e4baee3994",
+        "release_pr": "#45",
+        "tag": "v0.1.4",
+        "tag_target": "8d18ccb1877d4243196412322654ab2e8e9d999a",
+        "handoff": "idempotent-required queue submission support released"
+      },
+      "subsystem_holdings": {
+        "pr": "#13",
+        "status": "merged",
+        "merge_commit": "612bd5cda3c8054c06e5cbd51de66955a7f0ed58",
+        "handoff": "production queue submit runner using SDK idempotent-required mode"
+      }
+    },
+    "next_step": "gated_canary_live_production_evidence",
+    "not_claimed": {
+      "production_rollout_complete": false,
+      "production_queue_propagation_complete": false,
+      "production_live_graph_propagation_complete": false,
+      "production_entity_registry_rollout_complete": false,
+      "default_full_propagation_enabled": false,
+      "m4_7_real_doc_complete": false,
+      "financial_doc_scope": false,
+      "contracts_subtype_changes": false,
+      "new_relation_types": false
+    }
+  },
   "post_pr1_3_readiness_handoff": {
     "data_platform_holdings_live_smoke": {
       "status": "complete",
@@ -366,7 +422,8 @@
     "no default full-propagation rollout",
     "no contracts/subtype change",
     "no M4.7 closure",
-    "no production rollout claim from M4.8 proof closeout"
+    "no production rollout claim from M4.8 proof closeout",
+    "no production rollout claim from production hardening prerequisites"
   ],
   "evidence_hygiene": {
     "raw_logs_recorded": false,

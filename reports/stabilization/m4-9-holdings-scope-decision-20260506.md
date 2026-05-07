@@ -58,6 +58,11 @@ does not change contracts, and does not perform derivations or backfill.
 - Post holdings-only algorithms handoff: graph-engine PR #59 merged as
   `8a40fead9a57d67f0b232a52d4ed0d99db78a96e`, and #55 is closed with the
   narrowed holdings-only scope.
+- Production hardening prerequisites handoff: entity-registry PR #61,
+  data-platform PR #110, graph-engine PR #61, subsystem-sdk PR #44 / release
+  tag `v0.1.4`, and subsystem-holdings PR #13 have landed as guard/prereq
+  work. Assembly records this as prerequisites/guards landed only; the next
+  step remains gated canary/live production evidence.
 - M4.8 proof closeout handoff: entity-registry PR #60 merged as
   `6debd8cc137ee57572fd862959cd845c6dffcab5`, `subsystem-holdings` PR #12
   merged as `11c1b1cf62be32c49940293c2e04e89d93ae1ecc`, and holdings live
@@ -88,6 +93,13 @@ allows future M4.9 planning to discuss production rollout hardening, but this
 handoff still does not claim production entity registry rollout, production
 queue propagation, production live graph propagation, or default/full
 propagation.
+
+The production hardening prerequisite work has now landed in sibling repos and
+is recorded in
+`reports/stabilization/holdings-production-hardening-prereqs-20260507.md`.
+This updates the M4.9 handoff from planning-only to prerequisites/guards
+landed. It still does not declare production rollout complete; canary/live
+production evidence remains the next gated step.
 
 ## Subsystem-Holdings Adapter Handoff
 
@@ -329,9 +341,52 @@ The dependency order is:
 4. Treat graph-engine PR #59 as the closed #55 holdings-only algorithm handoff.
 5. Treat M4.8 proof as closed through
    `reports/stabilization/m4-8-entity-resolution-proof-20260507.md`.
-6. Enter production entity registry rollout, production queue propagation,
-   live Neo4j graph propagation, or default/full propagation hardening only
-   when that work is explicitly planned.
+6. Treat production hardening prerequisites and guards as landed through
+   `reports/stabilization/holdings-production-hardening-prereqs-20260507.md`.
+7. Enter gated canary/live production evidence review before any claim of
+   production entity registry rollout, production queue propagation, live
+   Neo4j graph propagation, or default/full propagation.
+
+## Production Hardening Prerequisites Handoff - 2026-05-07
+
+The following sibling guard work has landed after the bounded holdings live
+graph and M4.8 entity-resolution proof closeouts:
+
+- Entity-registry PR #61 merged as
+  `ad00cb726ad0576330756f37bf2155a43e4b0e71`, adding the production
+  readiness gate and evidence runner.
+- Data-platform PR #110 merged as
+  `74c12cd36b404882ec4425eea3f1b6a14fbfdf02`, adding Ex-3 `delta_id`
+  idempotency, safe receipt behavior, targeted freeze controls, and worker
+  rejection metrics.
+- Graph-engine PR #61 merged as
+  `dea63caeec89b16bbd89fb7d5a4174b677e2c394`, adding rollout guard, canary,
+  and evidence support without default propagation.
+- Subsystem-sdk PR #44 merged as
+  `82177a4627d2ce1ac59738da2a13c6e4baee3994`; release PR #45 bumped the
+  release, and tag `v0.1.4` points at
+  `8d18ccb1877d4243196412322654ab2e8e9d999a`.
+- Subsystem-holdings PR #13 merged as
+  `612bd5cda3c8054c06e5cbd51de66955a7f0ed58`, adding the production queue
+  submit runner using SDK idempotent-required mode.
+
+The combined handoff meaning is narrow: production hardening prerequisites
+and guards have landed. The next state is still gated canary/live production
+evidence, not a completed rollout.
+
+This prerequisite handoff does not claim:
+
+- production rollout complete;
+- production queue propagation complete;
+- production live graph propagation complete;
+- production entity-registry rollout complete;
+- default or full propagation enabled;
+- M4.7 real-document completion;
+- financial-doc scope;
+- contracts subtype changes;
+- new relation types;
+- assembly execution of provider/backfill, queue worker, graph sync, or graph
+  algorithm workloads.
 
 ## Financial-Doc Gate
 
@@ -382,6 +437,7 @@ This decision does not:
 - claim financial-doc scope;
 - claim that M4.7 is complete;
 - claim production rollout from the M4.8 proof closeout;
+- claim production rollout from the production hardening prerequisites;
 - start `subsystem-financial-doc`.
 
 ## Evidence Hygiene
