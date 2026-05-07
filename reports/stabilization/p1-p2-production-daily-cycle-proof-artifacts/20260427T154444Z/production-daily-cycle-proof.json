@@ -1,72 +1,50 @@
 {
-  "status": "partial_pass_blocked",
-  "not_a_pass_certificate": true,
-  "not_p5_readiness": true,
-  "generated_at_utc": "2026-04-27T15:44:44Z",
   "commits": {
+    "audit_eval": "13cff871d9aacfed9772179c16a156a8b2e84da0",
     "data_platform": "587f9895660c5f347768b66402c793d024934415",
     "graph_engine": "78019a73cd83e32534829b3fcbf44468d7738c1e",
-    "audit_eval": "13cff871d9aacfed9772179c16a156a8b2e84da0",
     "orchestrator": "f43e4cd50ab667442e0cd60e6637c7f5e92a4076"
   },
+  "generated_at_utc": "2026-04-27T15:44:44Z",
+  "negative_gates": {
+    "fake_smoke_fixture_historical_provenance": "covered_by_p2_and_audit_eval_tests",
+    "missing_cycle_tag": "covered_by_orchestrator_tests",
+    "no_audit_replay": "covered_by_p2_and_audit_eval_tests",
+    "no_gds": "blocked_pending_live_gds_zero_skip_run",
+    "no_llm": "covered_by_existing_p2_tests"
+  },
+  "not_a_pass_certificate": true,
+  "not_p5_readiness": true,
   "production_provider_surfaces": {
-    "phase0_current_cycle_selection": "checked_in",
+    "audit_eval_retrospective_hook": "checked_in_env_backed_runtime_with_durable_manifest_lookup_required",
     "phase0_candidate_freeze": "checked_in_fail_closed",
+    "phase0_current_cycle_selection": "checked_in",
     "phase0_graph_status": "checked_in_default_runtime_fail_closed",
     "phase1_graph_promotion": "checked_in",
     "phase1_graph_snapshot": "checked_in",
     "phase2_l1_l8": "checked_in_existing_p2_real_current_cycle_provider",
     "phase2_pool_failure_rate": "checked_in_env_backed_fail_closed_runtime",
-    "phase3_formal_objects_commit": "checked_in",
     "phase3_cycle_publish_manifest": "checked_in_enriched_manifest_handoff",
-    "audit_eval_retrospective_hook": "checked_in_env_backed_runtime_with_durable_manifest_lookup_required"
+    "phase3_formal_objects_commit": "checked_in"
   },
   "production_run_artifact": {
-    "cycle_id": null,
-    "trade_date": null,
-    "symbols": [],
-    "input_tables_or_artifacts": [],
-    "frozen_candidate_ids": [],
+    "cold_reload_proof": null,
     "cutoff_metadata": null,
+    "cycle_id": null,
+    "cycle_publish_manifest_row": null,
+    "formal_snapshot_ids": [],
+    "frozen_candidate_ids": [],
     "graph_promotion_result": null,
     "graph_snapshot_id": null,
     "impact_snapshot_id": null,
-    "cold_reload_proof": null,
+    "input_tables_or_artifacts": [],
     "l4_l6_l7_l8_audit_record_ids": [],
     "l4_l6_l7_l8_replay_record_ids": [],
-    "formal_snapshot_ids": [],
-    "cycle_publish_manifest_row": null,
-    "manifest_bound_serving_readback": null
+    "manifest_bound_serving_readback": null,
+    "symbols_count": 0,
+    "symbols_removed": true,
+    "trade_date": null
   },
-  "negative_gates": {
-    "missing_cycle_tag": "covered_by_orchestrator_tests",
-    "no_llm": "covered_by_existing_p2_tests",
-    "no_gds": "blocked_pending_live_gds_zero_skip_run",
-    "no_audit_replay": "covered_by_p2_and_audit_eval_tests",
-    "fake_smoke_fixture_historical_provenance": "covered_by_p2_and_audit_eval_tests"
-  },
-  "validation_commands": [
-    {
-      "repo": "data-platform",
-      "command": ".venv/bin/python -m pytest tests/cycle/test_current_selection.py -q",
-      "result": "8 passed"
-    },
-    {
-      "repo": "graph-engine",
-      "command": "PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/contracts/src python3 -m pytest -q tests/unit/test_phase1_provider.py tests/unit/test_reload_artifact_reader.py",
-      "result": "15 passed, 1 skipped"
-    },
-    {
-      "repo": "audit-eval",
-      "command": "uv run python -m pytest tests/test_retro_hook.py tests/test_retro_compute.py tests/test_replay_storage_integration.py tests/test_real_cycle_binding.py -q",
-      "result": "31 passed"
-    },
-    {
-      "repo": "orchestrator",
-      "command": "PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin:$PATH PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/orchestrator/src:/Users/fanjie/Desktop/Cowork/project-ult/main-core/src:/Users/fanjie/Desktop/Cowork/project-ult/reasoner-runtime:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src:/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src:/Users/fanjie/Desktop/Cowork/project-ult/audit-eval/src:/Users/fanjie/Desktop/Cowork/project-ult/graph-engine /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest -q tests/integration/test_production_daily_cycle_provider.py tests/integration/test_p2_dry_run_handoff.py tests/integration/test_audit_eval_wiring.py tests/integration/test_phase1_graph_provider_wiring.py",
-      "result": "30 passed"
-    }
-  ],
   "remaining_blockers": [
     {
       "priority": "P1",
@@ -87,6 +65,29 @@
     {
       "priority": "P2",
       "summary": "Audit hook durable manifest/audit/replay lookup is checked in but not yet proven inside the production Dagster run."
+    }
+  ],
+  "status": "partial_pass_blocked",
+  "validation_commands": [
+    {
+      "command": ".venv/bin/python -m pytest tests/cycle/test_current_selection.py -q",
+      "repo": "data-platform",
+      "result": "8 passed"
+    },
+    {
+      "command": "PYTHONPATH=<workspace>/contracts/src python3 -m pytest -q tests/unit/test_phase1_provider.py tests/unit/test_reload_artifact_reader.py",
+      "repo": "graph-engine",
+      "result": "15 passed, 1 skipped"
+    },
+    {
+      "command": "uv run python -m pytest tests/test_retro_hook.py tests/test_retro_compute.py tests/test_replay_storage_integration.py tests/test_real_cycle_binding.py -q",
+      "repo": "audit-eval",
+      "result": "31 passed"
+    },
+    {
+      "command": "PATH=<workspace>/assembly/.venv-py312/bin:$PATH PYTHONPATH=<workspace>/orchestrator/src:<workspace>/main-core/src:<workspace>/reasoner-runtime:<workspace>/contracts/src:<workspace>/data-platform/src:<workspace>/audit-eval/src:<workspace>/graph-engine <workspace>/assembly/.venv-py312/bin/python -m pytest -q tests/integration/test_production_daily_cycle_provider.py tests/integration/test_p2_dry_run_handoff.py tests/integration/test_audit_eval_wiring.py tests/integration/test_phase1_graph_provider_wiring.py",
+      "repo": "orchestrator",
+      "result": "30 passed"
     }
   ]
 }

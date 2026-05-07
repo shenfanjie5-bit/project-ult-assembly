@@ -1,13 +1,13 @@
 {
   "artifact_backed_runtime_evidence": {
-    "artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/runtime-evidence-summary.json",
+    "artifact": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/runtime-evidence-summary.json",
     "non_artifact_tmp_paths_pass_critical": false,
     "runtime_file_count": 5,
     "sha256": "803a42d0a7e6c4a12322b12b6b23a7fe7c3181723400d6faa279fced3fb033ba",
     "size_bytes": 9094,
     "status": "passed"
   },
-  "artifact_dir": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z",
+  "artifact_dir": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z",
   "baseline_evidence_date": "2026-04-28",
   "blockers": [],
   "clock_note": "Timestamps may come from Python, PostgreSQL, and file-system clocks; reviewers should use step status and IDs as ordering evidence.",
@@ -16,10 +16,10 @@
       "--run-dagster",
       "--run-current-selection-tests"
     ],
-    "cwd": "/Users/fanjie/Desktop/Cowork/project-ult/assembly",
-    "env_file": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/.env",
-    "python_executable": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python",
-    "script": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/scripts/production_daily_cycle_proof.py"
+    "cwd": "<workspace>/assembly",
+    "env_file": "<workspace>/assembly/.env",
+    "python_executable": "<workspace>/assembly/.venv-py312/bin/python",
+    "script": "<workspace>/assembly/scripts/production_daily_cycle_proof.py"
   },
   "env": {
     "AUDIT_EVAL_DUCKDB_PATH": "set",
@@ -50,7 +50,7 @@
       "exists_at_write_time": true,
       "git_tracked_at_write_time": false,
       "pass_critical": false,
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z",
+      "path": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z",
       "under_report_artifact_dir": true,
       "under_runtime_root": false
     },
@@ -58,9 +58,9 @@
       "exists_at_write_time": true,
       "git_tracked_at_write_time": true,
       "pass_critical": true,
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/dagster-execution-evidence.json",
-      "sha256": "0bf670bdc169f5605fba675d665432651d2f65ebbc385c616307d1069bb988e9",
-      "size_bytes": 12435,
+      "path": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/dagster-execution-evidence.json",
+      "sha256": "299695d2edfb28c589fc1d9f7fb2a76c1b7f7d7d18c43d762064de41ff72b231",
+      "size_bytes": 11853,
       "under_report_artifact_dir": true,
       "under_runtime_root": false
     },
@@ -68,9 +68,9 @@
       "exists_at_write_time": true,
       "git_tracked_at_write_time": true,
       "pass_critical": true,
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/daily-refresh.json",
-      "sha256": "d73374c11153284ace18349a5987be9256c785eae74d8966a8bd09d3ac9e7121",
-      "size_bytes": 6864,
+      "path": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/daily-refresh.json",
+      "sha256": "1a81c379995accb255d710cb442aaddca4a07e051bb36634d62f3ef8758f7e1c",
+      "size_bytes": 5875,
       "under_report_artifact_dir": true,
       "under_runtime_root": false
     },
@@ -78,9 +78,9 @@
       "exists_at_write_time": true,
       "git_tracked_at_write_time": false,
       "pass_critical": true,
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/data-platform-current-selection-tests-summary.json",
-      "sha256": "43f3b1eb9abb090f386a657ae3c7d3194d6d163a5d4d77af7185b814d4827e52",
-      "size_bytes": 967,
+      "path": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/data-platform-current-selection-tests-summary.json",
+      "sha256": "e11df90162a851fca410d2543b8f47dd17c4849d0a448f415791d601c775c158",
+      "size_bytes": 859,
       "under_report_artifact_dir": true,
       "under_runtime_root": false
     },
@@ -88,9 +88,9 @@
       "exists_at_write_time": true,
       "git_tracked_at_write_time": true,
       "pass_critical": true,
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/graph-status-initialization.json",
-      "sha256": "c5de6c6c9ae9269db9452ba32ba36e8a2fab3c037d929ad912bab542cfc94cbe",
-      "size_bytes": 1831,
+      "path": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/graph-status-initialization.json",
+      "sha256": "4702226205652404ede769a43a30354a7ec147392b47b0bd3ddd46419eb16e2c",
+      "size_bytes": 1770,
       "under_report_artifact_dir": true,
       "under_runtime_root": false
     },
@@ -98,9 +98,9 @@
       "exists_at_write_time": true,
       "git_tracked_at_write_time": true,
       "pass_critical": true,
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/neo4j-gds-preflight.json",
-      "sha256": "9ca8131c6ae4c08f9cd82a9a4dc8c546f395e72319b3a909f5429596f44406fe",
-      "size_bytes": 1047,
+      "path": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/neo4j-gds-preflight.json",
+      "sha256": "20388325acf7e2bb3f7a89e51bc9208f5bc99bd8d81b5547c7a59dc051a90422",
+      "size_bytes": 997,
       "under_report_artifact_dir": true,
       "under_runtime_root": false
     },
@@ -108,9 +108,9 @@
       "exists_at_write_time": true,
       "git_tracked_at_write_time": false,
       "pass_critical": true,
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/orchestrator-dbt-compile-summary.json",
-      "sha256": "c28e14ef070f951c46d0cdcf896f99ea10b33d888febef37fbe49fed3cb42157",
-      "size_bytes": 1344,
+      "path": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/orchestrator-dbt-compile-summary.json",
+      "sha256": "50336e4a60b5ccbf1b48177f33a7563c8df4a9647ad2e239b8f91c183a987674",
+      "size_bytes": 981,
       "under_report_artifact_dir": true,
       "under_runtime_root": false
     },
@@ -118,9 +118,9 @@
       "exists_at_write_time": true,
       "git_tracked_at_write_time": true,
       "pass_critical": true,
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/runtime-evidence-summary.json",
-      "sha256": "803a42d0a7e6c4a12322b12b6b23a7fe7c3181723400d6faa279fced3fb033ba",
-      "size_bytes": 9094,
+      "path": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/runtime-evidence-summary.json",
+      "sha256": "91af4dcec304620beeed33c5197389bb5c93ea7e0e4b0f788176460bf7e497ef",
+      "size_bytes": 7110,
       "under_report_artifact_dir": true,
       "under_runtime_root": false
     },
@@ -129,8 +129,8 @@
       "exists_at_write_time": true,
       "git_tracked_at_write_time": false,
       "pass_critical": false,
-      "pass_critical_replacement": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/runtime-evidence-summary.json",
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z",
+      "pass_critical_replacement": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/runtime-evidence-summary.json",
+      "path": "<runtime-root>",
       "under_report_artifact_dir": false,
       "under_runtime_root": true
     },
@@ -139,8 +139,8 @@
       "exists_at_write_time": true,
       "git_tracked_at_write_time": false,
       "pass_critical": false,
-      "pass_critical_replacement": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/runtime-evidence-summary.json",
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/audit/preflight_audit_eval.duckdb",
+      "pass_critical_replacement": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/runtime-evidence-summary.json",
+      "path": "<runtime-root>/audit/preflight_audit_eval.duckdb",
       "sha256": "ff0f88ecc5da040423ece90bc94c5d5e78b4b40691ccf6a1b80f4d3e56054549",
       "size_bytes": 1323008,
       "under_report_artifact_dir": false,
@@ -151,8 +151,8 @@
       "exists_at_write_time": true,
       "git_tracked_at_write_time": false,
       "pass_critical": false,
-      "pass_critical_replacement": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/runtime-evidence-summary.json",
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/orchestrator_dbt_stub",
+      "pass_critical_replacement": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/runtime-evidence-summary.json",
+      "path": "<runtime-root>/orchestrator_dbt_stub",
       "under_report_artifact_dir": false,
       "under_runtime_root": true
     },
@@ -161,8 +161,8 @@
       "exists_at_write_time": true,
       "git_tracked_at_write_time": false,
       "pass_critical": false,
-      "pass_critical_replacement": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/runtime-evidence-summary.json",
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/orchestrator_dbt_stub/target/manifest.json",
+      "pass_critical_replacement": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/runtime-evidence-summary.json",
+      "path": "<runtime-root>/orchestrator_dbt_stub/target/manifest.json",
       "sha256": "66746dfbb9b7aeacebb424ca195f3c7a0f65ae8a55825bf25a2cbc03ab3e1529",
       "size_bytes": 463609,
       "under_report_artifact_dir": false,
@@ -173,8 +173,8 @@
       "exists_at_write_time": true,
       "git_tracked_at_write_time": false,
       "pass_critical": false,
-      "pass_critical_replacement": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/runtime-evidence-summary.json",
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/raw",
+      "pass_critical_replacement": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/runtime-evidence-summary.json",
+      "path": "<runtime-root>/raw",
       "under_report_artifact_dir": false,
       "under_runtime_root": true
     },
@@ -183,8 +183,9 @@
       "exists_at_write_time": true,
       "git_tracked_at_write_time": false,
       "pass_critical": false,
-      "pass_critical_replacement": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/runtime-evidence-summary.json",
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/raw/tushare/daily/dt=20260415/6ff9aaa6-6ca8-46d7-aef9-f252739a6f67.parquet",
+      "pass_critical_replacement": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/runtime-evidence-summary.json",
+      "path": "<removed:raw-tushare-artifact>",
+      "raw_payload_removed": true,
       "sha256": "e0b6d731721e7524f7bf4cb75c72b02daf6889aeda41975cfa9a372f1a0a14e9",
       "size_bytes": 315178,
       "under_report_artifact_dir": false,
@@ -195,8 +196,9 @@
       "exists_at_write_time": true,
       "git_tracked_at_write_time": false,
       "pass_critical": false,
-      "pass_critical_replacement": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/runtime-evidence-summary.json",
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/raw/tushare/stock_basic/dt=20260415/5a4af64e-97af-434a-8081-081e45f6a752.parquet",
+      "pass_critical_replacement": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/runtime-evidence-summary.json",
+      "path": "<removed:raw-tushare-artifact>",
+      "raw_payload_removed": true,
       "sha256": "e5a008501187763e14b6fadb4b33e0cefbfec57b2f0bd515e2cf7fb1627a1166",
       "size_bytes": 458486,
       "under_report_artifact_dir": false,
@@ -207,8 +209,9 @@
       "exists_at_write_time": true,
       "git_tracked_at_write_time": false,
       "pass_critical": false,
-      "pass_critical_replacement": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/runtime-evidence-summary.json",
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/raw/tushare/trade_cal/dt=20260415/15a80425-c3fd-4594-89f6-0dcf06a6d46f.parquet",
+      "pass_critical_replacement": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/runtime-evidence-summary.json",
+      "path": "<removed:raw-tushare-artifact>",
+      "raw_payload_removed": true,
       "sha256": "79a5b4293058f12214ec23c986636097c36521aa972f66ce9ceae37a983a8525",
       "size_bytes": 1198,
       "under_report_artifact_dir": false,
@@ -219,8 +222,8 @@
       "exists_at_write_time": true,
       "git_tracked_at_write_time": false,
       "pass_critical": false,
-      "pass_critical_replacement": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/runtime-evidence-summary.json",
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/warehouse/canonical_v2/_mart_snapshot_set.json",
+      "pass_critical_replacement": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/runtime-evidence-summary.json",
+      "path": "<runtime-root>/warehouse/canonical_v2/_mart_snapshot_set.json",
       "sha256": "0ac706271669ad2097c67c44aa233d39f169479c8d92a8e5d8fc46ab9f73ad0a",
       "size_bytes": 1540,
       "under_report_artifact_dir": false,
@@ -237,10 +240,8 @@
       "stock_basic",
       "daily"
     ],
-    "symbols": [
-      "600519.SH",
-      "000001.SZ"
-    ],
+    "symbols_count": 2,
+    "symbols_removed": true,
     "tushare_mode": "live"
   },
   "mode": "bounded_runner",
@@ -259,7 +260,7 @@
       "audit_ids": [
         "audit-runtime-preflight-L4"
       ],
-      "duckdb_path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/audit/preflight_audit_eval.duckdb",
+      "duckdb_path": "<runtime-root>/audit/preflight_audit_eval.duckdb",
       "duration_ms": 14,
       "replay_ids": [
         "replay-runtime-preflight-runtime_preflight"
@@ -294,7 +295,7 @@
       },
       "returncode": 0,
       "status": "passed",
-      "summary_artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/data-platform-current-selection-tests-summary.json"
+      "summary_artifact": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/data-platform-current-selection-tests-summary.json"
     },
     "imports": {
       "imported": [
@@ -307,14 +308,14 @@
       "status": "passed"
     },
     "neo4j_gds": {
-      "artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/neo4j-gds-preflight.json",
+      "artifact": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/neo4j-gds-preflight.json",
       "blocker": null,
       "duration_ms": 89,
       "gds_version": "2.13.9",
       "status": "passed"
     },
     "pg_connect": {
-      "dsn": "<redacted:set>",
+      "dsn": "set",
       "duration_ms": 63,
       "result": 1,
       "status": "passed"
@@ -322,8 +323,8 @@
   },
   "proof_run_date": "2026-05-01",
   "redaction": {
-    "dsn_values": "<redacted:set>",
-    "secret_values": "<redacted:set>"
+    "dsn_values": "set",
+    "secret_values": "set"
   },
   "repo_revisions": {
     "assembly": {
@@ -363,7 +364,7 @@
     }
   },
   "runner_exit_code": 0,
-  "runtime_root": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z",
+  "runtime_root": "<runtime-root>",
   "schema_version": "project-ult.production-daily-cycle-proof.v2",
   "steps": {
     "candidate_seed": {
@@ -371,8 +372,8 @@
       "cycle_status": "pending",
       "proof_current_cycle_canonical_bootstrap": {
         "canonical_entity_ids": [
-          "ENT_STOCK_600519.SH",
-          "ENT_STOCK_000001.SZ"
+          "ENT_STOCK_<removed:public-demo-ts-code>",
+          "ENT_STOCK_<removed:public-demo-ts-code>"
         ],
         "canonical_lineage_tables": [
           "canonical_lineage.lineage_dim_security",
@@ -383,13 +384,11 @@
           "canonical_v2.fact_price_bar"
         ],
         "cycle_id": "CYCLE_20260415",
-        "mart_snapshot_set_manifest": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/warehouse/canonical_v2/_mart_snapshot_set.json",
+        "mart_snapshot_set_manifest": "<runtime-root>/warehouse/canonical_v2/_mart_snapshot_set.json",
         "mode": "isolated_proof_current_cycle_canonical_input_seed",
         "proof_setup_step": true,
-        "symbols": [
-          "600519.SH",
-          "000001.SZ"
-        ],
+        "symbols_count": 2,
+        "symbols_removed": true,
         "trade_date": "2026-04-15",
         "v5_0_1_semantics": {
           "canonical_truth": "Layer A Iceberg proof warehouse",
@@ -450,9 +449,9 @@
               "dataset": "daily",
               "input_table": "main.stg_daily",
               "partition_date": "2026-04-15",
-              "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/raw/tushare/daily/dt=20260415/6ff9aaa6-6ca8-46d7-aef9-f252739a6f67.parquet",
+              "path": "<removed:raw-tushare-artifact>",
+              "raw_payload_removed": true,
               "row_count": 5494,
-              "run_id": "6ff9aaa6-6ca8-46d7-aef9-f252739a6f67",
               "source_id": "tushare",
               "written_at": "2026-05-01T15:08:19.365645+00:00"
             }
@@ -462,9 +461,9 @@
               "dataset": "stock_basic",
               "input_table": "main.stg_stock_basic",
               "partition_date": "2026-04-15",
-              "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/raw/tushare/stock_basic/dt=20260415/5a4af64e-97af-434a-8081-081e45f6a752.parquet",
+              "path": "<removed:raw-tushare-artifact>",
+              "raw_payload_removed": true,
               "row_count": 5512,
-              "run_id": "5a4af64e-97af-434a-8081-081e45f6a752",
               "source_id": "tushare",
               "written_at": "2026-05-01T15:08:17.717584+00:00"
             }
@@ -474,9 +473,9 @@
               "dataset": "trade_cal",
               "input_table": "main.stg_trade_cal",
               "partition_date": "2026-04-15",
-              "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/raw/tushare/trade_cal/dt=20260415/15a80425-c3fd-4594-89f6-0dcf06a6d46f.parquet",
+              "path": "<removed:raw-tushare-artifact>",
+              "raw_payload_removed": true,
               "row_count": 1,
-              "run_id": "15a80425-c3fd-4594-89f6-0dcf06a6d46f",
               "source_id": "tushare",
               "written_at": "2026-05-01T15:08:15.779671+00:00"
             }
@@ -487,7 +486,7 @@
           "main.stg_daily",
           "main.stg_stock_basic"
         ],
-        "raw_zone_path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/raw",
+        "raw_zone_path": "<runtime-root>/raw",
         "scan_metadata": {
           "daily_partition_date": "2026-04-15",
           "source_id": "tushare",
@@ -495,10 +494,8 @@
           "trade_cal_latest_partition_artifact_count": 1
         },
         "selected_trade_date": "2026-04-15",
-        "symbols": [
-          "600519.SH",
-          "000001.SZ"
-        ]
+        "symbols_count": 2,
+        "symbols_removed": true
       },
       "input_tables": [
         "main.stg_trade_cal",
@@ -506,10 +503,8 @@
         "main.stg_stock_basic"
       ],
       "status": "passed",
-      "symbols": [
-        "600519.SH",
-        "000001.SZ"
-      ],
+      "symbols_count": 2,
+      "symbols_removed": true,
       "trade_date": "2026-04-15"
     },
     "data_platform_migrations": {
@@ -520,11 +515,11 @@
         "0004",
         "0005"
       ],
-      "dsn": "<redacted:set>",
+      "dsn": "set",
       "status": "passed"
     },
     "graph_status_initialization": {
-      "artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/graph-status-initialization.json",
+      "artifact": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/graph-status-initialization.json",
       "duration_ms": 33,
       "mode": "proof_only_live_metric_ready_seed",
       "phase0_graph_delta_writes": 0,
@@ -533,12 +528,12 @@
     },
     "postgres_bootstrap": {
       "database": "dp_prod_cycle_proof_20260501t150811z_30590cba",
-      "dsn": "<redacted:set>",
+      "dsn": "set",
       "mode": "isolated_database",
       "status": "passed"
     },
     "production_dagster": {
-      "artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/dagster-execution-evidence.json",
+      "artifact": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/dagster-execution-evidence.json",
       "artifact_backed_pass_claim": true,
       "asset_check_pass_basis": {
         "all_recorded_asset_checks_passed": true,
@@ -567,17 +562,17 @@
       "cycle_id": "CYCLE_20260415",
       "dagster_success": true,
       "dbt_prepare": {
-        "manifest": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/orchestrator_dbt_stub/target/manifest.json",
+        "manifest": "<runtime-root>/orchestrator_dbt_stub/target/manifest.json",
         "process_stream_policy": {
           "captured_for_status_only": true,
           "log_text_omitted_from_artifact": true,
           "pass_critical_facts_in_structured_fields": true,
           "persisted_text_artifact": false
         },
-        "project_dir": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/orchestrator_dbt_stub",
+        "project_dir": "<runtime-root>/orchestrator_dbt_stub",
         "returncode": 0,
         "status": "passed",
-        "summary_artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/orchestrator-dbt-compile-summary.json"
+        "summary_artifact": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/orchestrator-dbt-compile-summary.json"
       },
       "expected_materialized_asset_count": 17,
       "failed_asset_check_names": [],
@@ -607,8 +602,8 @@
         "retrospective_hook"
       ],
       "missing_expected_asset_check_names": [],
+      "raw_payload_removed": true,
       "recorded_asset_check_count": 5,
-      "run_id": "efad558c-f5a1-4b9e-9bd6-31d0a0ce2212",
       "selected_asset_count": 17,
       "selected_asset_count_matches_materialization_basis": true,
       "selected_materializations_complete": true,
@@ -672,23 +667,26 @@
         {
           "dataset": "trade_cal",
           "partition_date": "2026-04-15",
-          "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/raw/tushare/trade_cal/dt=20260415/15a80425-c3fd-4594-89f6-0dcf06a6d46f.parquet",
+          "path": "<removed:raw-tushare-artifact>",
+          "raw_payload_removed": true,
           "row_count": 1
         },
         {
           "dataset": "stock_basic",
           "partition_date": "2026-04-15",
-          "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/raw/tushare/stock_basic/dt=20260415/5a4af64e-97af-434a-8081-081e45f6a752.parquet",
+          "path": "<removed:raw-tushare-artifact>",
+          "raw_payload_removed": true,
           "row_count": 5512
         },
         {
           "dataset": "daily",
           "partition_date": "2026-04-15",
-          "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/raw/tushare/daily/dt=20260415/6ff9aaa6-6ca8-46d7-aef9-f252739a6f67.parquet",
+          "path": "<removed:raw-tushare-artifact>",
+          "raw_payload_removed": true,
           "row_count": 5494
         }
       ],
-      "report": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/daily-refresh.json",
+      "report": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/daily-refresh.json",
       "status": "passed",
       "steps": [
         {

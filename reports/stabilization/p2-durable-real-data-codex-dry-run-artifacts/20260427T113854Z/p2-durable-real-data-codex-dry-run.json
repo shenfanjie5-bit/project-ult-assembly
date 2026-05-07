@@ -1,5 +1,5 @@
 {
-  "artifact_dir": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p2-durable-real-data-codex-dry-run-artifacts/20260427T113854Z",
+  "artifact_dir": "reports/stabilization/p2-durable-real-data-codex-dry-run-artifacts/20260427T113854Z",
   "audit_replay_readback": {
     "historical_formal_object_keys": [
       "alpha_result_snapshot",
@@ -40,17 +40,19 @@
       {
         "dataset": "stock_basic",
         "partition_date": "2026-04-15",
-        "path": "/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tmp/p2-durable-real-data-codex/20260427T113854Z/raw/tushare/stock_basic/dt=20260415/c2c7404a-a2fd-4eb8-a7e5-1b85bcca433c.parquet",
+        "path": "<removed:raw-tushare-artifact>",
+        "raw_payload_removed": true,
         "row_count": 5510
       },
       {
         "dataset": "daily",
         "partition_date": "2026-04-15",
-        "path": "/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tmp/p2-durable-real-data-codex/20260427T113854Z/raw/tushare/daily/dt=20260415/6ad9262c-93d6-4c8b-a4fa-c7d3df8c4aae.parquet",
+        "path": "<removed:raw-tushare-artifact>",
+        "raw_payload_removed": true,
         "row_count": 5494
       }
     ],
-    "report": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p2-durable-real-data-codex-dry-run-artifacts/20260427T113854Z/daily-refresh.json",
+    "report": "reports/stabilization/p2-durable-real-data-codex-dry-run-artifacts/20260427T113854Z/daily-refresh.json",
     "steps": [
       {
         "name": "adapter",
@@ -105,10 +107,8 @@
         "6ad9262c-93d6-4c8b-a4fa-c7d3df8c4aae",
         "c2c7404a-a2fd-4eb8-a7e5-1b85bcca433c"
       ],
-      "symbols": [
-        "600519.SH",
-        "000001.SZ"
-      ],
+      "symbols_count": 2,
+      "symbols_removed": true,
       "trade_date": "2026-04-15"
     },
     "llm_call_count": 3,
@@ -137,15 +137,20 @@
   },
   "finished_at": "2026-04-27T11:39:29.330734+00:00",
   "orchestrator_dbt": {
-    "compile_stdout": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p2-durable-real-data-codex-dry-run-artifacts/20260427T113854Z/orchestrator-dbt-compile.stdout.txt",
-    "manifest": "/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tmp/p2-durable-real-data-codex/20260427T113854Z/orchestrator_dbt_stub/target/manifest.json",
-    "project_dir": "/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tmp/p2-durable-real-data-codex/20260427T113854Z/orchestrator_dbt_stub"
+    "manifest": "<workspace>/data-platform/tmp/p2-durable-real-data-codex/20260427T113854Z/orchestrator_dbt_stub/target/manifest.json",
+    "process_stream_policy": {
+      "captured_for_status_only": true,
+      "log_text_omitted_from_artifact": true,
+      "pass_critical_facts_in_structured_fields": true,
+      "persisted_text_artifact": false
+    },
+    "project_dir": "<workspace>/data-platform/tmp/p2-durable-real-data-codex/20260427T113854Z/orchestrator_dbt_stub"
   },
   "postgres": {
     "database": "dp_p2_codex_20260427t113854z_885ce357",
-    "dsn": "<redacted:set>"
+    "dsn": "set"
   },
-  "runtime_root": "/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tmp/p2-durable-real-data-codex/20260427T113854Z",
+  "runtime_root": "<workspace>/data-platform/tmp/p2-durable-real-data-codex/20260427T113854Z",
   "secrets": {
     "DATABASE_URL": "missing",
     "DP_PG_DSN": "missing",
@@ -166,9 +171,7 @@
   },
   "started_at": "2026-04-27T11:38:54.503482+00:00",
   "status": "passed",
-  "symbols": [
-    "600519.SH",
-    "000001.SZ"
-  ],
+  "symbols_count": 2,
+  "symbols_removed": true,
   "trade_date": "2026-04-15"
 }

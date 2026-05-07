@@ -1,7 +1,7 @@
 {
-  "artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/graph-status-initialization.json",
+  "artifact": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/graph-status-initialization.json",
   "cycle_id": "CYCLE_20260415",
-  "dsn": "<redacted:set>",
+  "dsn": "set",
   "duration_ms": 33,
   "generated_at_utc": "2026-05-01T15:08:25.881716+00:00",
   "live_metric_seed": {

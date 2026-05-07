@@ -32,13 +32,11 @@
   ],
   "existing_real_data_evidence": {
     "cycle_id": "CYCLE_20260415",
-    "symbols": [
-      "600519.SH",
-      "000001.SZ"
-    ],
-    "trade_date": "2026-04-15",
-    "summary": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p2-durable-real-data-codex-dry-run-closure-20260427.md",
-    "json": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p2-durable-real-data-codex-dry-run-artifacts/20260427T113854Z/p2-durable-real-data-codex-dry-run.json"
+    "json": "reports/stabilization/p2-durable-real-data-codex-dry-run-artifacts/20260427T113854Z/p2-durable-real-data-codex-dry-run.json",
+    "summary": "reports/stabilization/p2-durable-real-data-codex-dry-run-closure-20260427.md",
+    "symbols_count": 2,
+    "symbols_removed": true,
+    "trade_date": "2026-04-15"
   },
   "status": "blocked"
 }

@@ -1,0 +1,171 @@
+{
+  "artifact_count": 3,
+  "artifact_group": "real-data-mini-cycle-runtime-unblock-20260427",
+  "artifacts": [
+    {
+      "dataset": "daily",
+      "partition_date": "2026-03-31",
+      "raw_payload_removed": true,
+      "row_count": 3,
+      "schema": [
+        {
+          "name": "ts_code",
+          "type": "string"
+        },
+        {
+          "name": "trade_date",
+          "type": "string"
+        },
+        {
+          "name": "open",
+          "type": "string"
+        },
+        {
+          "name": "high",
+          "type": "string"
+        },
+        {
+          "name": "low",
+          "type": "string"
+        },
+        {
+          "name": "close",
+          "type": "string"
+        },
+        {
+          "name": "pre_close",
+          "type": "string"
+        },
+        {
+          "name": "change",
+          "type": "string"
+        },
+        {
+          "name": "pct_chg",
+          "type": "string"
+        },
+        {
+          "name": "vol",
+          "type": "string"
+        },
+        {
+          "name": "amount",
+          "type": "string"
+        }
+      ],
+      "schema_hash": "e0e088d0d29b6b430da0706fd5c9be7c824142b2d46746bebaa8cb1f9d3d9241",
+      "sha256": "e2eaa1d628539c062116faff0d82ac13cca004f87eb4bed15104a9f050b73c3b",
+      "size_bytes": 6421
+    },
+    {
+      "dataset": "stock_basic",
+      "partition_date": "2026-03-31",
+      "raw_payload_removed": true,
+      "row_count": 3,
+      "schema": [
+        {
+          "name": "ts_code",
+          "type": "string"
+        },
+        {
+          "name": "symbol",
+          "type": "string"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "area",
+          "type": "string"
+        },
+        {
+          "name": "industry",
+          "type": "string"
+        },
+        {
+          "name": "fullname",
+          "type": "string"
+        },
+        {
+          "name": "enname",
+          "type": "string"
+        },
+        {
+          "name": "cnspell",
+          "type": "string"
+        },
+        {
+          "name": "market",
+          "type": "string"
+        },
+        {
+          "name": "exchange",
+          "type": "string"
+        },
+        {
+          "name": "curr_type",
+          "type": "string"
+        },
+        {
+          "name": "list_status",
+          "type": "string"
+        },
+        {
+          "name": "list_date",
+          "type": "string"
+        },
+        {
+          "name": "delist_date",
+          "type": "string"
+        },
+        {
+          "name": "is_hs",
+          "type": "string"
+        },
+        {
+          "name": "act_name",
+          "type": "string"
+        },
+        {
+          "name": "act_ent_type",
+          "type": "string"
+        }
+      ],
+      "schema_hash": "a9b7a141f5c6415d73b48d4617eb8cec88cf134af1f492b2176293a350c1ecfc",
+      "sha256": "b9ce5b35261ad0788d93750a9aab8ec2babcd9808c1f8f51416d4cc8ff794625",
+      "size_bytes": 9636
+    },
+    {
+      "dataset": "trade_cal",
+      "partition_date": "2026-03-31",
+      "raw_payload_removed": true,
+      "row_count": 1,
+      "schema": [
+        {
+          "name": "exchange",
+          "type": "string"
+        },
+        {
+          "name": "cal_date",
+          "type": "string"
+        },
+        {
+          "name": "is_open",
+          "type": "string"
+        },
+        {
+          "name": "pretrade_date",
+          "type": "string"
+        }
+      ],
+      "schema_hash": "43e39b011d54d0a4e84db37d45850622837e418e59a28505ac5ce65428e904ee",
+      "sha256": "938012435ba14e61c1f0f24704bcfcce9e93ad6739ccf9548cb37c692b24548a",
+      "size_bytes": 2747
+    }
+  ],
+  "raw_manifest_removed": true,
+  "raw_payload_removed": true,
+  "schema_version": "project-ult.evidence-hygiene.raw-artifact-summary.v1",
+  "total_row_count": 7
+}

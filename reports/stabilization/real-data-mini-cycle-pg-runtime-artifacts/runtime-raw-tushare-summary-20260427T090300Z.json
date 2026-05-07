@@ -1,0 +1,199 @@
+{
+  "artifact_count": 3,
+  "artifact_group": "real-data-mini-cycle-pg-runtime-20260427",
+  "artifacts": [
+    {
+      "dataset": "daily",
+      "partition_date": "2026-04-15",
+      "raw_payload_removed": true,
+      "row_count": 5494,
+      "schema": [
+        {
+          "name": "ts_code",
+          "type": "string"
+        },
+        {
+          "name": "trade_date",
+          "type": "string"
+        },
+        {
+          "name": "open",
+          "type": "string"
+        },
+        {
+          "name": "high",
+          "type": "string"
+        },
+        {
+          "name": "low",
+          "type": "string"
+        },
+        {
+          "name": "close",
+          "type": "string"
+        },
+        {
+          "name": "pre_close",
+          "type": "string"
+        },
+        {
+          "name": "change",
+          "type": "string"
+        },
+        {
+          "name": "pct_chg",
+          "type": "string"
+        },
+        {
+          "name": "vol",
+          "type": "string"
+        },
+        {
+          "name": "amount",
+          "type": "string"
+        }
+      ],
+      "schema_hash": "09bd2424b35eba12fac10df508120eb535265c129c1f120e69f15cd0a4c37d20",
+      "sha256": "3861b21da454c24ba8a29f41794799f6f82237ed9c8e4994e26ae9220a735c03",
+      "size_bytes": 315178
+    },
+    {
+      "dataset": "daily",
+      "partition_date": "2026-04-15",
+      "raw_payload_removed": true,
+      "row_count": 5494,
+      "schema": [
+        {
+          "name": "ts_code",
+          "type": "string"
+        },
+        {
+          "name": "trade_date",
+          "type": "string"
+        },
+        {
+          "name": "open",
+          "type": "string"
+        },
+        {
+          "name": "high",
+          "type": "string"
+        },
+        {
+          "name": "low",
+          "type": "string"
+        },
+        {
+          "name": "close",
+          "type": "string"
+        },
+        {
+          "name": "pre_close",
+          "type": "string"
+        },
+        {
+          "name": "change",
+          "type": "string"
+        },
+        {
+          "name": "pct_chg",
+          "type": "string"
+        },
+        {
+          "name": "vol",
+          "type": "string"
+        },
+        {
+          "name": "amount",
+          "type": "string"
+        }
+      ],
+      "schema_hash": "09bd2424b35eba12fac10df508120eb535265c129c1f120e69f15cd0a4c37d20",
+      "sha256": "3861b21da454c24ba8a29f41794799f6f82237ed9c8e4994e26ae9220a735c03",
+      "size_bytes": 315178
+    },
+    {
+      "dataset": "stock_basic",
+      "partition_date": "2026-04-15",
+      "raw_payload_removed": true,
+      "row_count": 5510,
+      "schema": [
+        {
+          "name": "ts_code",
+          "type": "string"
+        },
+        {
+          "name": "symbol",
+          "type": "string"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "area",
+          "type": "string"
+        },
+        {
+          "name": "industry",
+          "type": "string"
+        },
+        {
+          "name": "fullname",
+          "type": "string"
+        },
+        {
+          "name": "enname",
+          "type": "string"
+        },
+        {
+          "name": "cnspell",
+          "type": "string"
+        },
+        {
+          "name": "market",
+          "type": "string"
+        },
+        {
+          "name": "exchange",
+          "type": "string"
+        },
+        {
+          "name": "curr_type",
+          "type": "string"
+        },
+        {
+          "name": "list_status",
+          "type": "string"
+        },
+        {
+          "name": "list_date",
+          "type": "string"
+        },
+        {
+          "name": "delist_date",
+          "type": "string"
+        },
+        {
+          "name": "is_hs",
+          "type": "string"
+        },
+        {
+          "name": "act_name",
+          "type": "string"
+        },
+        {
+          "name": "act_ent_type",
+          "type": "string"
+        }
+      ],
+      "schema_hash": "194be416175acdcb722cb0e6d358670b281b2f4f9dda1ca5a96cac587718db4d",
+      "sha256": "27409ef91bcd27b91fa429d1326895d8e0125fbc91bf4e64ce9d58ce5d988fde",
+      "size_bytes": 458201
+    }
+  ],
+  "raw_manifest_removed": true,
+  "raw_payload_removed": true,
+  "schema_version": "project-ult.evidence-hygiene.raw-artifact-summary.v1",
+  "total_row_count": 16498
+}
