@@ -5,9 +5,10 @@ handoff after M4.6, assembly PR #52
 (`a6bb671aff39cdd31db3ef28104e6119e13ad3ba`), and the first four
 `subsystem-holdings` PRs landed. It records the PR #5 blocker state, the newer
 attempt2 live proof handoff state, the post queue/freeze/promotion handoff,
-and the post holdings-only algorithms handoff after sibling repo progress. It
-is an assembly docs/report artifact only. It does not change code, does not
-change contracts, and does not perform derivations or backfill.
+the post holdings-only algorithms handoff after sibling repo progress, and the
+M4.8 entity-resolution proof closeout that landed after the original M4.9
+decision. It is an assembly docs/report artifact only. It does not change code,
+does not change contracts, and does not perform derivations or backfill.
 
 ## Status
 
@@ -31,7 +32,9 @@ change contracts, and does not perform derivations or backfill.
   contracts/subtype change.
 - `subsystem-financial-doc` status: deferred.
 - M4.7 status: partial; real-document validation remains open.
-- M4.8 status: future validation gate.
+- M4.8 status: proof closeout complete as bounded evidence; production rollout
+  hardening remains future planning.
+- M4.8 evidence: `reports/stabilization/m4-8-entity-resolution-proof-20260507.md`.
 - Evidence type: docs-only scope decision and handoff with a structured JSON
   sibling.
 - Structured artifact:
@@ -55,6 +58,11 @@ change contracts, and does not perform derivations or backfill.
 - Post holdings-only algorithms handoff: graph-engine PR #59 merged as
   `8a40fead9a57d67f0b232a52d4ed0d99db78a96e`, and #55 is closed with the
   narrowed holdings-only scope.
+- M4.8 proof closeout handoff: entity-registry PR #60 merged as
+  `6debd8cc137ee57572fd862959cd845c6dffcab5`, `subsystem-holdings` PR #12
+  merged as `11c1b1cf62be32c49940293c2e04e89d93ae1ecc`, and holdings live
+  graph proof PR #62 merged as
+  `3736799bf362970670b0769e363c75bc15123f79`.
 
 ## Decision
 
@@ -74,6 +82,12 @@ Assembly was already aligned at the boundary level. This update syncs assembly
 to the current queue/freeze/promotion and holdings-only algorithm handoff
 without changing contracts, subtype scope, production rollout status, or
 sibling repositories.
+
+The M4.8 proof is now complete as a separate bounded evidence closeout. That
+allows future M4.9 planning to discuss production rollout hardening, but this
+handoff still does not claim production entity registry rollout, production
+queue propagation, production live graph propagation, or default/full
+propagation.
 
 ## Subsystem-Holdings Adapter Handoff
 
@@ -110,7 +124,8 @@ The proof boundary is intentionally narrow:
 - No live holdings backfill.
 - No production queue propagation proof.
 - No live graph propagation proof.
-- No M4.7 or M4.8 closure.
+- No M4.7 closure.
+- No production entity registry rollout.
 - No contracts or subtype change.
 
 ## Data-Platform Readiness Handoff
@@ -312,8 +327,11 @@ The dependency order is:
    offline Layer A promotion/query/channel proof as merged sibling evidence
    through PRs #10, #108, #43, and #58.
 4. Treat graph-engine PR #59 as the closed #55 holdings-only algorithm handoff.
-5. Enter production queue propagation, live Neo4j graph propagation, or
-   default full-propagation rollout only when that work is explicitly planned.
+5. Treat M4.8 proof as closed through
+   `reports/stabilization/m4-8-entity-resolution-proof-20260507.md`.
+6. Enter production entity registry rollout, production queue propagation,
+   live Neo4j graph propagation, or default/full propagation hardening only
+   when that work is explicitly planned.
 
 ## Financial-Doc Gate
 
@@ -332,9 +350,16 @@ subtypes, or graph-engine #55 planning.
 M4.7 remains partial. It is still the real-document validation gate for
 document parsing and extraction claims.
 
-M4.8 remains a future validation gate. This M4.9 decision does not close
-entity-resolution validation and does not relax fail-closed handling for
-unresolved entities.
+M4.8 proof is now complete as a bounded evidence closeout. The closeout covers
+deterministic exact/code/rule resolution, ambiguous fuzzy non-selection,
+unresolved fail-closed behavior, `ResolutionCase` / audit payload shape,
+contracts projection, and the `subsystem-holdings` public adapter boundary.
+The focused fuzzy backend is `injected_fake`, not a real Splink production
+rollout.
+
+This M4.9 decision does not convert the M4.8 proof into production entity
+registry rollout, production queue/live graph rollout, default/full
+propagation, financial-doc scope, or contracts subtype work.
 
 ## Scope Exclusions
 
@@ -355,7 +380,8 @@ This decision does not:
 - expand graph-engine #55 beyond holdings-only algorithms;
 - add contracts subtype scope;
 - claim financial-doc scope;
-- claim that M4.7 or M4.8 is complete;
+- claim that M4.7 is complete;
+- claim production rollout from the M4.8 proof closeout;
 - start `subsystem-financial-doc`.
 
 ## Evidence Hygiene

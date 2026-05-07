@@ -2,21 +2,22 @@
   "status": "holdings_only_algorithms_handoff_sibling_proof_merged",
   "recorded_at": "2026-05-07T00:00:00Z",
   "decision_date": "2026-05-06",
-  "scope": "M4.9 subsystem scope decision, holdings adapter handoff, PR #5 live producer blockers, attempt2 live proof handoff, queue/freeze/promotion proof handoff, and holdings-only algorithms handoff",
+  "scope": "M4.9 subsystem scope decision, holdings adapter handoff, PR #5 live producer blockers, attempt2 live proof handoff, queue/freeze/promotion proof handoff, holdings-only algorithms handoff, and M4.8 proof closeout handoff",
   "prerequisites": {
     "m4_6": "complete",
     "assembly_env_hygiene_pr_52_merge_commit": "a6bb671aff39cdd31db3ef28104e6119e13ad3ba"
   },
   "milestones": {
     "m4_7": "partial_real_document_validation_open",
-    "m4_8": "future_validation_gate",
+    "m4_8": "proof_closeout_complete_bounded_evidence",
     "m4_9": "decision_and_handoff_recorded",
     "post_pr1_3_readiness_handoff": "recorded",
     "post_pr1_4_holdings_adapter_handoff": "recorded",
     "pr_5_live_producer_blocker_handoff": "recorded_historical",
     "attempt2_live_proof_handoff": "runtime_pass_sibling_evidence_merged",
     "queue_freeze_promotion_handoff": "sibling_proofs_merged",
-    "holdings_only_algorithms_handoff": "sibling_proof_merged_issue_55_closed"
+    "holdings_only_algorithms_handoff": "sibling_proof_merged_issue_55_closed",
+    "m4_8_proof_closeout": "complete_not_production_rollout"
   },
   "decision": {
     "next_p0_domain_extension": "subsystem-holdings",
@@ -35,6 +36,9 @@
     "graph_engine_55_scope": "holdings-only algorithms",
     "graph_engine_55_entry_mode": "explicit_entry_only",
     "subsystem_financial_doc": "deferred",
+    "m4_8_evidence_path": "reports/stabilization/m4-8-entity-resolution-proof-20260507.md",
+    "m4_8_production_rollout_claimed": false,
+    "m4_9_next_allowed_planning": "production_rollout_hardening_after_m4_8_proof_closeout",
     "financial_doc_gate": [
       "M4.7 real-document validation",
       "holdings usefulness evidence"
@@ -318,6 +322,33 @@
     "live_producer_proof_required_first": false,
     "queue_freeze_promotion_proof_required_first": false
   },
+  "m4_8_proof_closeout": {
+    "status": "complete_bounded_evidence",
+    "evidence_path": "reports/stabilization/m4-8-entity-resolution-proof-20260507.md",
+    "entity_registry_pr": "#60",
+    "entity_registry_merge_commit": "6debd8cc137ee57572fd862959cd845c6dffcab5",
+    "subsystem_holdings_pr": "#12",
+    "subsystem_holdings_merge_commit": "11c1b1cf62be32c49940293c2e04e89d93ae1ecc",
+    "holdings_live_graph_proof_pr": "#62",
+    "holdings_live_graph_proof_merge_commit": "3736799bf362970670b0769e363c75bc15123f79",
+    "covered_cases": [
+      "deterministic exact resolution",
+      "deterministic code resolution",
+      "deterministic rule resolution",
+      "ambiguous fuzzy candidates not auto-selected",
+      "unresolved entities fail closed",
+      "ResolutionCase and audit payload shape",
+      "contracts projection"
+    ],
+    "fuzzy_backend": "injected_fake",
+    "real_splink_production_rollout": false,
+    "production_entity_registry_rollout": false,
+    "production_queue_or_live_graph_rollout": false,
+    "default_or_full_propagation_rollout": false,
+    "m4_7_closed": false,
+    "financial_doc_scope": false,
+    "contracts_subtype_work": false
+  },
   "scope_exclusions": [
     "no data-platform changes",
     "no contracts changes",
@@ -328,13 +359,14 @@
     "no live producer proof executed by assembly",
     "no live holdings backfill",
     "no provider call from subsystem-holdings",
+    "no production entity registry rollout",
     "no production queue propagation",
     "no live Neo4j graph propagation",
     "no graph-engine #55 scope beyond holdings-only algorithms",
     "no default full-propagation rollout",
     "no contracts/subtype change",
     "no M4.7 closure",
-    "no M4.8 closure"
+    "no production rollout claim from M4.8 proof closeout"
   ],
   "evidence_hygiene": {
     "raw_logs_recorded": false,
