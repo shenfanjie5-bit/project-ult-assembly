@@ -15,7 +15,7 @@ All four validation commands were executed verbatim from the C3 task instruction
 ### 1.1 data-platform — provider catalog no-source-leak test
 
 ```
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform && \
+cd <workspace>/data-platform && \
   PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest \
     -p no:cacheprovider -q tests/provider_catalog/test_no_source_leak.py 2>&1 | tail -5
 ```
@@ -39,7 +39,7 @@ it confirms only that today's narrow detection still matches.
 ### 1.2 frontend-api — no-source-leak test
 
 ```
-cd /Users/fanjie/Desktop/Cowork/project-ult/frontend-api && \
+cd <workspace>/frontend-api && \
   PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -p no:cacheprovider -q \
     tests/test_no_source_leak.py 2>&1 | tail -5
 ```
@@ -49,7 +49,7 @@ cd /Users/fanjie/Desktop/Cowork/project-ult/frontend-api && \
 to the assembly venv:
 
 ```
-cd /Users/fanjie/Desktop/Cowork/project-ult/frontend-api && \
+cd <workspace>/frontend-api && \
   PYTHONDONTWRITEBYTECODE=1 ../assembly/.venv-py312/bin/python -m pytest \
     -p no:cacheprovider -q tests/test_no_source_leak.py 2>&1 | tail -5
 ```
@@ -75,7 +75,7 @@ are not mounted by default; `data-platform` public API fallback is disabled.
 ### 1.3 Repo-wide prefix-token grep (line count)
 
 ```
-cd /Users/fanjie/Desktop/Cowork/project-ult && \
+cd <workspace> && \
   rg -n 'tushare_|stg_tushare_|doc_api' \
     data-platform/src/data_platform/dbt/models/marts \
     data-platform/src/data_platform/serving \
@@ -90,7 +90,7 @@ frontend-api source. Consistent with §1.1 and §1.2 PASS.
 ### 1.4 Repo-wide lineage-field grep (line count)
 
 ```
-cd /Users/fanjie/Desktop/Cowork/project-ult && \
+cd <workspace> && \
   rg -n 'source_run_id|raw_loaded_at' \
     data-platform/src/data_platform/serving \
     frontend-api/src/frontend_api 2>&1 | wc -l
@@ -462,7 +462,7 @@ gap; closing it here in isolation would break canonical writes.
 ```
 Task: C3
 Repo(s): data-platform + frontend-api + assembly
-Output report: /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/formal-serving-no-source-leak-hardening-plan-20260428.md
+Output report: <workspace>/assembly/reports/stabilization/formal-serving-no-source-leak-hardening-plan-20260428.md
 Validation commands:
   1. cd data-platform && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest -p no:cacheprovider -q tests/provider_catalog/test_no_source_leak.py 2>&1 | tail -5
   2. cd frontend-api && PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -p no:cacheprovider -q tests/test_no_source_leak.py 2>&1 | tail -5

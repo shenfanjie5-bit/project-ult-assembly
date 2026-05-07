@@ -133,7 +133,7 @@ subsystem smoke shape spot check:
     passed
 
 reasoner-runtime:
-  PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/contracts/src \
+  PYTHONPATH=<workspace>/contracts/src \
     .venv/bin/python -m pytest \
     tests/unit/test_config.py \
     tests/unit/test_codex_auth.py \

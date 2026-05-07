@@ -466,7 +466,7 @@ ult_milestone.md §M1-A acceptance:
 ```
 Task: M1-A canonical v2 lineage separation design
 Repo(s): data-platform + assembly (read-only inspection)
-Output: /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/canonical-v2-lineage-separation-design-20260428.md
+Output: <workspace>/assembly/reports/stabilization/canonical-v2-lineage-separation-design-20260428.md
 Validation: design-only; no command run; no tests added
 Per-subrepo git state:
   data-platform: rev-parse HEAD = 330f6b4; status =  M src/data_platform/raw/writer.py /  M tests/raw/test_writer.py (pre-existing); push = not pushed; branch = main

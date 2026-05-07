@@ -111,7 +111,7 @@ dbt CLI is **NOT installed** in the dagster-daemon image. Recent `pip list`
 inside the image shows only `dagster*` packages.
 
 ```
-$ /Users/fanjie/Desktop/Cowork/project-ult/data-platform/.venv/bin/dbt --version
+$ <workspace>/data-platform/.venv/bin/dbt --version
 mashumaro.exceptions.UnserializableField: Field "schema" of type Optional[str]
 in JSONObjectSchema is not serializable
 ```

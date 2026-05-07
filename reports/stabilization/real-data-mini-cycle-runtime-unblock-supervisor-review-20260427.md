@@ -35,7 +35,7 @@ command/run/freeze/release-freeze exposure was added.
 ## Commands Re-run
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+cd <workspace>/data-platform
 .venv/bin/python -m pytest -q \
   tests/scripts/test_mini_cycle_runtime_bootstrap.py \
   tests/scripts/test_corpus_backed_raw_zone_probe.py \
@@ -45,11 +45,11 @@ cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
 Result: pass, `5 passed`.
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+cd <workspace>/data-platform
 .venv/bin/python scripts/mini_cycle_runtime_bootstrap.py \
-  --base-dir /tmp/project-ult-runtime-unblock-review/runtime \
+  --base-dir <proof-workspace>/runtime \
   --profile-name supervisor-review \
-  --json-report /tmp/project-ult-runtime-unblock-review/runtime-preflight.json
+  --json-report <proof-workspace>/runtime-preflight.json
 ```
 
 Result: exit `2`, expected blocked preflight. It generated bounded
@@ -57,14 +57,14 @@ raw/warehouse/duckdb/catalog values, did not write `.env`, did not print
 secrets, and still reported `DP_PG_DSN` and `DP_TUSHARE_TOKEN` missing.
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+cd <workspace>/data-platform
 .venv/bin/python scripts/corpus_backed_raw_zone_probe.py \
   --corpus-root /Volumes/dockcase2tb/database_all \
-  --raw-zone-path /tmp/project-ult-corpus-bridge-review/raw \
-  --iceberg-warehouse-path /tmp/project-ult-corpus-bridge-review/warehouse \
+  --raw-zone-path <proof-workspace>/raw \
+  --iceberg-warehouse-path <proof-workspace>/warehouse \
   --dates 20260331 \
   --symbols 600519.SH,000001.SZ,000063.SZ \
-  --json-report /tmp/project-ult-corpus-bridge-review/corpus-probe.json
+  --json-report <proof-workspace>/corpus-probe.json
 ```
 
 Result: pass. The probe produced three bounded Raw Zone artifacts:
@@ -72,7 +72,7 @@ Result: pass. The probe produced three bounded Raw Zone artifacts:
 sets `mode=corpus_backed_raw_zone_probe` and `live_tushare_token_used=false`.
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+cd <workspace>/data-platform
 .venv/bin/python scripts/external_smoke_tushare_corpus.py
 ```
 

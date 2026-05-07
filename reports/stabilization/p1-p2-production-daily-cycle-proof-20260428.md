@@ -83,7 +83,7 @@ it means the freeze has not yet been exercised inside a complete real
 Command:
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/assembly
+cd <workspace>/assembly
 .venv-py312/bin/python scripts/production_daily_cycle_proof.py \
   --preflight-only \
   --run-current-selection-tests
@@ -92,7 +92,7 @@ cd /Users/fanjie/Desktop/Cowork/project-ult/assembly
 Result:
 
 ```text
-RUNTIME_PREFLIGHT_PASS /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T194812Z/production-daily-cycle-proof.json
+RUNTIME_PREFLIGHT_PASS <evidence-artifact-root>/p1-p2-production-daily-cycle-proof-artifacts/20260427T194812Z/production-daily-cycle-proof.json
 ```
 
 Redacted runtime checks:
@@ -114,13 +114,13 @@ Redacted runtime checks:
 Data-platform:
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/assembly
+cd <workspace>/assembly
 .venv-py312/bin/python scripts/production_daily_cycle_proof.py \
   --run-current-selection-tests \
   --drop-isolated-pg
 
 result:
-PARTIAL_PASS_BLOCKED /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T194817Z/production-daily-cycle-proof.json
+PARTIAL_PASS_BLOCKED <evidence-artifact-root>/p1-p2-production-daily-cycle-proof-artifacts/20260427T194817Z/production-daily-cycle-proof.json
 exit code: 2, expected for a bounded partial/blocker proof
 ```
 
@@ -138,13 +138,13 @@ Bounded data-platform proof details:
 Graph-engine live P3 closure:
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/graph-engine
-env PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/contracts/src \
+cd <workspace>/graph-engine
+env PYTHONPATH=<workspace>/contracts/src \
   NEO4J_URI=bolt://localhost:17687 \
   NEO4J_USER=neo4j \
   NEO4J_PASSWORD=<redacted> \
   NEO4J_DATABASE=neo4j \
-  /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python \
+  <workspace>/assembly/.venv-py312/bin/python \
   -m pytest -q -rs \
   tests/integration/test_promotion_sync.py \
   tests/integration/test_full_propagation.py \
@@ -169,8 +169,8 @@ result: 423 passed, 1 skipped, 2 warnings
 Orchestrator focused production provider and Phase 2 pool gate checks:
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/orchestrator
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest -q \
+cd <workspace>/orchestrator
+<workspace>/assembly/.venv-py312/bin/python -m pytest -q \
   tests/integration/test_production_daily_cycle_provider.py \
   tests/integration/test_phase2_pool_failure_gate.py \
   tests/checks/test_phase2_pool_gate.py
@@ -182,8 +182,8 @@ result:
 Orchestrator broader focused integration set:
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/orchestrator
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest -q -rs \
+cd <workspace>/orchestrator
+<workspace>/assembly/.venv-py312/bin/python -m pytest -q -rs \
   tests/integration/test_production_daily_cycle_provider.py \
   tests/integration/test_daily_cycle_four_phase.py \
   tests/integration/test_phase2_main_core_wiring.py \
@@ -198,9 +198,9 @@ skipped tests require dbt CLI in the execution environment
 Provider-neutral P2 preflight:
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/orchestrator
-PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/orchestrator/src:/Users/fanjie/Desktop/Cowork/project-ult/main-core/src:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src:/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src:/Users/fanjie/Desktop/Cowork/project-ult/reasoner-runtime \
-  /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest -q \
+cd <workspace>/orchestrator
+PYTHONPATH=<workspace>/orchestrator/src:<workspace>/main-core/src:<workspace>/contracts/src:<workspace>/data-platform/src:<workspace>/reasoner-runtime \
+  <workspace>/assembly/.venv-py312/bin/python -m pytest -q \
   tests/integration/test_production_daily_cycle_provider.py \
   tests/integration/test_p2_dry_run_handoff.py
 
@@ -219,7 +219,7 @@ no-source scan over graph-engine/reasoner-runtime/main-core/frontend-api: no mat
 Orchestrator lint:
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/orchestrator
+cd <workspace>/orchestrator
 ruff check src/orchestrator_adapters/production_daily_cycle.py \
   tests/integration/test_production_daily_cycle_provider.py
 
@@ -230,7 +230,7 @@ All checks passed
 Bounded proof runner:
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/assembly
+cd <workspace>/assembly
 .venv-py312/bin/python -m py_compile scripts/production_daily_cycle_proof.py
 .venv-py312/bin/python scripts/production_daily_cycle_proof.py --help
 ```

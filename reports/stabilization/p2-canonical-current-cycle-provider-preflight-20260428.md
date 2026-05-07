@@ -74,9 +74,9 @@ evidence.
 Command:
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/orchestrator
-PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/orchestrator/src:/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src \
-  /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python - <<'PY'
+cd <workspace>/orchestrator
+PYTHONPATH=<workspace>/orchestrator/src:<workspace>/data-platform/src \
+  <workspace>/assembly/.venv-py312/bin/python - <<'PY'
 from orchestrator_adapters.production_daily_cycle import production_daily_cycle_provider
 provider = production_daily_cycle_provider()
 surfaces = provider.status().supported_surfaces
@@ -105,7 +105,7 @@ DataPlatformCanonicalCurrentCycleInputProvider
 Data-platform:
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+cd <workspace>/data-platform
 PYTHONPATH=src .venv/bin/python -m pytest -q \
   tests/cycle/test_current_cycle_inputs.py \
   tests/serving/test_canonical_datasets.py \
@@ -118,9 +118,9 @@ result:
 Orchestrator:
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/orchestrator
-PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/orchestrator/src:/Users/fanjie/Desktop/Cowork/project-ult/main-core/src:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src:/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src:/Users/fanjie/Desktop/Cowork/project-ult/reasoner-runtime \
-  /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest -q \
+cd <workspace>/orchestrator
+PYTHONPATH=<workspace>/orchestrator/src:<workspace>/main-core/src:<workspace>/contracts/src:<workspace>/data-platform/src:<workspace>/reasoner-runtime \
+  <workspace>/assembly/.venv-py312/bin/python -m pytest -q \
   tests/integration/test_production_daily_cycle_provider.py \
   tests/integration/test_p2_dry_run_handoff.py
 
@@ -131,8 +131,8 @@ completed with 5 dbt CLI skips; no failures
 Frontend-api:
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/frontend-api
-PYTHONDONTWRITEBYTECODE=1 /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python \
+cd <workspace>/frontend-api
+PYTHONDONTWRITEBYTECODE=1 <workspace>/assembly/.venv-py312/bin/python \
   -m pytest -p no:cacheprovider -q \
   tests/test_boundary_imports.py \
   tests/test_no_source_leak.py \
@@ -148,9 +148,9 @@ result:
 Main-core:
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/main-core
+cd <workspace>/main-core
 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src \
-  /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python \
+  <workspace>/assembly/.venv-py312/bin/python \
   -m pytest -p no:cacheprovider -q \
   tests/integration/test_new_data_interface_vertical_slice.py
 
@@ -162,10 +162,10 @@ No-source scan:
 
 ```text
 rg -n --hidden -i "tushare|doc_api|stg_tushare" \
-  /Users/fanjie/Desktop/Cowork/project-ult/graph-engine/graph_engine \
-  /Users/fanjie/Desktop/Cowork/project-ult/reasoner-runtime \
-  /Users/fanjie/Desktop/Cowork/project-ult/main-core/src \
-  /Users/fanjie/Desktop/Cowork/project-ult/frontend-api/src
+  <workspace>/graph-engine/graph_engine \
+  <workspace>/reasoner-runtime \
+  <workspace>/main-core/src \
+  <workspace>/frontend-api/src
 
 result:
 no matches

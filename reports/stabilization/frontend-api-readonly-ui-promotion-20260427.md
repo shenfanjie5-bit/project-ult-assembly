@@ -2,7 +2,7 @@
 
 Recorded: 2026-04-27T05:34:25Z
 
-Repo: `/Users/fanjie/Desktop/Cowork/project-ult/assembly`
+Repo: `<workspace>/assembly`
 
 Scope:
 

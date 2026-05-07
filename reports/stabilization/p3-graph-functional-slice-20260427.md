@@ -43,12 +43,12 @@ cold reload integration tests are skipped by their own environment gates.
 
 - Focused promotion/reload tests:
   - Command:
-    `cd /Users/fanjie/Desktop/Cowork/project-ult/graph-engine && /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest -q tests/unit/test_reload.py tests/unit/test_promotion.py`
+    `cd <workspace>/graph-engine && <workspace>/assembly/.venv-py312/bin/python -m pytest -q tests/unit/test_reload.py tests/unit/test_promotion.py`
   - Result: `47 passed`.
 
 - P3 requested graph suite with Neo4j env loaded:
   - Command:
-    `cd /Users/fanjie/Desktop/Cowork/project-ult/graph-engine && set -a; source /Users/fanjie/Desktop/Cowork/project-ult/assembly/.env; set +a; /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest -q -rs tests/unit tests/integration/test_promotion_sync.py tests/integration/test_full_propagation.py tests/integration/test_propagation_snapshot.py tests/integration/test_reload.py tests/contract/test_runtime_contract.py tests/contract/test_contracts_alignment.py`
+    `cd <workspace>/graph-engine && set -a; source <workspace>/assembly/.env; set +a; <workspace>/assembly/.venv-py312/bin/python -m pytest -q -rs tests/unit tests/integration/test_promotion_sync.py tests/integration/test_full_propagation.py tests/integration/test_propagation_snapshot.py tests/integration/test_reload.py tests/contract/test_runtime_contract.py tests/contract/test_contracts_alignment.py`
   - Result: pass with three GDS skips.
   - Skips:
     - `tests/integration/test_full_propagation.py`: GDS plugin is not available.

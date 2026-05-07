@@ -12,7 +12,7 @@
 ### 1.1 Re-derivation at current HEAD
 
 ```
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform && \
+cd <workspace>/data-platform && \
   PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -c \
     "from data_platform.provider_catalog.registry import \
        PROMOTION_CANDIDATE_MAPPINGS, CANONICAL_DATASETS; \
@@ -31,7 +31,7 @@ len(CANONICAL_DATASETS)=17
 ### 1.2 Provider-catalog test sweep (C6 baseline)
 
 ```
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform && \
+cd <workspace>/data-platform && \
   PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest \
     -p no:cacheprovider -q tests/provider_catalog 2>&1 | tail -3
 ```
@@ -41,7 +41,7 @@ cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform && \
 ### 1.3 138-row CSV inventory
 
 ```
-wc -l /Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/provider_catalog/tushare_available_interfaces.csv
+wc -l <workspace>/data-platform/src/data_platform/provider_catalog/tushare_available_interfaces.csv
 ```
 
 **Result**: `139` (1 header + 138 data rows). Matches C6.
@@ -175,11 +175,11 @@ Per `ult_milestone.md` §M1.5 acceptance: "M1.6 是否可开由 evidence 决定�
 ```
 Task: M1-F canonical candidate derivation rules review
 Repo(s): data-platform + assembly
-Output: /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/canonical-candidate-derivation-rules-20260428.md
+Output: <workspace>/assembly/reports/stabilization/canonical-candidate-derivation-rules-20260428.md
 Validation commands:
   1. cd data-platform && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -c "from data_platform.provider_catalog.registry import PROMOTION_CANDIDATE_MAPPINGS, CANONICAL_DATASETS; print(len(PROMOTION_CANDIDATE_MAPPINGS), len(CANONICAL_DATASETS))"
   2. cd data-platform && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest -p no:cacheprovider -q tests/provider_catalog
-  3. wc -l /Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/provider_catalog/tushare_available_interfaces.csv
+  3. wc -l <workspace>/data-platform/src/data_platform/provider_catalog/tushare_available_interfaces.csv
 Validation results:
   1. 13 17 (matches C6 baseline)
   2. 10 passed in 0.05s (matches C6 baseline)

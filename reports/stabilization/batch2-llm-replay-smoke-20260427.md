@@ -62,7 +62,7 @@ Validation:
 ```text
 reasoner-runtime targeted:
   command:
-    PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/contracts/src \
+    PYTHONPATH=<workspace>/contracts/src \
       .venv/bin/python -m pytest \
       tests/unit/test_contract_exports.py \
       tests/integration/test_generate_structured_replay.py \
@@ -75,7 +75,7 @@ reasoner-runtime targeted:
 
 reasoner-runtime broad:
   command:
-    PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/contracts/src \
+    PYTHONPATH=<workspace>/contracts/src \
       .venv/bin/python -m pytest -q \
       --ignore=tests/regression/test_with_shared_fixtures.py
   result:

@@ -32,11 +32,11 @@
 Command:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+cd <workspace>/data-platform
 .venv/bin/python scripts/mini_cycle_runtime_bootstrap.py \
-  --base-dir /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-runtime-unblock-artifacts/runtime \
+  --base-dir <evidence-artifact-root>/real-data-mini-cycle-runtime-unblock-artifacts/runtime \
   --profile-name batch-a-20260427 \
-  --json-report /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-runtime-unblock-artifacts/runtime-preflight.json \
+  --json-report <evidence-artifact-root>/real-data-mini-cycle-runtime-unblock-artifacts/runtime-preflight.json \
   --print-json
 ```
 
@@ -56,14 +56,14 @@ Result: exit `2`, expected blocked preflight.
 Command:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+cd <workspace>/data-platform
 .venv/bin/python scripts/corpus_backed_raw_zone_probe.py \
   --corpus-root /Volumes/dockcase2tb/database_all \
-  --raw-zone-path /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-runtime-unblock-artifacts/raw \
-  --iceberg-warehouse-path /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-runtime-unblock-artifacts/warehouse \
+  --raw-zone-path <evidence-artifact-root>/real-data-mini-cycle-runtime-unblock-artifacts/raw \
+  --iceberg-warehouse-path <evidence-artifact-root>/real-data-mini-cycle-runtime-unblock-artifacts/warehouse \
   --dates 20260331 \
   --symbols 600519.SH,000001.SZ,000063.SZ \
-  --json-report /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-runtime-unblock-artifacts/corpus-bridge-raw-zone-probe-20260331.json \
+  --json-report <evidence-artifact-root>/real-data-mini-cycle-runtime-unblock-artifacts/corpus-bridge-raw-zone-probe-20260331.json \
   --print-json
 ```
 
@@ -82,17 +82,17 @@ Result: exit `0`.
 Command used the generated non-secret runtime paths and no PG/token:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
-DP_RAW_ZONE_PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-runtime-unblock-artifacts/runtime/batch_a_20260427/raw \
-DP_ICEBERG_WAREHOUSE_PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-runtime-unblock-artifacts/runtime/batch_a_20260427/warehouse \
-DP_DUCKDB_PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-runtime-unblock-artifacts/runtime/batch_a_20260427/duckdb/data_platform.duckdb \
+cd <workspace>/data-platform
+DP_RAW_ZONE_PATH=<evidence-artifact-root>/real-data-mini-cycle-runtime-unblock-artifacts/runtime/batch_a_20260427/raw \
+DP_ICEBERG_WAREHOUSE_PATH=<evidence-artifact-root>/real-data-mini-cycle-runtime-unblock-artifacts/runtime/batch_a_20260427/warehouse \
+DP_DUCKDB_PATH=<evidence-artifact-root>/real-data-mini-cycle-runtime-unblock-artifacts/runtime/batch_a_20260427/duckdb/data_platform.duckdb \
 DP_ICEBERG_CATALOG_NAME=data_platform_real_mini_cycle_batch_a_20260427 \
 DP_ENV=test \
 .venv/bin/python scripts/real_data_mini_cycle_probe.py \
   --dates 20260415 \
   --symbols 600519.SH,000001.SZ,000063.SZ \
-  --artifact-dir /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-runtime-unblock-artifacts/probe-artifacts \
-  --json-report /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-runtime-unblock-artifacts/real-data-mini-cycle-probe-runtime-paths.json \
+  --artifact-dir <evidence-artifact-root>/real-data-mini-cycle-runtime-unblock-artifacts/probe-artifacts \
+  --json-report <evidence-artifact-root>/real-data-mini-cycle-runtime-unblock-artifacts/real-data-mini-cycle-probe-runtime-paths.json \
   --print-json
 ```
 
@@ -110,21 +110,21 @@ Result: exit `2`, expected hard block.
 ## Verification
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+cd <workspace>/data-platform
 .venv/bin/python -m pytest -q tests/scripts/test_mini_cycle_runtime_bootstrap.py tests/scripts/test_corpus_backed_raw_zone_probe.py tests/integration/test_real_data_mini_cycle_probe.py
 ```
 
 Result: pass, `5 passed`.
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+cd <workspace>/data-platform
 git diff --check
 ```
 
 Result: pass.
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+cd <workspace>/data-platform
 .venv/bin/python scripts/external_smoke_tushare_corpus.py
 ```
 

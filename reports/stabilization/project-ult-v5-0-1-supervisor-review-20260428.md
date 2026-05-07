@@ -85,8 +85,8 @@ Read-only subagents used:
 Main-thread validation commands run:
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/frontend-api
-PYTHONDONTWRITEBYTECODE=1 /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python \
+cd <workspace>/frontend-api
+PYTHONDONTWRITEBYTECODE=1 <workspace>/assembly/.venv-py312/bin/python \
   -m pytest -p no:cacheprovider -q \
   tests/test_no_source_leak.py tests/test_entity_data_routes.py \
   tests/test_cycle_routes.py tests/test_graph_routes.py tests/test_operations_routes.py
@@ -95,7 +95,7 @@ result: completed at 100%, no failures
 ```
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+cd <workspace>/data-platform
 PYTHONPATH=src PYTHONDONTWRITEBYTECODE=1 .venv/bin/python \
   -m pytest -p no:cacheprovider -q \
   tests/provider_catalog tests/raw/test_writer.py \
@@ -105,8 +105,8 @@ result: completed at 100%, no failures
 ```
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/orchestrator
-PYTHONDONTWRITEBYTECODE=1 /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python \
+cd <workspace>/orchestrator
+PYTHONDONTWRITEBYTECODE=1 <workspace>/assembly/.venv-py312/bin/python \
   -m pytest -p no:cacheprovider -q \
   tests/integration/test_production_daily_cycle_provider.py
 
@@ -195,7 +195,7 @@ Evidence missing JSON artifact or true command-output replay:
 
 - P3 live proof records checksum and graph snapshot basename, but the referenced
   `graph-snapshot-p3evidence20260428-cycle-2-c1150a756965.json` was not found
-  under `/Users/fanjie/Desktop/Cowork/project-ult`, so checksum replay is not
+  under `<workspace>`, so checksum replay is not
   independently possible from current local evidence.
 - Full production daily-cycle has no pass artifact with formal snapshot IDs,
   manifest row, serving readback, persisted audit/replay readback, and
@@ -247,8 +247,8 @@ are closed.
 
 ### C1. Production Daily-Cycle Proof Gap Audit
 
-- Repo / directory: `/Users/fanjie/Desktop/Cowork/project-ult/orchestrator`,
-  `/Users/fanjie/Desktop/Cowork/project-ult/assembly`.
+- Repo / directory: `<workspace>/orchestrator`,
+  `<workspace>/assembly`.
 - Background: production provider exposes surfaces but still reports
   `blocked=True`; bounded proof is partial and source-specific.
 - Goal: do not implement. Precisely list what is missing for full
@@ -265,7 +265,7 @@ are closed.
   `orchestrator/tests/integration/test_production_daily_cycle_provider.py`,
   `assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-20260428.md`.
 - Verification commands:
-  `PYTHONDONTWRITEBYTECODE=1 /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest -p no:cacheprovider -q tests/integration/test_production_daily_cycle_provider.py`
+  `PYTHONDONTWRITEBYTECODE=1 <workspace>/assembly/.venv-py312/bin/python -m pytest -p no:cacheprovider -q tests/integration/test_production_daily_cycle_provider.py`
   from orchestrator.
 - Evidence output:
   `assembly/reports/stabilization/production-daily-cycle-gap-audit-20260428.md`.
@@ -276,7 +276,7 @@ are closed.
 
 ### C2. Data-Platform Canonical Promotion Readiness
 
-- Repo / directory: `/Users/fanjie/Desktop/Cowork/project-ult/data-platform`.
+- Repo / directory: `<workspace>/data-platform`.
 - Background: 138 Tushare provider inventory exists, but only 28 typed assets
   are production-selectable; extra APIs require canonical mapping.
 - Goal: list next canonical promotion candidates and required dataset/PK/date/
@@ -303,9 +303,9 @@ are closed.
 
 ### C3. Formal Serving No-Source-Leak Hardening Plan
 
-- Repo / directory: `/Users/fanjie/Desktop/Cowork/project-ult/data-platform`,
-  `/Users/fanjie/Desktop/Cowork/project-ult/frontend-api`,
-  `/Users/fanjie/Desktop/Cowork/project-ult/assembly`.
+- Repo / directory: `<workspace>/data-platform`,
+  `<workspace>/frontend-api`,
+  `<workspace>/assembly`.
 - Background: existing no-source tests ban `doc_api/tushare_/stg_tushare_`,
   but canonical/marts still expose provider/raw lineage fields.
 - Goal: audit formal serving/frontend-api no-source risk and add either a
@@ -334,9 +334,9 @@ are closed.
 
 ### C4. P3 to P2 Graph Consumption Audit
 
-- Repo / directory: `/Users/fanjie/Desktop/Cowork/project-ult/graph-engine`,
-  `/Users/fanjie/Desktop/Cowork/project-ult/orchestrator`,
-  `/Users/fanjie/Desktop/Cowork/project-ult/main-core`.
+- Repo / directory: `<workspace>/graph-engine`,
+  `<workspace>/orchestrator`,
+  `<workspace>/main-core`.
 - Background: P3 live proof is strong, but P5 needs proof graph snapshots can be
   consumed by P2 L3/L4/L6 in the same cycle.
 - Goal: prove or list gaps for `graph_snapshot` and `graph_impact_snapshot`
@@ -364,7 +364,7 @@ are closed.
 ### C5. P4 Controlled Slice Caveat Closure Audit
 
 - Repo / directory:
-  `/Users/fanjie/Desktop/Cowork/project-ult/subsystem-sdk`,
+  `<workspace>/subsystem-sdk`,
   `entity-registry`, `subsystem-news`, `subsystem-announcement`,
   `data-platform`.
 - Background: P4 controlled slice is PASS, but production P4 remains separate.
@@ -393,7 +393,7 @@ are closed.
 
 ### C6. Canonical Physical Schema Alignment Audit
 
-- Repo / directory: `/Users/fanjie/Desktop/Cowork/project-ult/data-platform`.
+- Repo / directory: `<workspace>/data-platform`.
 - Background: canonical registry says provider-neutral fields, but physical
   canonical marts/DDL/current-cycle loader still use provider/raw terms.
 - Goal: produce exact diff between registry field contracts and physical marts,

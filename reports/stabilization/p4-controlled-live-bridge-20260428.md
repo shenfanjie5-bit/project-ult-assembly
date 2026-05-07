@@ -26,9 +26,9 @@ graph-engine, reasoner-runtime, or frontend-api end-to-end proof.
 subsystem-sdk:
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/subsystem-sdk
-PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/subsystem-sdk:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src:/Users/fanjie/Desktop/Cowork/project-ult/entity-registry/src \
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest -q \
+cd <workspace>/subsystem-sdk
+PYTHONPATH=<workspace>/subsystem-sdk:<workspace>/contracts/src:<workspace>/entity-registry/src \
+<workspace>/assembly/.venv-py312/bin/python -m pytest -q \
   tests/submit/test_client_preflight.py \
   tests/validate/test_entity_registry_wiring.py \
   tests/backends/test_lite_pg_backend.py \
@@ -44,9 +44,9 @@ result:
 entity-registry:
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/entity-registry
-PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/entity-registry/src \
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest -q \
+cd <workspace>/entity-registry
+PYTHONPATH=<workspace>/entity-registry/src \
+<workspace>/assembly/.venv-py312/bin/python -m pytest -q \
   tests/test_lookup_entity_refs.py \
   tests/test_event_anchors.py \
   tests/contract/test_frontend_api_artifacts.py
@@ -61,8 +61,8 @@ result:
 lint/checks:
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/subsystem-sdk
-/Users/fanjie/Desktop/Cowork/project-ult/subsystem-sdk/.venv/bin/python -m ruff check \
+cd <workspace>/subsystem-sdk
+<workspace>/subsystem-sdk/.venv/bin/python -m ruff check \
   tests/integration/test_p4_core_vertical_slice.py
 git diff --check
 ```

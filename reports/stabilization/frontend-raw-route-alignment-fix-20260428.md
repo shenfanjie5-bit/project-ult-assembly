@@ -17,7 +17,7 @@ Changed files:
 
 - `/Users/fanjie/Desktop/BIG/FrontEnd/src/pages/DataExplorer/index.tsx`
 - `/Users/fanjie/Desktop/BIG/FrontEnd/src/api/projectUlt/hooks.ts`
-- `/Users/fanjie/Desktop/Cowork/project-ult/frontend-api/README.md`
+- `<workspace>/frontend-api/README.md`
 
 Pre-existing FrontEnd dirty files retained:
 
@@ -68,8 +68,8 @@ passed
 frontend-api focused tests:
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/frontend-api
-PYTHONDONTWRITEBYTECODE=1 /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python \
+cd <workspace>/frontend-api
+PYTHONDONTWRITEBYTECODE=1 <workspace>/assembly/.venv-py312/bin/python \
   -m pytest -p no:cacheprovider -q \
   tests/test_no_source_leak.py tests/test_entity_data_routes.py
 
@@ -84,7 +84,7 @@ cd /Users/fanjie/Desktop/BIG/FrontEnd
 git diff --check
 result: passed
 
-cd /Users/fanjie/Desktop/Cowork/project-ult/frontend-api
+cd <workspace>/frontend-api
 git diff --check
 result: passed
 ```

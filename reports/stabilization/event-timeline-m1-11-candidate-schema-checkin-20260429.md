@@ -434,8 +434,8 @@ parity test additions + helpers).
 
 ```sh
 # 1. Empirical uniqueness verifier (re-runnable)
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform && \
-  .venv/bin/python /Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp-runtime/m1-11-precondition-9/run_uniqueness.py
+cd <workspace>/data-platform && \
+  .venv/bin/python <proof-workspace>/assembly/tmp-runtime/m1-11-precondition-9/run_uniqueness.py
 # → 8 per-source JSONs + 1 summary JSON written under
 #   assembly/tmp-runtime/m1-11-precondition-9/ (gitignored runtime path)
 

@@ -12,7 +12,7 @@
 ### 1.1 Full data-platform sweep relevant to canonical surfaces
 
 ```
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform && \
+cd <workspace>/data-platform && \
   PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest \
     -p no:cacheprovider --tb=no \
     tests/ddl tests/serving tests/dbt tests/provider_catalog \
@@ -199,7 +199,7 @@ A future `register_table(catalog, CANONICAL_V2_DIM_SECURITY_SPEC)` + `register_t
 ```
 Task: M1-D vertical slice — canonical_v2.dim_security + canonical_lineage.lineage_dim_security
 Repo(s): data-platform + assembly
-Output (proof): /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/canonical-v2-lineage-separation-proof-20260428.md
+Output (proof): <workspace>/assembly/reports/stabilization/canonical-v2-lineage-separation-proof-20260428.md
 Output (source code modified):
   data-platform/src/data_platform/ddl/iceberg_tables.py (added CANONICAL_V2_*_SPEC, CANONICAL_LINEAGE_*_SPEC, namespace constants, table-spec tuples; updated __all__)
   data-platform/src/data_platform/serving/canonical_writer.py (added CANONICAL_V2_*_LOAD_SPEC, CANONICAL_LINEAGE_*_LOAD_SPEC, mart-spec tuples, load_canonical_v2_marts, _write_canonical_v2_snapshot_set_manifest, _reject_public_mart_load extension; updated __all__)
@@ -212,7 +212,7 @@ Output (tests modified):
   data-platform/tests/dbt/test_dbt_skeleton.py (extended skeleton expectations to include marts_v2/ + marts_lineage/)
   data-platform/tests/serving/test_catalog.py (replaced literal namespace tuple with tuple(DEFAULT_NAMESPACES))
   data-platform/tests/ddl/test_iceberg_tables.py (replaced literal namespace tuple with tuple(DEFAULT_NAMESPACES))
-Validation command: cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest -p no:cacheprovider --tb=no tests/ddl tests/serving tests/dbt tests/provider_catalog tests/cycle/test_current_cycle_inputs.py
+Validation command: cd <workspace>/data-platform && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest -p no:cacheprovider --tb=no tests/ddl tests/serving tests/dbt tests/provider_catalog tests/cycle/test_current_cycle_inputs.py
 Validation result: 44 failed, 157 passed, 12 skipped, 12 warnings in 4.35s. All 44 failures are M1-C parity tests asserting the legacy gap; zero non-parity failures (verified by `grep FAILED | grep -v provider_neutrality | wc -l → 0`).
 Per-subrepo git state:
   data-platform: rev-parse HEAD = 330f6b4; status = M src/data_platform/raw/writer.py + M tests/raw/test_writer.py (pre-existing) + many new untracked files from M1-D vertical slice; push = not pushed; branch = main; interpreter = data-platform/.venv/bin/python (Python 3.14.3)

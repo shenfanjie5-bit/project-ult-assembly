@@ -3,7 +3,7 @@
 - **Task**: C6 — Data-Platform Canonical Promotion Readiness
 - **Date**: 2026-04-28
 - **Repo(s)**: `data-platform` + `assembly`
-- **Output**: `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-provider-neutral-canonical-promotion-readiness-20260428.md`
+- **Output**: `<workspace>/assembly/reports/stabilization/p1-provider-neutral-canonical-promotion-readiness-20260428.md`
 - **Plan**: `/Users/fanjie/.claude/plans/project-ult-v5-0-1-cosmic-milner.md` (C6 section)
 - **Declaration**: This audit reports **PROMOTION READINESS only**. It does NOT enable
   any production fetch, does NOT modify the canonical writer, does NOT change Iceberg DDL,
@@ -15,7 +15,7 @@
 ### 1.1 `wc -l tushare_available_interfaces.csv`
 
 ```text
-$ wc -l /Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/provider_catalog/tushare_available_interfaces.csv
+$ wc -l <workspace>/data-platform/src/data_platform/provider_catalog/tushare_available_interfaces.csv
      139 .../tushare_available_interfaces.csv
 ```
 
@@ -88,8 +88,8 @@ verified live (see §3 derivation).
 
 | Subrepo | toplevel | rev-parse HEAD | branch | status -s |
 |---------|----------|----------------|--------|-----------|
-| `data-platform` | `/Users/fanjie/Desktop/Cowork/project-ult/data-platform` | `330f6b4d82a96d36c8fd150cc1a0a432d7c6cb9c` | `main` | ` M src/data_platform/raw/writer.py` / ` M tests/raw/test_writer.py` (pre-existing dirty, NOT touched by this audit) |
-| `assembly` | `/Users/fanjie/Desktop/Cowork/project-ult/assembly` | `a7f19c5994f807b2cf32eb2f45ef48f6fe23095f` | `main` | `?? reports/stabilization/frontend-raw-route-alignment-fix-20260428.md` / `?? reports/stabilization/production-daily-cycle-gap-audit-20260428.md` / `?? reports/stabilization/project-ult-v5-0-1-supervisor-review-20260428.md` / `?? reports/stabilization/raw-manifest-source-interface-hardening-20260428.md` (this report adds one more `??` entry; not committed, not pushed) |
+| `data-platform` | `<workspace>/data-platform` | `330f6b4d82a96d36c8fd150cc1a0a432d7c6cb9c` | `main` | ` M src/data_platform/raw/writer.py` / ` M tests/raw/test_writer.py` (pre-existing dirty, NOT touched by this audit) |
+| `assembly` | `<workspace>/assembly` | `a7f19c5994f807b2cf32eb2f45ef48f6fe23095f` | `main` | `?? reports/stabilization/frontend-raw-route-alignment-fix-20260428.md` / `?? reports/stabilization/production-daily-cycle-gap-audit-20260428.md` / `?? reports/stabilization/project-ult-v5-0-1-supervisor-review-20260428.md` / `?? reports/stabilization/raw-manifest-source-interface-hardening-20260428.md` (this report adds one more `??` entry; not committed, not pushed) |
 
 No push performed. No `git init` run.
 
@@ -421,12 +421,12 @@ of any of these 107 interfaces. The above is descriptive inventory only.
 ```
 Task: C6
 Repo(s): data-platform + assembly
-Output report: /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-provider-neutral-canonical-promotion-readiness-20260428.md
+Output report: <workspace>/assembly/reports/stabilization/p1-provider-neutral-canonical-promotion-readiness-20260428.md
 Validation commands:
-  1) wc -l /Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/provider_catalog/tushare_available_interfaces.csv
-  2) cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest -p no:cacheprovider -q tests/provider_catalog 2>&1 | tail -10
-  3) cd /Users/fanjie/Desktop/Cowork/project-ult && rg -n 'status[[:space:]]*=' data-platform/src/data_platform/provider_catalog/registry.py | head -200
-  4) cd /Users/fanjie/Desktop/Cowork/project-ult && rg -n 'canonical_dataset[[:space:]]*=' data-platform/src/data_platform/provider_catalog/registry.py | wc -l
+  1) wc -l <workspace>/data-platform/src/data_platform/provider_catalog/tushare_available_interfaces.csv
+  2) cd <workspace>/data-platform && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest -p no:cacheprovider -q tests/provider_catalog 2>&1 | tail -10
+  3) cd <workspace> && rg -n 'status[[:space:]]*=' data-platform/src/data_platform/provider_catalog/registry.py | head -200
+  4) cd <workspace> && rg -n 'canonical_dataset[[:space:]]*=' data-platform/src/data_platform/provider_catalog/registry.py | wc -l
 Validation results:
   1) 139 lines (1 header + 138 data rows) — PASS (matches expected 138 inventory)
   2) 10 tests passed in tests/provider_catalog — PASS

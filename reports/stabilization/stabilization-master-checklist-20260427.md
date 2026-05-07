@@ -49,7 +49,7 @@ Current repo snapshot:
 | S1-05 | P2 | Exported `ResolutionCase` JSON Schema did not encode `candidate_entities` invariant | Backend Batch 1 follow-up | `contracts/src/contracts/export/__init__.py`; `contracts/tests/test_export_json_schema_contract.py` | `closed` | `540f9e8feebd` | `PYTHON=.venv/bin/python bash scripts/ci.sh`; `.venv/bin/python -m pytest`; `git diff --check` | `reports/stabilization/batch1-independent-review-20260427.md` | No |
 | S1-06 | P2 | `0.1.0` contracts baseline was accidentally moved toward current schema | Backend Batch 1 follow-up | `contracts/src/contracts/baselines/0.1.0/json_schema/**`; `contracts/artifacts/baselines/0.1.0/json_schema/**` | `closed` | `540f9e8feebd` | `.venv/bin/python -m pytest`; explicit no-diff check for 0.1.0 baseline dirs | `reports/stabilization/batch1-independent-review-20260427.md` | No |
 | S1-07 | P2 | `ResolutionCase` compat allowlist ignored future `/allOf` changes too broadly | Backend Batch 1 follow-up | `contracts/src/contracts/compat/__init__.py`; `contracts/tests/test_compat_rules.py` | `closed` | `540f9e8feebd` | `PYTHON=.venv/bin/python bash scripts/ci.sh`; `.venv/bin/python -m pytest`; compat regression tests for extra/changed `allOf` rules | `reports/stabilization/batch1-independent-review-20260427.md` | No |
-| S1-08 | P2 | Three-backend provider example was not loadable by public reasoner-runtime loader | LLM setup follow-up | `reasoner-runtime/config/providers.three-backends.example.yaml`; reasoner-runtime config loader tests | `closed` | `66f4dc7cd1c7` | `PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/contracts/src .venv/bin/python -m pytest tests/unit/test_config.py tests/unit/test_codex_auth.py tests/unit/test_codex_client.py tests/unit/test_claude_code_cli_client.py -q`; broad pytest excluding shared fixtures; `git diff --check` | `reports/smoke/llm-backend-setup-wiring-smoke-20260427.md` | No |
+| S1-08 | P2 | Three-backend provider example was not loadable by public reasoner-runtime loader | LLM setup follow-up | `reasoner-runtime/config/providers.three-backends.example.yaml`; reasoner-runtime config loader tests | `closed` | `66f4dc7cd1c7` | `PYTHONPATH=<workspace>/contracts/src .venv/bin/python -m pytest tests/unit/test_config.py tests/unit/test_codex_auth.py tests/unit/test_codex_client.py tests/unit/test_claude_code_cli_client.py -q`; broad pytest excluding shared fixtures; `git diff --check` | `reports/smoke/llm-backend-setup-wiring-smoke-20260427.md` | No |
 | S1-09 | P2 | Assembly setup implied host Codex/Claude login would work inside compose containers | LLM setup follow-up | `assembly/.env.example`; `assembly/compose/*.yaml`; `assembly/src/assembly/cli/setup.py`; docs/tests | `closed` | `da2861fb659d`, evidence `aac0c4e3c5bd` | `PYTHONDONTWRITEBYTECODE=1 .venv-py312/bin/python -m pytest -q -p no:cacheprovider tests/cli/test_setup.py tests/cli/test_main.py tests/bootstrap/test_plan.py`; docs/smoke/registry line; `git diff --check` | `reports/smoke/llm-backend-setup-wiring-smoke-20260427.md` | No |
 
 ## Batch 1 Independent Review Gate
@@ -67,30 +67,30 @@ Goal:
 Required review commands:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/contracts
+cd <workspace>/contracts
 PYTHON=.venv/bin/python bash scripts/ci.sh
 .venv/bin/python -m pytest
 git diff --check
 
-cd /Users/fanjie/Desktop/Cowork/project-ult/entity-registry
+cd <workspace>/entity-registry
 make test
 make contract
 git diff --check
 
-cd /Users/fanjie/Desktop/Cowork/project-ult/main-core
+cd <workspace>/main-core
 bash scripts/check_boundaries.sh
 .venv/bin/python -m pytest
 git diff --check
 
-cd /Users/fanjie/Desktop/Cowork/project-ult/subsystem-sdk
+cd <workspace>/subsystem-sdk
 .venv/bin/python -m pytest
 git diff --check
 
-cd /Users/fanjie/Desktop/Cowork/project-ult/subsystem-announcement
+cd <workspace>/subsystem-announcement
 .venv/bin/python -m pytest
 git diff --check
 
-cd /Users/fanjie/Desktop/Cowork/project-ult/subsystem-news
+cd <workspace>/subsystem-news
 .venv/bin/python -m pytest
 git diff --check
 ```
@@ -171,7 +171,7 @@ Owner: Stabilization lead.
 Required final commands:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/assembly
+cd <workspace>/assembly
 PYTHONDONTWRITEBYTECODE=1 .venv-py312/bin/python -m pytest -q -p no:cacheprovider \
   tests/release/test_docs.py \
   tests/smoke \

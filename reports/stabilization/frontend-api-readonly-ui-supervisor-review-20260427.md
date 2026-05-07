@@ -84,7 +84,7 @@ frontend-api independent review result:
 assembly worker/test reviewer ran:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/assembly
+cd <workspace>/assembly
 PYTHONDONTWRITEBYTECODE=1 .venv-py312/bin/python -m pytest -q -p no:cacheprovider \
   tests/registry \
   tests/profiles \
@@ -108,13 +108,13 @@ Results:
 frontend-api worker/test reviewer and supervisor ran:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/frontend-api
+cd <workspace>/frontend-api
 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -q
 
 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python - <<'PY'
 import os
 from pathlib import Path
-os.environ["PROJECT_ULT_ROOT"] = str(Path("/Users/fanjie/Desktop/Cowork/project-ult"))
+os.environ["PROJECT_ULT_ROOT"] = str(Path("<workspace>"))
 from frontend_api import public
 for profile in ["lite-local", "lite-local-readonly-ui"]:
     print(profile, public.smoke_hook.run(profile_id=profile))

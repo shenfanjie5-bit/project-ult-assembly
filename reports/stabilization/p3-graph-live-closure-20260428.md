@@ -68,14 +68,14 @@ result: removed; no p3-graph-live-closure-20260428 container remains
 Focused live P3 suite with zero GDS skips:
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/graph-engine
+cd <workspace>/graph-engine
 
-env PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/contracts/src \
+env PYTHONPATH=<workspace>/contracts/src \
   NEO4J_URI=bolt://localhost:17687 \
   NEO4J_USER=neo4j \
   NEO4J_PASSWORD=p3-live-closure-pass \
   NEO4J_DATABASE=neo4j \
-  /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python \
+  <workspace>/assembly/.venv-py312/bin/python \
   -m pytest -q -rs \
   tests/integration/test_promotion_sync.py \
   tests/integration/test_full_propagation.py \
@@ -129,12 +129,12 @@ All checks passed.
 ```
 
 ```text
-env PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/contracts/src \
+env PYTHONPATH=<workspace>/contracts/src \
   NEO4J_URI=bolt://localhost:17687 \
   NEO4J_USER=neo4j \
   NEO4J_PASSWORD=p3-live-closure-pass \
   NEO4J_DATABASE=neo4j \
-  /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python \
+  <workspace>/assembly/.venv-py312/bin/python \
   -m pytest -q \
   tests/unit/test_live_metrics.py \
   tests/unit/test_reload.py \
@@ -147,8 +147,8 @@ result:
 Offline graph-engine unit/contract/boundary suite:
 
 ```text
-env PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/contracts/src \
-  /Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python \
+env PYTHONPATH=<workspace>/contracts/src \
+  <workspace>/assembly/.venv-py312/bin/python \
   -m pytest -q -rs tests/unit tests/contract tests/boundary
 
 result:

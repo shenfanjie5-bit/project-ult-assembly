@@ -15,9 +15,9 @@ evidence focuses on the P2 L1-L8 data/reasoner/formal/audit path.
 ## Final Artifact
 
 - JSON report:
-  `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p2-durable-real-data-codex-dry-run-artifacts/20260427T113854Z/p2-durable-real-data-codex-dry-run.json`
+  `<workspace>/assembly/reports/stabilization/p2-durable-real-data-codex-dry-run-artifacts/20260427T113854Z/p2-durable-real-data-codex-dry-run.json`
 - Daily refresh report:
-  `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p2-durable-real-data-codex-dry-run-artifacts/20260427T113854Z/daily-refresh.json`
+  `<workspace>/assembly/reports/stabilization/p2-durable-real-data-codex-dry-run-artifacts/20260427T113854Z/daily-refresh.json`
 - Status: `passed`
 
 ## Current-Cycle Input
@@ -89,10 +89,10 @@ the `l3` asset input rather than a process-local side channel.
 Real closure:
 
 ```bash
-PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/orchestrator/src:/Users/fanjie/Desktop/Cowork/project-ult/main-core/src:/Users/fanjie/Desktop/Cowork/project-ult/reasoner-runtime:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src:/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src:/Users/fanjie/Desktop/Cowork/project-ult/audit-eval/src \
-PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin:$PATH \
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python \
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/scripts/p2_durable_real_data_codex_dry_run.py \
+PYTHONPATH=<workspace>/orchestrator/src:<workspace>/main-core/src:<workspace>/reasoner-runtime:<workspace>/contracts/src:<workspace>/data-platform/src:<workspace>/audit-eval/src \
+PATH=<workspace>/assembly/.venv-py312/bin:$PATH \
+<workspace>/assembly/.venv-py312/bin/python \
+<workspace>/assembly/scripts/p2_durable_real_data_codex_dry_run.py \
 --date 20260415 --symbols 600519.SH,000001.SZ
 ```
 
@@ -101,37 +101,37 @@ Result: passed.
 Regression tests:
 
 ```bash
-PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/orchestrator/src:/Users/fanjie/Desktop/Cowork/project-ult/main-core/src:/Users/fanjie/Desktop/Cowork/project-ult/reasoner-runtime:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src:/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src:/Users/fanjie/Desktop/Cowork/project-ult/audit-eval/src \
-PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin:$PATH \
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python \
--m pytest /Users/fanjie/Desktop/Cowork/project-ult/orchestrator/tests/integration/test_p2_dry_run_handoff.py -q -rs
+PYTHONPATH=<workspace>/orchestrator/src:<workspace>/main-core/src:<workspace>/reasoner-runtime:<workspace>/contracts/src:<workspace>/data-platform/src:<workspace>/audit-eval/src \
+PATH=<workspace>/assembly/.venv-py312/bin:$PATH \
+<workspace>/assembly/.venv-py312/bin/python \
+-m pytest <workspace>/orchestrator/tests/integration/test_p2_dry_run_handoff.py -q -rs
 ```
 
 Result: `6 passed`.
 
 ```bash
-PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/audit-eval/src \
-PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin:$PATH \
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python \
--m pytest /Users/fanjie/Desktop/Cowork/project-ult/audit-eval/tests/test_audit_writer.py /Users/fanjie/Desktop/Cowork/project-ult/audit-eval/tests/test_replay_storage_integration.py -q
+PYTHONPATH=<workspace>/audit-eval/src \
+PATH=<workspace>/assembly/.venv-py312/bin:$PATH \
+<workspace>/assembly/.venv-py312/bin/python \
+-m pytest <workspace>/audit-eval/tests/test_audit_writer.py <workspace>/audit-eval/tests/test_replay_storage_integration.py -q
 ```
 
 Result: `29 passed`.
 
 ```bash
-PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/reasoner-runtime:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src \
-PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin:$PATH \
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python \
--m pytest /Users/fanjie/Desktop/Cowork/project-ult/reasoner-runtime/tests/unit/test_codex_client.py /Users/fanjie/Desktop/Cowork/project-ult/reasoner-runtime/tests/unit/test_health.py -q
+PYTHONPATH=<workspace>/reasoner-runtime:<workspace>/contracts/src \
+PATH=<workspace>/assembly/.venv-py312/bin:$PATH \
+<workspace>/assembly/.venv-py312/bin/python \
+-m pytest <workspace>/reasoner-runtime/tests/unit/test_codex_client.py <workspace>/reasoner-runtime/tests/unit/test_health.py -q
 ```
 
 Result: `41 passed`.
 
 ```bash
-PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src \
-PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin:$PATH \
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python \
--m pytest /Users/fanjie/Desktop/Cowork/project-ult/data-platform/tests/cycle/test_publish_manifest.py /Users/fanjie/Desktop/Cowork/project-ult/data-platform/tests/serving/test_formal.py /Users/fanjie/Desktop/Cowork/project-ult/data-platform/tests/serving/test_formal_manifest_consistency.py -q -rs
+PYTHONPATH=<workspace>/data-platform/src \
+PATH=<workspace>/assembly/.venv-py312/bin:$PATH \
+<workspace>/assembly/.venv-py312/bin/python \
+-m pytest <workspace>/data-platform/tests/cycle/test_publish_manifest.py <workspace>/data-platform/tests/serving/test_formal.py <workspace>/data-platform/tests/serving/test_formal_manifest_consistency.py -q -rs
 ```
 
 Result: `35 passed, 20 skipped`; skipped cases require direct

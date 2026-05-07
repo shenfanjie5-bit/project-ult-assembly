@@ -4,7 +4,7 @@
 **Date**: 2026-04-28
 **Repos in scope**: graph-engine + main-core + orchestrator + assembly
 **Plan reference**: `/Users/fanjie/.claude/plans/project-ult-v5-0-1-cosmic-milner.md` § C4
-**Output report**: `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p3-p2-graph-consumption-audit-20260428.md`
+**Output report**: `<workspace>/assembly/reports/stabilization/p3-p2-graph-consumption-audit-20260428.md`
 **Author note**: AUDIT ONLY. No source modifications. No git init. No commits. Tushare remains a `provider=tushare` adapter only.
 
 ---
@@ -285,7 +285,7 @@ For the handoff format, treating CONFIRMED gap as a CONFIRMED finding of an abse
 ```
 Task: C4
 Repo(s): graph-engine + main-core + orchestrator + assembly
-Output report: /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p3-p2-graph-consumption-audit-20260428.md
+Output report: <workspace>/assembly/reports/stabilization/p3-p2-graph-consumption-audit-20260428.md
 Validation commands:
   1) cd main-core && PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -p no:cacheprovider -q tests/integration/test_graph_readonly_consumption.py 2>&1 | tail -10
   2) cd project-ult && rg -n 'load_graph_features|load_graph_regime_context|read_graph_impact_snapshot|read_graph_regime_context' main-core/src main-core/tests reasoner-runtime/ 2>&1 | head -50

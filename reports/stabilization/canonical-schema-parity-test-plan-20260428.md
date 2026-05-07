@@ -12,7 +12,7 @@
 ### 1.1 New parity-test sweep
 
 ```
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform && \
+cd <workspace>/data-platform && \
   PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest \
     -p no:cacheprovider --tb=no \
     tests/ddl/test_canonical_provider_neutrality.py \
@@ -33,7 +33,7 @@ These failures are the documented gap — they are NOT a regression and NOT a CI
 ### 1.2 Pre-existing pytest sweep is unaffected
 
 ```
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform && \
+cd <workspace>/data-platform && \
   PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest \
     -p no:cacheprovider --tb=no \
     tests/ddl tests/serving/test_canonical_writer.py \
@@ -184,11 +184,11 @@ This is the explicit "remaining failures marked as blocker" criterion from the m
 ```
 Task: M1-C canonical schema parity test plan
 Repo(s): data-platform + assembly
-Output (plan): /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/canonical-schema-parity-test-plan-20260428.md
+Output (plan): <workspace>/assembly/reports/stabilization/canonical-schema-parity-test-plan-20260428.md
 Output (tests): data-platform/tests/ddl/test_canonical_provider_neutrality.py
                 data-platform/tests/serving/test_canonical_writer_provider_neutrality.py
                 data-platform/tests/dbt/test_marts_provider_neutrality.py
-Validation command: cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest -p no:cacheprovider --tb=no tests/ddl/test_canonical_provider_neutrality.py tests/serving/test_canonical_writer_provider_neutrality.py tests/dbt/test_marts_provider_neutrality.py
+Validation command: cd <workspace>/data-platform && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest -p no:cacheprovider --tb=no tests/ddl/test_canonical_provider_neutrality.py tests/serving/test_canonical_writer_provider_neutrality.py tests/dbt/test_marts_provider_neutrality.py
 Validation result: 44 failed, 2 passed, 7 skipped in 0.35s. Failures are the expected RED scoreboard for M1-D; 2 sentinels PASS; 7 future-state tests SKIP because canonical_v2 / canonical_lineage symbols and directories do not yet exist.
 Per-subrepo git state:
   data-platform: rev-parse HEAD = 330f6b4; status =  M src/data_platform/raw/writer.py /  M tests/raw/test_writer.py (pre-existing) + 3 new untracked test files; push = not pushed; branch = main; interpreter = data-platform/.venv/bin/python (Python 3.14.3)

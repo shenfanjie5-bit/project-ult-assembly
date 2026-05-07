@@ -131,7 +131,7 @@ Lifted verbatim from M1.11 sign-off table.
 
 ```sh
 $ cd data-platform && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src \
-    /Users/fanjie/Desktop/Cowork/project-ult/data-platform/.venv/bin/python -m pytest \
+    <workspace>/data-platform/.venv/bin/python -m pytest \
     -p no:cacheprovider -v tests/dbt/test_marts_models.py \
     -k "pledge_stat or pledge_detail or repurchase or stk_holdertrade or stk_surv or limit_list_ths or limit_list_d or hm_detail"
 ==> 8 passed, 7 deselected

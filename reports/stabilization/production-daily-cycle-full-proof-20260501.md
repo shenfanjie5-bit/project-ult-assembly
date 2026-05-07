@@ -91,7 +91,7 @@ the source of truth for exact heads and command metadata.
 Assembly proof-runner tests:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/assembly
+cd <workspace>/assembly
 PYTHONDONTWRITEBYTECODE=1 .venv-py312/bin/python -m pytest \
   -p no:cacheprovider tests/scripts/test_production_daily_cycle_proof.py -q
 ```
@@ -105,7 +105,7 @@ Result:
 Orchestrator targeted suite:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/orchestrator
+cd <workspace>/orchestrator
 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -p no:cacheprovider \
   tests/integration/test_p2_dry_run_handoff.py \
   tests/integration/test_production_daily_cycle_provider.py \
@@ -121,8 +121,8 @@ Result:
 Production proof command:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/assembly
-PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin:$PATH \
+cd <workspace>/assembly
+PATH=<workspace>/assembly/.venv-py312/bin:$PATH \
 PYTHONDONTWRITEBYTECODE=1 .venv-py312/bin/python \
   scripts/production_daily_cycle_proof.py \
   --run-dagster \
@@ -132,7 +132,7 @@ PYTHONDONTWRITEBYTECODE=1 .venv-py312/bin/python \
 Result:
 
 ```text
-PRODUCTION_DAILY_CYCLE_PASS /Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/production-daily-cycle-proof.json
+PRODUCTION_DAILY_CYCLE_PASS <evidence-artifact-root>/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/production-daily-cycle-proof.json
 ```
 
 ## Artifacts

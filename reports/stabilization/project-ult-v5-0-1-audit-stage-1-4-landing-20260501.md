@@ -52,7 +52,7 @@ pushed by this landing step.
 Commands run before committing:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/contracts
+cd <workspace>/contracts
 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -p no:cacheprovider \
   tests/test_version.py tests/test_ci_pipeline.py tests/test_pyproject.py -q
 ```
@@ -60,7 +60,7 @@ PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -p no:cacheprovider \
 Result: `30 passed`.
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/reasoner-runtime
+cd <workspace>/reasoner-runtime
 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -p no:cacheprovider \
   tests/unit/test_stage4_trace_metadata.py \
   tests/unit/test_langfuse_callback.py \
@@ -70,7 +70,7 @@ PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -p no:cacheprovider \
 Result: `37 passed`.
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/orchestrator
+cd <workspace>/orchestrator
 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -p no:cacheprovider \
   tests/alerting/test_dispatcher.py -q
 ```
@@ -78,7 +78,7 @@ PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -p no:cacheprovider \
 Result: `24 passed`.
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/frontend-api
+cd <workspace>/frontend-api
 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -p no:cacheprovider \
   tests/test_security_guard.py -q
 ```
@@ -86,9 +86,9 @@ PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -p no:cacheprovider \
 Result: `17 passed`.
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/graph-engine
+cd <workspace>/graph-engine
 PYTHONDONTWRITEBYTECODE=1 \
-PYTHONPATH=.:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src \
+PYTHONPATH=.:<workspace>/contracts/src \
 .venv/bin/python -m pytest -p no:cacheprovider \
   tests/unit/test_stage4_world_state_guard.py \
   tests/integration/test_live_closure.py -q
@@ -97,9 +97,9 @@ PYTHONPATH=.:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src \
 Result: `5 passed, 1 skipped`.
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+cd <workspace>/data-platform
 PYTHONDONTWRITEBYTECODE=1 \
-PYTHONPATH=src:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src \
+PYTHONPATH=src:<workspace>/contracts/src \
 .venv/bin/python -m pytest -p no:cacheprovider \
   tests/raw/test_writer.py \
   tests/raw/test_health.py \
@@ -109,7 +109,7 @@ PYTHONPATH=src:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src \
 Result: `43 passed, 2 skipped`.
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/audit-eval
+cd <workspace>/audit-eval
 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -p no:cacheprovider \
   tests/test_retro_compute.py tests/test_retro_summary.py -q
 ```

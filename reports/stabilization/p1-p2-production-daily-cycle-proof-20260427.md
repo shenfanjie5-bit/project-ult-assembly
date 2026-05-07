@@ -65,7 +65,7 @@ readback artifact from that Dagster run.
 Data-platform focused validation:
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+cd <workspace>/data-platform
 .venv/bin/python -m pytest tests/cycle/test_current_selection.py -q
 
 result:
@@ -75,7 +75,7 @@ result:
 Data-platform broader cycle/public validation:
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+cd <workspace>/data-platform
 .venv/bin/python -m pytest tests/cycle tests/test_public_api.py -q
 
 result:
@@ -85,8 +85,8 @@ result:
 Graph-engine focused validation:
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/graph-engine
-PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/contracts/src \
+cd <workspace>/graph-engine
+PYTHONPATH=<workspace>/contracts/src \
 python3 -m pytest -q tests/unit/test_phase1_provider.py tests/unit/test_reload_artifact_reader.py
 
 result:
@@ -96,8 +96,8 @@ s............... [16 tests total, 15 passed, 1 skipped]
 Graph-engine local broad validation:
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/graph-engine
-PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/contracts/src \
+cd <workspace>/graph-engine
+PYTHONPATH=<workspace>/contracts/src \
 python3 -m pytest tests/unit tests/contract tests/boundary tests/smoke -q
 
 result:
@@ -107,7 +107,7 @@ passed, 1 skipped
 Audit-eval validation:
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/audit-eval
+cd <workspace>/audit-eval
 uv run python -m pytest tests/test_retro_hook.py tests/test_retro_compute.py \
   tests/test_replay_storage_integration.py tests/test_real_cycle_binding.py -q
 
@@ -118,10 +118,10 @@ result:
 Orchestrator production provider assembly and regression validation:
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/orchestrator
-PATH=/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin:$PATH \
-PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/orchestrator/src:/Users/fanjie/Desktop/Cowork/project-ult/main-core/src:/Users/fanjie/Desktop/Cowork/project-ult/reasoner-runtime:/Users/fanjie/Desktop/Cowork/project-ult/contracts/src:/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src:/Users/fanjie/Desktop/Cowork/project-ult/audit-eval/src:/Users/fanjie/Desktop/Cowork/project-ult/graph-engine \
-/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/python -m pytest -q \
+cd <workspace>/orchestrator
+PATH=<workspace>/assembly/.venv-py312/bin:$PATH \
+PYTHONPATH=<workspace>/orchestrator/src:<workspace>/main-core/src:<workspace>/reasoner-runtime:<workspace>/contracts/src:<workspace>/data-platform/src:<workspace>/audit-eval/src:<workspace>/graph-engine \
+<workspace>/assembly/.venv-py312/bin/python -m pytest -q \
   tests/integration/test_production_daily_cycle_provider.py \
   tests/integration/test_p2_dry_run_handoff.py \
   tests/integration/test_audit_eval_wiring.py \
@@ -134,7 +134,7 @@ result:
 Orchestrator static checks:
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/orchestrator
+cd <workspace>/orchestrator
 /opt/homebrew/bin/ruff check \
   src/orchestrator_adapters/production_daily_cycle.py \
   src/orchestrator_adapters/p2_dry_run.py \
@@ -161,19 +161,19 @@ current-cycle L1-L8 chain:
 
 Evidence:
 
-- `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p2-durable-real-data-codex-dry-run-closure-20260427.md`
-- `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p2-durable-real-data-codex-dry-run-artifacts/20260427T113854Z/p2-durable-real-data-codex-dry-run.json`
+- `<workspace>/assembly/reports/stabilization/p2-durable-real-data-codex-dry-run-closure-20260427.md`
+- `<workspace>/assembly/reports/stabilization/p2-durable-real-data-codex-dry-run-artifacts/20260427T113854Z/p2-durable-real-data-codex-dry-run.json`
 
 ## Current Blockers
 
 | Priority | Blocker | Evidence |
 | --- | --- | --- |
-| P1 | Live GDS closure is still not complete. The graph-engine live suite still skipped GDS tests because the local Neo4j runtime used by the worker did not expose GDS procedures. | `/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p3-graph-live-closure-20260427.md` |
-| P1 | Production `daily_cycle_job` has not yet run with configured real graph Phase 0 status runtime, graph Phase 1 runtime, audit-eval runtime, and current-cycle tag in one Dagster execution. | `/Users/fanjie/Desktop/Cowork/project-ult/orchestrator/src/orchestrator_adapters/production_daily_cycle.py` |
-| P1 | The default production graph-status provider intentionally fails closed until wired to a real Neo4j/project graph status store. | `/Users/fanjie/Desktop/Cowork/project-ult/orchestrator/src/orchestrator_adapters/production_daily_cycle.py` |
-| P1 | The production Phase 2 pool failure-rate resource now fails closed unless `ORCHESTRATOR_PHASE2_POOL_FAILURE_RATE_EVENT_JSON` is configured with a real current-cycle metric event. | `/Users/fanjie/Desktop/Cowork/project-ult/orchestrator/src/orchestrator_adapters/production_daily_cycle.py` |
-| P1 | Data-platform PostgreSQL freeze integration was not proven in this local worker shell because no PG test DSN was available to that worker. | `/Users/fanjie/Desktop/Cowork/project-ult/data-platform/src/data_platform/cycle/current_selection.py` |
-| P2 | The orchestrator audit hook runtime now requires durable manifest lookup plus durable audit/replay queryability, but the full production Dagster run has not yet produced and consumed the final audit hook artifact. | `/Users/fanjie/Desktop/Cowork/project-ult/audit-eval/src/audit_eval/retro/hook.py` |
+| P1 | Live GDS closure is still not complete. The graph-engine live suite still skipped GDS tests because the local Neo4j runtime used by the worker did not expose GDS procedures. | `<workspace>/assembly/reports/stabilization/p3-graph-live-closure-20260427.md` |
+| P1 | Production `daily_cycle_job` has not yet run with configured real graph Phase 0 status runtime, graph Phase 1 runtime, audit-eval runtime, and current-cycle tag in one Dagster execution. | `<workspace>/orchestrator/src/orchestrator_adapters/production_daily_cycle.py` |
+| P1 | The default production graph-status provider intentionally fails closed until wired to a real Neo4j/project graph status store. | `<workspace>/orchestrator/src/orchestrator_adapters/production_daily_cycle.py` |
+| P1 | The production Phase 2 pool failure-rate resource now fails closed unless `ORCHESTRATOR_PHASE2_POOL_FAILURE_RATE_EVENT_JSON` is configured with a real current-cycle metric event. | `<workspace>/orchestrator/src/orchestrator_adapters/production_daily_cycle.py` |
+| P1 | Data-platform PostgreSQL freeze integration was not proven in this local worker shell because no PG test DSN was available to that worker. | `<workspace>/data-platform/src/data_platform/cycle/current_selection.py` |
+| P2 | The orchestrator audit hook runtime now requires durable manifest lookup plus durable audit/replay queryability, but the full production Dagster run has not yet produced and consumed the final audit hook artifact. | `<workspace>/audit-eval/src/audit_eval/retro/hook.py` |
 
 ## Non-Claims
 

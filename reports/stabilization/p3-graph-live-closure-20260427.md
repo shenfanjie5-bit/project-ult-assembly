@@ -50,7 +50,7 @@ zero-skip proof is not yet available.
 Assembly GDS config:
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/assembly
+cd <workspace>/assembly
 PYTHONDONTWRITEBYTECODE=1 .venv-py312/bin/python -m pytest -q -p no:cacheprovider \
   tests/bootstrap/test_plan.py \
   tests/profiles/test_lite_local_artifacts.py \
@@ -71,8 +71,8 @@ CALL gds.version() -> "2.13.9"
 Graph cold-reload artifact reader:
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/graph-engine
-PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/contracts/src \
+cd <workspace>/graph-engine
+PYTHONPATH=<workspace>/contracts/src \
 python3 -m pytest tests/unit/test_reload_artifact_reader.py tests/unit/test_reload.py -q
 
 result:
@@ -82,8 +82,8 @@ result:
 Graph Phase 1 provider slice:
 
 ```text
-cd /Users/fanjie/Desktop/Cowork/project-ult/graph-engine
-PYTHONPATH=/Users/fanjie/Desktop/Cowork/project-ult/contracts/src \
+cd <workspace>/graph-engine
+PYTHONPATH=<workspace>/contracts/src \
 python3 -m pytest -q tests/unit/test_phase1_provider.py tests/unit/test_reload_artifact_reader.py
 
 result:

@@ -20,7 +20,7 @@ Scope: closure for the six review findings raised against the M0/M1 Claude Code 
 Commands run:
 
 ```bash
-cd /Users/fanjie/Desktop/Cowork/project-ult/data-platform
+cd <workspace>/data-platform
 .venv/bin/python -m pytest tests/ddl/test_iceberg_tables.py tests/integration/test_daily_refresh.py tests/test_assets.py tests/serving/test_canonical_writer.py -q
 .venv/bin/python -m pytest tests/serving/test_catalog.py -q
 .venv/bin/python -m ruff check src/data_platform/assets.py src/data_platform/daily_refresh.py src/data_platform/ddl/iceberg_tables.py src/data_platform/serving/canonical_writer.py tests/ddl/test_iceberg_tables.py tests/integration/test_daily_refresh.py tests/test_assets.py tests/serving/test_canonical_writer.py tests/dbt/test_marts_provider_neutrality.py scripts/init_iceberg_catalog.py tests/serving/test_catalog.py
@@ -28,7 +28,7 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest -p no:cachep
 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest -p no:cacheprovider --tb=no tests/ddl tests/serving tests/dbt tests/provider_catalog tests/cycle/test_current_cycle_inputs.py
 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest -p no:cacheprovider -q tests/ddl/test_iceberg_tables.py tests/serving/test_canonical_writer.py tests/serving/test_schema_evolution.py tests/serving/test_catalog.py tests/serving/test_formal.py tests/serving/test_formal_manifest_consistency.py tests/serving/test_canonical_datasets.py tests/serving/test_reader.py tests/dbt/test_dbt_skeleton.py tests/dbt/test_dbt_test_coverage.py tests/dbt/test_dbt_wrapper.py tests/dbt/test_intermediate_models.py tests/dbt/test_marts_models.py tests/dbt/test_tushare_local_fixtures.py tests/dbt/test_tushare_staging_models.py tests/provider_catalog tests/cycle/test_current_cycle_inputs.py tests/cycle/test_current_cycle_inputs_lineage_absent.py tests/integration/test_daily_refresh.py tests/test_assets.py
 
-cd /Users/fanjie/Desktop/Cowork/project-ult/frontend-api
+cd <workspace>/frontend-api
 .venv/bin/pytest tests/test_cycle_routes.py tests/test_no_source_leak.py -q
 .venv/bin/python -m py_compile src/frontend_api/routes/cycle.py tests/test_cycle_routes.py
 ```
