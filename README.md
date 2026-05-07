@@ -157,6 +157,22 @@ Source of truth:
   The next step remains gated canary/live production evidence. This does not
   claim production rollout complete, default/full propagation enabled, M4.7
   real-doc, financial-doc, contracts subtype, or new relations.
+- M4.9 bounded gated canary/live production evidence passed on 2026-05-07.
+  The curated assembly report records disposable PostgreSQL/Neo4j canary
+  resources with data-platform migrations `0001` through `0006`, readiness
+  ready over 55 payloads, selected queue execute/receipts/accepted count 46,
+  worker accepted 46 and rejected 0, targeted freeze count 46, frozen reader
+  relation counts `CO_HOLDING=45` and `NORTHBOUND_HOLD=1`, graph readback
+  expected/readback edge count 46 with no missing edge ids and no disallowed
+  relation types, and explicit holdings algorithm diagnostics with zero paths.
+  Runtime environment details are redacted; no connection string, credential
+  value, raw payload, security identifier, fund identifier, or local runtime
+  path is recorded.
+  Evidence:
+  `reports/stabilization/holdings-bounded-canary-live-production-evidence-20260507.md`.
+  This still does not claim production rollout complete, default/full
+  propagation enabled, `run_full_propagation`, destructive cold reload, M4.7
+  real-doc closure, financial-doc scope, contracts subtype, or new relations.
 - Compatibility matrix records 4 verified rows:
   - `lite-local` (default): `verified_at: 2026-04-24T05:24:14Z` (Stage
     5 re-verification after audit-eval pin sync 0.2.2 → 0.2.5;
@@ -241,11 +257,12 @@ M4 priority order:
 6. **M4.9 production hardening prerequisites**: prerequisites and guards are
    landed across entity-registry PR #61, data-platform PR #110, graph-engine
    PR #61, subsystem-sdk PR #44 / release `v0.1.4`, and subsystem-holdings
-   PR #13. Assembly records this as prerequisites/guards landed only. The next
-   step remains gated canary/live production evidence, and this is not
-   production rollout complete, default/full propagation enabled, M4.7
-   real-doc closure, financial-doc scope, contracts subtype, or new relation
-   scope.
+   PR #13. Assembly records this as prerequisites/guards landed only, followed
+   by a bounded gated canary/live production evidence pass recorded at
+   `reports/stabilization/holdings-bounded-canary-live-production-evidence-20260507.md`.
+   Production rollout remains not default-enabled, and this is not production
+   rollout complete, default/full propagation enabled, M4.7 real-doc closure,
+   financial-doc scope, contracts subtype, or new relation scope.
 7. **Graph-engine #55 follow-up**: graph-engine #55 is closed through PR #59,
    narrowed to holdings-only algorithms. It remains explicit-entry-only and
    does not shift into production live graph writeback, default full
@@ -389,11 +406,15 @@ fails the test suite if MD ⇄ YAML drifts.
   `reports/stabilization/holdings-production-hardening-prereqs-20260507.md`
   as the handoff for landed prerequisites/guards. Entity-registry PR #61,
   data-platform PR #110, graph-engine PR #61, subsystem-sdk PR #44 / release
-  `v0.1.4`, and subsystem-holdings PR #13 are merged. The next step remains
-  gated canary/live production evidence, not completed rollout. Do not use
-  this handoff to claim production rollout complete, default/full propagation
-  enabled, M4.7 real-doc closure, financial-doc work, contracts subtype, or
-  new relations.
+  `v0.1.4`, and subsystem-holdings PR #13 are merged.
+- **M4.9 bounded gated canary evidence** — use
+  `reports/stabilization/holdings-bounded-canary-live-production-evidence-20260507.md`
+  as the curated assembly report for the passed canary/live production
+  evidence. It records only counts, statuses, merge references, and redacted
+  environment status. Production rollout remains not default-enabled. Do not
+  use this handoff to claim production rollout complete, default/full
+  propagation enabled, M4.7 real-doc closure, financial-doc work, contracts
+  subtype, or new relations.
 - **M4 production bridge closure upkeep** — keep the M4.1-M4.6 bridge and
   read-only evidence linked to their recorded reports. The current holdings
   handoff now points to merged sibling attempt2 evidence PRs #107 and #9, plus
