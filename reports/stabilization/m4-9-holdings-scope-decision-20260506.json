@@ -1,8 +1,8 @@
 {
-  "status": "queue_freeze_promotion_handoff_sibling_proofs_merged",
+  "status": "holdings_only_algorithms_handoff_sibling_proof_merged",
   "recorded_at": "2026-05-07T00:00:00Z",
   "decision_date": "2026-05-06",
-  "scope": "M4.9 subsystem scope decision, holdings adapter handoff, PR #5 live producer blockers, attempt2 live proof handoff, and queue/freeze/promotion proof handoff",
+  "scope": "M4.9 subsystem scope decision, holdings adapter handoff, PR #5 live producer blockers, attempt2 live proof handoff, queue/freeze/promotion proof handoff, and holdings-only algorithms handoff",
   "prerequisites": {
     "m4_6": "complete",
     "assembly_env_hygiene_pr_52_merge_commit": "a6bb671aff39cdd31db3ef28104e6119e13ad3ba"
@@ -15,7 +15,8 @@
     "post_pr1_4_holdings_adapter_handoff": "recorded",
     "pr_5_live_producer_blocker_handoff": "recorded_historical",
     "attempt2_live_proof_handoff": "runtime_pass_sibling_evidence_merged",
-    "queue_freeze_promotion_handoff": "sibling_proofs_merged"
+    "queue_freeze_promotion_handoff": "sibling_proofs_merged",
+    "holdings_only_algorithms_handoff": "sibling_proof_merged_issue_55_closed"
   },
   "decision": {
     "next_p0_domain_extension": "subsystem-holdings",
@@ -29,6 +30,10 @@
     "proof_only_queue_submit_path": true,
     "holdings_ex3_queue_freeze_bridge": true,
     "offline_layer_a_promotion_query_channel_proof": true,
+    "holdings_only_algorithms_handoff_state": "sibling_proof_merged_issue_55_closed",
+    "graph_engine_55_closed": true,
+    "graph_engine_55_scope": "holdings-only algorithms",
+    "graph_engine_55_entry_mode": "explicit_entry_only",
     "subsystem_financial_doc": "deferred",
     "financial_doc_gate": [
       "M4.7 real-document validation",
@@ -193,6 +198,49 @@
       "contracts_or_subtype_change": false
     }
   },
+  "holdings_only_algorithms_handoff": {
+    "status": "sibling_proof_merged_issue_55_closed",
+    "recorded_at": "2026-05-07T00:00:00Z",
+    "graph_engine_issue": "#55",
+    "issue_state": "CLOSED",
+    "graph_engine_pr": "#59",
+    "merge_commit": "8a40fead9a57d67f0b232a52d4ed0d99db78a96e",
+    "scope": {
+      "allowed_algorithms": [
+        "CO_HOLDING co-holding crowding",
+        "NORTHBOUND_HOLD northbound anomaly"
+      ],
+      "entry_mode": "explicit_entry_only",
+      "default_full_propagation_rollout": false,
+      "production_live_graph_writeback": false
+    },
+    "ci_summary": {
+      "ci": "pass",
+      "test_fast": "pass",
+      "smoke": "pass",
+      "contract": "pass",
+      "regression": "pass"
+    },
+    "not_claimed": {
+      "production_queue_propagation": false,
+      "live_neo4j_graph_propagation": false,
+      "default_full_propagation_rollout": false,
+      "provider_or_backfill_execution_from_assembly": false,
+      "financial_doc_scope": false,
+      "guarantees_scope": false,
+      "related_party_scope": false,
+      "major_customer_or_supplier_scope": false,
+      "contracts_or_subtype_change": false
+    },
+    "superseded_scope": [
+      "guarantees",
+      "related-party",
+      "financial-doc",
+      "contracts-subtype",
+      "MAJOR_CUSTOMER",
+      "MAJOR_SUPPLIER"
+    ]
+  },
   "post_pr1_3_readiness_handoff": {
     "data_platform_holdings_live_smoke": {
       "status": "complete",
@@ -247,21 +295,33 @@
   },
   "graph_engine_follow_up": {
     "issue": "#55",
-    "state": "NOT_ENTERED_UNIMPLEMENTED",
-    "required_future_scope": "holdings-only algorithms after graph-engine #55 is intentionally entered",
+    "state": "CLOSED_HOLDINGS_ONLY_ALGORITHMS_EXPLICIT_ENTRY_ONLY",
+    "merged_pr": "#59",
+    "merge_commit": "8a40fead9a57d67f0b232a52d4ed0d99db78a96e",
+    "implemented_scope": [
+      "CO_HOLDING co-holding crowding",
+      "NORTHBOUND_HOLD northbound anomaly"
+    ],
     "does_not_shift_55_or_56_scope": true,
     "do_not_mix_55_and_56": true,
     "must_not_revive_old_scope": [
       "financial-doc",
-      "contracts-subtype"
+      "contracts-subtype",
+      "guarantees",
+      "related-party",
+      "MAJOR_CUSTOMER",
+      "MAJOR_SUPPLIER"
     ],
+    "entry_mode": "explicit_entry_only",
+    "default_full_propagation_rollout": false,
+    "production_live_graph_writeback": false,
     "live_producer_proof_required_first": false,
     "queue_freeze_promotion_proof_required_first": false
   },
   "scope_exclusions": [
     "no data-platform changes",
     "no contracts changes",
-    "no graph-engine changes",
+    "no assembly-local graph-engine changes",
     "no derivations",
     "no backfill",
     "no financial-doc implementation",
@@ -270,7 +330,8 @@
     "no provider call from subsystem-holdings",
     "no production queue propagation",
     "no live Neo4j graph propagation",
-    "no graph-engine #55 algorithms",
+    "no graph-engine #55 scope beyond holdings-only algorithms",
+    "no default full-propagation rollout",
     "no contracts/subtype change",
     "no M4.7 closure",
     "no M4.8 closure"
