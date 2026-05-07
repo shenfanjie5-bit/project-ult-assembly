@@ -1,0 +1,9 @@
+{
+  "artifact_group": "real-data-mini-cycle-pg-runtime-20260427",
+  "daily_refresh_dbt_profiles_removed": true,
+  "env_values_removed": true,
+  "profile_file": "<removed:dbt-profile-runtime-path>",
+  "schema_version": "project-ult.evidence-hygiene.runtime-profile-summary.v1",
+  "sha256": "dee79d4a3428664611e30f2301b943bb1987ec15ea87fa1ae55b63ebe32a213f",
+  "size_bytes": 151
+}

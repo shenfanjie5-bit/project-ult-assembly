@@ -1,5 +1,5 @@
 {
-  "artifact_dir": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T194812Z",
+  "artifact_dir": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T194812Z",
   "blockers": [],
   "clock_note": "Timestamps may come from Python, PostgreSQL, and file-system clocks; reviewers should use step status and IDs as ordering evidence.",
   "env": {
@@ -22,35 +22,24 @@
     {
       "exists_at_write_time": true,
       "git_tracked_at_write_time": false,
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T194812Z",
+      "path": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T194812Z",
       "under_report_artifact_dir": true
+    },
+    {
+      "process_stream_artifacts_removed": true,
+      "stream_artifact_count": 2,
+      "stream_output_removed": true
     },
     {
       "exists_at_write_time": true,
       "git_tracked_at_write_time": false,
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T194812Z/data-platform-current-selection-tests.stderr.txt",
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "size_bytes": 0,
-      "under_report_artifact_dir": true
-    },
-    {
-      "exists_at_write_time": true,
-      "git_tracked_at_write_time": false,
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T194812Z/data-platform-current-selection-tests.stdout.txt",
-      "sha256": "7040371af15613c02e821ec0eecc1d1330f691ace4cef93a41bfa358822c4103",
-      "size_bytes": 80,
-      "under_report_artifact_dir": true
-    },
-    {
-      "exists_at_write_time": true,
-      "git_tracked_at_write_time": false,
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T194812Z",
+      "path": "<runtime-root-parent>/20260427T194812Z",
       "under_report_artifact_dir": false
     },
     {
       "exists_at_write_time": true,
       "git_tracked_at_write_time": false,
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T194812Z/audit/preflight_audit_eval.duckdb",
+      "path": "<runtime-root-parent>/20260427T194812Z/audit/preflight_audit_eval.duckdb",
       "sha256": "d557dc9804a6d370447e937da436c6affe14b3c05fe2f2972ad84e445555b51b",
       "size_bytes": 1323008,
       "under_report_artifact_dir": false
@@ -66,10 +55,8 @@
       "stock_basic",
       "daily"
     ],
-    "symbols": [
-      "600519.SH",
-      "000001.SZ"
-    ],
+    "symbols_count": 2,
+    "symbols_removed": true,
     "tushare_mode": "live"
   },
   "mode": "preflight_only",
@@ -84,7 +71,7 @@
       "audit_ids": [
         "audit-runtime-preflight-L4"
       ],
-      "duckdb_path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T194812Z/audit/preflight_audit_eval.duckdb",
+      "duckdb_path": "<runtime-root-parent>/20260427T194812Z/audit/preflight_audit_eval.duckdb",
       "duration_ms": 35,
       "replay_ids": [
         "replay-runtime-preflight-runtime_preflight"
@@ -111,12 +98,14 @@
     },
     "data_platform_current_selection_tests": {
       "duration_ms": 1195,
+      "process_stream_policy": {
+        "captured_for_status_only": true,
+        "log_text_omitted_from_artifact": true,
+        "pass_critical_facts_in_structured_fields": true,
+        "persisted_text_artifact": false
+      },
       "returncode": 0,
-      "status": "passed",
-      "stderr": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T194812Z/data-platform-current-selection-tests.stderr.txt",
-      "stderr_tail": "",
-      "stdout": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260427T194812Z/data-platform-current-selection-tests.stdout.txt",
-      "stdout_tail": "..........                                                               [100%]\n"
+      "status": "passed"
     },
     "imports": {
       "imported": [
@@ -129,18 +118,18 @@
       "status": "passed"
     },
     "pg_connect": {
-      "dsn": "<redacted:set>",
+      "dsn": "set",
       "duration_ms": 89,
       "result": 1,
       "status": "passed"
     }
   },
   "redaction": {
-    "dsn_values": "<redacted:set>",
-    "secret_values": "<redacted:set>"
+    "dsn_values": "set",
+    "secret_values": "set"
   },
   "runner_exit_code": 0,
-  "runtime_root": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260427T194812Z",
+  "runtime_root": "<runtime-root-parent>/20260427T194812Z",
   "schema_version": "project-ult.production-daily-cycle-proof.v2",
   "steps": {},
   "verdict": "RUNTIME_PREFLIGHT_PASS"

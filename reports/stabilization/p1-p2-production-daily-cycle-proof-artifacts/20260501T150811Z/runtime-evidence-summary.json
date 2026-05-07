@@ -1,27 +1,27 @@
 {
-  "artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/runtime-evidence-summary.json",
+  "artifact": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/runtime-evidence-summary.json",
   "canonical_snapshot_set": {
     "canonical_lineage_tables": {
       "lineage_dim_security": {
         "identifier": "canonical_lineage.lineage_dim_security",
-        "metadata_location": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/warehouse/canonical_lineage/lineage_dim_security/metadata/00001-75a0e025-b1cd-46bf-8a11-213f699088b1.metadata.json",
+        "metadata_location": "<runtime-root>/warehouse/canonical_lineage/lineage_dim_security/metadata/00001-75a0e025-b1cd-46bf-8a11-213f699088b1.metadata.json",
         "snapshot_id": 4753851351304813204
       },
       "lineage_fact_price_bar": {
         "identifier": "canonical_lineage.lineage_fact_price_bar",
-        "metadata_location": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/warehouse/canonical_lineage/lineage_fact_price_bar/metadata/00001-82e6b8a3-4452-4004-80f2-0de57a6a2591.metadata.json",
+        "metadata_location": "<runtime-root>/warehouse/canonical_lineage/lineage_fact_price_bar/metadata/00001-82e6b8a3-4452-4004-80f2-0de57a6a2591.metadata.json",
         "snapshot_id": 1757739472559684676
       }
     },
     "canonical_v2_tables": {
       "dim_security": {
         "identifier": "canonical_v2.dim_security",
-        "metadata_location": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/warehouse/canonical_v2/dim_security/metadata/00001-b7304f60-16b3-4e3c-b136-050b3b2e53bc.metadata.json",
+        "metadata_location": "<runtime-root>/warehouse/canonical_v2/dim_security/metadata/00001-b7304f60-16b3-4e3c-b136-050b3b2e53bc.metadata.json",
         "snapshot_id": 8119016700871861950
       },
       "fact_price_bar": {
         "identifier": "canonical_v2.fact_price_bar",
-        "metadata_location": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/warehouse/canonical_v2/fact_price_bar/metadata/00001-db15f7f8-7e26-4fcb-92fe-6f9cb4043d38.metadata.json",
+        "metadata_location": "<runtime-root>/warehouse/canonical_v2/fact_price_bar/metadata/00001-db15f7f8-7e26-4fcb-92fe-6f9cb4043d38.metadata.json",
         "snapshot_id": 2794673894564050497
       }
     },
@@ -30,7 +30,7 @@
     "published_at": "2026-05-01T15:08:25.775364+00:00",
     "sha256": "0ac706271669ad2097c67c44aa233d39f169479c8d92a8e5d8fc46ab9f73ad0a",
     "size_bytes": 1540,
-    "source_path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/warehouse/canonical_v2/_mart_snapshot_set.json"
+    "source_path": "<runtime-root>/warehouse/canonical_v2/_mart_snapshot_set.json"
   },
   "generated_at_utc": "2026-05-04T04:50:31.718014+00:00",
   "policy": {
@@ -47,11 +47,11 @@
     ],
     "sha256": "ff0f88ecc5da040423ece90bc94c5d5e78b4b40691ccf6a1b80f4d3e56054549",
     "size_bytes": 1323008,
-    "source_path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/audit/preflight_audit_eval.duckdb"
+    "source_path": "<runtime-root>/audit/preflight_audit_eval.duckdb"
   },
   "process_evidence_summaries": [
     {
-      "artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/data-platform-current-selection-tests-summary.json",
+      "artifact": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/data-platform-current-selection-tests-summary.json",
       "exists_at_write_time": true,
       "name": "data_platform_current_selection_tests",
       "process_stream_policy": {
@@ -66,7 +66,7 @@
       "status": "passed"
     },
     {
-      "artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/orchestrator-dbt-compile-summary.json",
+      "artifact": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/orchestrator-dbt-compile-summary.json",
       "exists_at_write_time": true,
       "name": "orchestrator_dbt_compile",
       "process_stream_policy": {
@@ -86,84 +86,87 @@
       "dataset": "trade_cal",
       "exists_at_write_time": true,
       "partition_date": "2026-04-15",
+      "raw_payload_removed": true,
       "row_count": 1,
-      "run_id": "15a80425-c3fd-4594-89f6-0dcf06a6d46f",
       "sha256": "79a5b4293058f12214ec23c986636097c36521aa972f66ce9ceae37a983a8525",
       "size_bytes": 1198,
       "source_id": "tushare",
-      "source_path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/raw/tushare/trade_cal/dt=20260415/15a80425-c3fd-4594-89f6-0dcf06a6d46f.parquet",
+      "source_path": "<removed:raw-tushare-artifact>",
       "written_at": "2026-05-01T15:08:15.779671+00:00"
     },
     {
       "dataset": "stock_basic",
       "exists_at_write_time": true,
       "partition_date": "2026-04-15",
+      "raw_payload_removed": true,
       "row_count": 5512,
-      "run_id": "5a4af64e-97af-434a-8081-081e45f6a752",
       "sha256": "e5a008501187763e14b6fadb4b33e0cefbfec57b2f0bd515e2cf7fb1627a1166",
       "size_bytes": 458486,
       "source_id": "tushare",
-      "source_path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/raw/tushare/stock_basic/dt=20260415/5a4af64e-97af-434a-8081-081e45f6a752.parquet",
+      "source_path": "<removed:raw-tushare-artifact>",
       "written_at": "2026-05-01T15:08:17.717584+00:00"
     },
     {
       "dataset": "daily",
       "exists_at_write_time": true,
       "partition_date": "2026-04-15",
+      "raw_payload_removed": true,
       "row_count": 5494,
-      "run_id": "6ff9aaa6-6ca8-46d7-aef9-f252739a6f67",
       "sha256": "e0b6d731721e7524f7bf4cb75c72b02daf6889aeda41975cfa9a372f1a0a14e9",
       "size_bytes": 315178,
       "source_id": "tushare",
-      "source_path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/raw/tushare/daily/dt=20260415/6ff9aaa6-6ca8-46d7-aef9-f252739a6f67.parquet",
+      "source_path": "<removed:raw-tushare-artifact>",
       "written_at": "2026-05-01T15:08:19.365645+00:00"
     }
   ],
   "runtime_files": [
     {
       "exists_at_write_time": true,
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/audit/preflight_audit_eval.duckdb",
+      "path": "<runtime-root>/audit/preflight_audit_eval.duckdb",
       "relative_to_runtime_root": "audit/preflight_audit_eval.duckdb",
       "sha256": "ff0f88ecc5da040423ece90bc94c5d5e78b4b40691ccf6a1b80f4d3e56054549",
       "size_bytes": 1323008
     },
     {
       "exists_at_write_time": true,
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/orchestrator_dbt_stub/target/manifest.json",
+      "path": "<runtime-root>/orchestrator_dbt_stub/target/manifest.json",
       "relative_to_runtime_root": "orchestrator_dbt_stub/target/manifest.json",
       "sha256": "66746dfbb9b7aeacebb424ca195f3c7a0f65ae8a55825bf25a2cbc03ab3e1529",
       "size_bytes": 463609
     },
     {
       "exists_at_write_time": true,
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/raw/tushare/daily/dt=20260415/6ff9aaa6-6ca8-46d7-aef9-f252739a6f67.parquet",
-      "relative_to_runtime_root": "raw/tushare/daily/dt=20260415/6ff9aaa6-6ca8-46d7-aef9-f252739a6f67.parquet",
+      "path": "<removed:raw-tushare-artifact>",
+      "raw_payload_removed": true,
+      "relative_to_runtime_root": "<removed:raw-tushare-artifact>",
       "sha256": "e0b6d731721e7524f7bf4cb75c72b02daf6889aeda41975cfa9a372f1a0a14e9",
       "size_bytes": 315178
     },
     {
       "exists_at_write_time": true,
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/raw/tushare/stock_basic/dt=20260415/5a4af64e-97af-434a-8081-081e45f6a752.parquet",
-      "relative_to_runtime_root": "raw/tushare/stock_basic/dt=20260415/5a4af64e-97af-434a-8081-081e45f6a752.parquet",
+      "path": "<removed:raw-tushare-artifact>",
+      "raw_payload_removed": true,
+      "relative_to_runtime_root": "<removed:raw-tushare-artifact>",
       "sha256": "e5a008501187763e14b6fadb4b33e0cefbfec57b2f0bd515e2cf7fb1627a1166",
       "size_bytes": 458486
     },
     {
       "exists_at_write_time": true,
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/raw/tushare/trade_cal/dt=20260415/15a80425-c3fd-4594-89f6-0dcf06a6d46f.parquet",
-      "relative_to_runtime_root": "raw/tushare/trade_cal/dt=20260415/15a80425-c3fd-4594-89f6-0dcf06a6d46f.parquet",
+      "path": "<removed:raw-tushare-artifact>",
+      "raw_payload_removed": true,
+      "relative_to_runtime_root": "<removed:raw-tushare-artifact>",
       "sha256": "79a5b4293058f12214ec23c986636097c36521aa972f66ce9ceae37a983a8525",
       "size_bytes": 1198
     },
     {
       "exists_at_write_time": true,
-      "path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/warehouse/canonical_v2/_mart_snapshot_set.json",
+      "path": "<runtime-root>/warehouse/canonical_v2/_mart_snapshot_set.json",
       "relative_to_runtime_root": "warehouse/canonical_v2/_mart_snapshot_set.json",
       "sha256": "0ac706271669ad2097c67c44aa233d39f169479c8d92a8e5d8fc46ab9f73ad0a",
       "size_bytes": 1540
     }
   ],
-  "runtime_root": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z",
+  "runtime_root": "<runtime-root>",
   "schema_version": "project-ult.production-daily-cycle-proof.v2.runtime-evidence-summary.v1",
   "status": "passed"
 }

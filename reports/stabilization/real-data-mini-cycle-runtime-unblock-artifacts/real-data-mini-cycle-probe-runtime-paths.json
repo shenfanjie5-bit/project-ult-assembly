@@ -44,15 +44,19 @@
         "bash",
         "scripts/external_smoke_tushare_corpus.sh"
       ],
-      "cwd": "/Users/fanjie/Desktop/Cowork/project-ult/data-platform",
+      "cwd": "<workspace>/data-platform",
       "name": "external_tushare_corpus_smoke",
-      "returncode": 0,
-      "stderr_tail": "",
-      "stdout_tail": "external smoke — Tushare corpus @ /Volumes/dockcase2tb/database_all\n────────────────────────────────────────────────────────────────────────\n  ✓ mount: mounted + readable at /Volumes/dockcase2tb/database_all\n  ✓ audit_csv_gate: all 12 required datasets are access=available + completeness=未见明显遗漏\n  ✓ dataset_presence: all 12 dataset_paths present on disk\n  ✓ ts_code_presence: all 7 Phase-B ts_codes resolve in their datasets\n  ✓ schema_alignment: all 5 schema-checked datasets aligned per per-dataset direction (strict / corpus_subset)\n  ✓ fixture_traceability: all 7 Phase-B fixtures' tushare_source blocks trace to the live corpus\n────────────────────────────────────────────────────────────────────────\n  6/6 checks passed\n"
+      "process_stream_policy": {
+        "captured_for_status_only": true,
+        "log_text_omitted_from_artifact": true,
+        "pass_critical_facts_in_structured_fields": true,
+        "persisted_text_artifact": false
+      },
+      "returncode": 0
     },
     {
       "command": [
-        "/Users/fanjie/Desktop/Cowork/project-ult/data-platform/.venv/bin/python",
+        "<workspace>/data-platform/.venv/bin/python",
         "-m",
         "data_platform.adapters.tushare.adapter",
         "--asset",
@@ -60,11 +64,15 @@
         "--date",
         "20260415"
       ],
-      "cwd": "/Users/fanjie/Desktop/Cowork/project-ult/data-platform",
+      "cwd": "<workspace>/data-platform",
       "name": "tushare_token_raw_ingestion_probe",
-      "returncode": 1,
-      "stderr_tail": "{\"asset\": \"tushare_daily\", \"error\": \"DP_TUSHARE_TOKEN is required for the Tushare adapter\", \"error_type\": \"config_error\"}\n",
-      "stdout_tail": ""
+      "process_stream_policy": {
+        "captured_for_status_only": true,
+        "log_text_omitted_from_artifact": true,
+        "pass_critical_facts_in_structured_fields": true,
+        "persisted_text_artifact": false
+      },
+      "returncode": 1
     },
     {
       "command": [
@@ -75,17 +83,21 @@
         "--select",
         "stock_basic,daily",
         "--json-report",
-        "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/real-data-mini-cycle-runtime-unblock-artifacts/probe-artifacts/daily-refresh-real-probe-20260415.json"
+        "reports/stabilization/real-data-mini-cycle-runtime-unblock-artifacts/probe-artifacts/daily-refresh-real-probe-20260415.json"
       ],
-      "cwd": "/Users/fanjie/Desktop/Cowork/project-ult/data-platform",
+      "cwd": "<workspace>/data-platform",
       "name": "daily_refresh_real_probe",
-      "returncode": 2,
-      "stderr_tail": "Daily refresh failed: DP_PG_DSN is required for the PostgreSQL-backed Iceberg catalog\n",
-      "stdout_tail": ""
+      "process_stream_policy": {
+        "captured_for_status_only": true,
+        "log_text_omitted_from_artifact": true,
+        "pass_critical_facts_in_structured_fields": true,
+        "persisted_text_artifact": false
+      },
+      "returncode": 2
     },
     {
       "command": [
-        "/Users/fanjie/Desktop/Cowork/project-ult/data-platform/.venv/bin/python",
+        "<workspace>/data-platform/.venv/bin/python",
         "scripts/spike_replay.py",
         "--cycle-id",
         "cycle_20260410",
@@ -94,11 +106,15 @@
         "--fixtures",
         "tests/fixtures/spike"
       ],
-      "cwd": "/Users/fanjie/Desktop/Cowork/project-ult/audit-eval",
+      "cwd": "<workspace>/audit-eval",
       "name": "audit_eval_fixture_replay_probe",
-      "returncode": 0,
-      "stderr_tail": "",
-      "stdout_tail": "-10T16:08:00Z\",\n      \"cycle_id\": \"cycle_20260410\",\n      \"degradation_flags\": {\n        \"degraded\": false\n      },\n      \"input_hash\": \"b442dd14d29e50918c02226ffe3e06c59ee6ddab4bb80adc19912bbae43a506c\",\n      \"layer\": \"L7\",\n      \"llm_cost\": {\n        \"cost_usd\": 0.0,\n        \"input_tokens\": 180,\n        \"latency_ms\": 18,\n        \"output_tokens\": 90\n      },\n      \"llm_lineage\": {\n        \"called\": true,\n        \"fallback_path\": null,\n        \"model\": \"offline-spike-model\",\n        \"provider\": \"fixture\",\n        \"retry_count\": 0\n      },\n      \"object_ref\": \"recommendation\",\n      \"output_hash\": \"a11fcb411879b870473e7cc431db2fc7c5bbfffa9d91d92062ab8095cb6d15e1\",\n      \"params_snapshot\": {\n        \"as_of\": \"2026-04-10\",\n        \"portfolio_id\": \"sample_portfolio\"\n      },\n      \"parsed_result\": {\n        \"action\": \"reduce_beta\",\n        \"confidence\": 0.72\n      },\n      \"raw_output\": \"{\\\"action\\\":\\\"reduce_beta\\\",\\\"confidence\\\":0.72}\",\n      \"record_id\": \"audit-cycle_20260410-L7-recommendation\",\n      \"sanitized_input\": \"Use the published world_state snapshot for allocation guidance.\"\n    }\n  ],\n  \"cycle_id\": \"cycle_20260410\",\n  \"dagster_run_summary\": {\n    \"asset_keys\": [\n      \"audit_record\",\n      \"replay_record\",\n      \"cycle_publish_manifest\"\n    ],\n    \"cycle_id\": \"cycle_20260410\",\n    \"finished_at\": \"2026-04-10T16:10:30Z\",\n    \"run_id\": \"dagster-fixture-run-20260410\",\n    \"started_at\": \"2026-04-10T16:04:30Z\",\n    \"status\": \"success\"\n  },\n  \"graph_snapshot\": {\n    \"cycle_id\": \"cycle_20260410\",\n    \"edge_refs\": [\n      {\n        \"from\": \"world_state\",\n        \"relationship\": \"feeds\",\n        \"to\": \"recommendation\"\n      }\n    ],\n    \"graph_snapshot_ref\": \"graph://cycle_20260410/portfolio_graph\",\n    \"node_refs\": [\n      \"world_state\",\n      \"recommendation\"\n    ],\n    \"status\": \"published\"\n  },\n  \"graph_snapshot_ref\": \"graph://cycle_20260410/portfolio_graph\",\n  \"graph_snapshot_summary\": {\n    \"cycle_id\": \"cycle_20260410\",\n    \"edge_refs\": [\n      {\n        \"from\": \"world_state\",\n        \"relationship\": \"feeds\",\n        \"to\": \"recommendation\"\n      }\n    ],\n    \"graph_snapshot_ref\": \"graph://cycle_20260410/portfolio_graph\",\n    \"node_refs\": [\n      \"world_state\",\n      \"recommendation\"\n    ],\n    \"status\": \"published\"\n  },\n  \"historical_formal_objects\": {\n    \"recommendation\": {\n      \"data\": {\n        \"as_of\": \"2026-04-10\",\n        \"object_ref\": \"recommendation\",\n        \"recommendation\": {\n          \"action\": \"reduce_beta\",\n          \"confidence\": 0.72,\n          \"source_world_state_ref\": \"snapshot://cycle_20260410/world_state\"\n        },\n        \"snapshot_ref\": \"snapshot://cycle_20260410/recommendation\"\n      },\n      \"source_ref\": \"snapshot://cycle_20260410/recommendation\"\n    },\n    \"world_state\": {\n      \"data\": {\n        \"as_of\": \"2026-04-10\",\n        \"object_ref\": \"world_state\",\n        \"snapshot_ref\": \"snapshot://cycle_20260410/world_state\",\n        \"state\": {\n          \"risk_level\": \"medium\",\n          \"trend\": \"risk_off\",\n          \"volatility_regime\": \"elevated\"\n        }\n      },\n      \"source_ref\": \"snapshot://cycle_20260410/world_state\"\n    }\n  },\n  \"manifest_snapshot_set\": {\n    \"recommendation\": \"snapshot://cycle_20260410/recommendation\",\n    \"world_state\": \"snapshot://cycle_20260410/world_state\"\n  },\n  \"object_ref\": \"recommendation\",\n  \"replay_record\": {\n    \"audit_record_ids\": [\n      \"audit-cycle_20260410-L4-world_state\",\n      \"audit-cycle_20260410-L7-recommendation\"\n    ],\n    \"created_at\": \"2026-04-10T16:09:00Z\",\n    \"cycle_id\": \"cycle_20260410\",\n    \"dagster_run_id\": \"dagster-fixture-run-20260410\",\n    \"formal_snapshot_refs\": {\n      \"recommendation\": \"snapshot://cycle_20260410/recommendation\",\n      \"world_state\": \"snapshot://cycle_20260410/world_state\"\n    },\n    \"graph_snapshot_ref\": \"graph://cycle_20260410/portfolio_graph\",\n    \"manifest_cycle_id\": \"cycle_20260410\",\n    \"object_ref\": \"recommendation\",\n    \"replay_id\": \"replay-cycle_20260410-recommendation\",\n    \"replay_mode\": \"read_history\"\n  }\n}\n"
+      "process_stream_policy": {
+        "captured_for_status_only": true,
+        "log_text_omitted_from_artifact": true,
+        "pass_critical_facts_in_structured_fields": true,
+        "persisted_text_artifact": false
+      },
+      "returncode": 0
     }
   ],
   "environment": {
@@ -117,11 +133,8 @@
     "dates": [
       "20260415"
     ],
-    "symbols": [
-      "600519.SH",
-      "000001.SZ",
-      "000063.SZ"
-    ]
+    "symbols_count": 3,
+    "symbols_removed": true
   },
   "summary": {
     "allow_p2_real_l1_l8_dry_run": false,

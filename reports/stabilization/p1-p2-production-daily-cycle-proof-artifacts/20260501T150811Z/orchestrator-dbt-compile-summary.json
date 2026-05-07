@@ -1,25 +1,25 @@
 {
-  "artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/orchestrator-dbt-compile-summary.json",
+  "artifact": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/orchestrator-dbt-compile-summary.json",
   "command": [
-    "/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/dbt",
+    "<workspace>/assembly/.venv-py312/bin/dbt",
     "compile",
     "--profiles-dir",
     ".",
     "--project-dir",
     "."
   ],
-  "cwd": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/orchestrator_dbt_stub",
-  "dbt_executable": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/.venv-py312/bin/dbt",
+  "cwd": "<runtime-root>/orchestrator_dbt_stub",
+  "dbt_executable": "<workspace>/assembly/.venv-py312/bin/dbt",
   "duration_ms": null,
   "generated_at_utc": "2026-05-01T15:08:25.915352+00:00",
-  "manifest": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/orchestrator_dbt_stub/target/manifest.json",
+  "manifest": "<runtime-root>/orchestrator_dbt_stub/target/manifest.json",
   "process_stream_policy": {
     "captured_for_status_only": true,
     "log_text_omitted_from_artifact": true,
     "pass_critical_facts_in_structured_fields": true,
     "persisted_text_artifact": false
   },
-  "project_dir": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/orchestrator_dbt_stub",
+  "project_dir": "<runtime-root>/orchestrator_dbt_stub",
   "returncode": 0,
   "schema_version": "project-ult.production-daily-cycle-proof.v2.orchestrator-dbt-compile-summary.v1",
   "status": "passed",

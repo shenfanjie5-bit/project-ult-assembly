@@ -1,37 +1,19 @@
 {
   "artifact_paths": [
-    "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/live-tushare-mini-ingestion-artifacts/raw/tushare/daily/dt=20260415/a8ef0d4d-b89e-4ca2-8249-3030aa4b094b.parquet",
-    "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/live-tushare-mini-ingestion-artifacts/raw/tushare/trade_cal/dt=20260415/774c86fa-b70b-4157-b3ed-c40f80887cca.parquet"
+    "<removed:raw-tushare-artifact>",
+    "<removed:raw-tushare-artifact>"
   ],
   "datasets": [
     {
       "artifact_paths": [
-        "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/live-tushare-mini-ingestion-artifacts/raw/tushare/daily/dt=20260415/a8ef0d4d-b89e-4ca2-8249-3030aa4b094b.parquet"
+        "<removed:raw-tushare-artifact>"
       ],
       "bounded_strategy": "per-symbol ts_code + single trade_date",
-      "calls": [
-        {
-          "params": {
-            "trade_date": "20260415",
-            "ts_code": "600519.SH"
-          },
-          "row_count": 1,
-          "supports_symbol_filter": true,
-          "symbol_filter_applied": true
-        },
-        {
-          "params": {
-            "trade_date": "20260415",
-            "ts_code": "000001.SZ"
-          },
-          "row_count": 1,
-          "supports_symbol_filter": true,
-          "symbol_filter_applied": true
-        }
-      ],
       "dataset": "daily",
-      "manifest_path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/live-tushare-mini-ingestion-artifacts/raw/tushare/daily/dt=20260415/_manifest.json",
+      "manifest_path": "<removed:raw-tushare-artifact>",
+      "raw_payload_removed": true,
       "request_count": 2,
+      "request_params_removed": true,
       "row_count": 2,
       "status": "ok",
       "supports_symbol_filter": true,
@@ -40,23 +22,14 @@
     },
     {
       "artifact_paths": [
-        "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/live-tushare-mini-ingestion-artifacts/raw/tushare/trade_cal/dt=20260415/774c86fa-b70b-4157-b3ed-c40f80887cca.parquet"
+        "<removed:raw-tushare-artifact>"
       ],
       "bounded_strategy": "single-day start_date=end_date; no symbol dimension",
-      "calls": [
-        {
-          "params": {
-            "end_date": "20260415",
-            "start_date": "20260415"
-          },
-          "row_count": 1,
-          "supports_symbol_filter": false,
-          "symbol_filter_applied": false
-        }
-      ],
       "dataset": "trade_cal",
-      "manifest_path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/live-tushare-mini-ingestion-artifacts/raw/tushare/trade_cal/dt=20260415/_manifest.json",
+      "manifest_path": "<removed:raw-tushare-artifact>",
+      "raw_payload_removed": true,
       "request_count": 1,
+      "request_params_removed": true,
       "row_count": 1,
       "status": "ok",
       "supports_symbol_filter": false,
@@ -65,7 +38,7 @@
     }
   ],
   "generated_at": "2026-04-27T09:03:41+00:00",
-  "iceberg_warehouse_path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/live-tushare-mini-ingestion-artifacts/warehouse",
+  "iceberg_warehouse_path": "reports/stabilization/live-tushare-mini-ingestion-artifacts/warehouse",
   "integration_notes": {
     "daily_refresh_selected_assets": true,
     "daily_refresh_symbol_filter": false,
@@ -76,16 +49,14 @@
   "live_tushare_token_used": true,
   "mode": "live_tushare_bounded_raw_probe",
   "ok": true,
-  "raw_zone_path": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/live-tushare-mini-ingestion-artifacts/raw",
+  "raw_zone_path": "reports/stabilization/live-tushare-mini-ingestion-artifacts/raw",
   "scope": {
     "datasets": [
       "daily",
       "trade_cal"
     ],
     "date": "20260415",
-    "symbols": [
-      "600519.SH",
-      "000001.SZ"
-    ]
+    "symbols_count": 2,
+    "symbols_removed": true
   }
 }

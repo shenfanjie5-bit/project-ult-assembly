@@ -31,12 +31,14 @@
     "raw_artifacts": [
       {
         "dataset": "stock_basic",
-        "path": "/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tmp/real-data-mini-cycle-close-loop-20260427/20260427_batch_d_091540/raw/tushare/stock_basic/dt=20260415/79beabd7-5616-49f6-ab24-295f51503987.parquet",
+        "path": "<removed:raw-tushare-artifact>",
+        "raw_payload_removed": true,
         "row_count": 5510
       },
       {
         "dataset": "daily",
-        "path": "/Users/fanjie/Desktop/Cowork/project-ult/data-platform/tmp/real-data-mini-cycle-close-loop-20260427/20260427_batch_d_091540/raw/tushare/daily/dt=20260415/2b984eac-128c-4aff-b67a-36ea622857ca.parquet",
+        "path": "<removed:raw-tushare-artifact>",
+        "raw_payload_removed": true,
         "row_count": 5494
       }
     ],

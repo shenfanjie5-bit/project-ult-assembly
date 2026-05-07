@@ -1,5 +1,5 @@
 {
-  "artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/neo4j-gds-preflight.json",
+  "artifact": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/neo4j-gds-preflight.json",
   "blocker": null,
   "duration_ms": 89,
   "gds_graph_exists_probe": {

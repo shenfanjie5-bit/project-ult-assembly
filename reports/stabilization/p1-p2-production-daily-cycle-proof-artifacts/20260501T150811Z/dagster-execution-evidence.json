@@ -1,5 +1,5 @@
 {
-  "artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/dagster-execution-evidence.json",
+  "artifact": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/dagster-execution-evidence.json",
   "artifact_backed_pass_claim": true,
   "asset_check_pass_basis": {
     "all_recorded_asset_checks_passed": true,
@@ -98,7 +98,7 @@
   "cycle_id": "CYCLE_20260415",
   "dagster_execution_status": "passed",
   "dagster_step_summary": {
-    "artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/dagster-execution-evidence.json",
+    "artifact": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/dagster-execution-evidence.json",
     "artifact_backed_pass_claim": true,
     "asset_check_pass_basis": {
       "all_recorded_asset_checks_passed": true,
@@ -127,17 +127,17 @@
     "cycle_id": "CYCLE_20260415",
     "dagster_success": true,
     "dbt_prepare": {
-      "manifest": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/orchestrator_dbt_stub/target/manifest.json",
+      "manifest": "<runtime-root>/orchestrator_dbt_stub/target/manifest.json",
       "process_stream_policy": {
         "captured_for_status_only": true,
         "log_text_omitted_from_artifact": true,
         "pass_critical_facts_in_structured_fields": true,
         "persisted_text_artifact": false
       },
-      "project_dir": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/orchestrator_dbt_stub",
+      "project_dir": "<runtime-root>/orchestrator_dbt_stub",
       "returncode": 0,
       "status": "passed",
-      "summary_artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/orchestrator-dbt-compile-summary.json"
+      "summary_artifact": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/orchestrator-dbt-compile-summary.json"
     },
     "expected_materialized_asset_count": 17,
     "failed_asset_check_names": [],
@@ -167,8 +167,8 @@
       "retrospective_hook"
     ],
     "missing_expected_asset_check_names": [],
+    "raw_payload_removed": true,
     "recorded_asset_check_count": 5,
-    "run_id": "efad558c-f5a1-4b9e-9bd6-31d0a0ce2212",
     "selected_asset_count": 17,
     "selected_asset_count_matches_materialization_basis": true,
     "selected_materializations_complete": true,
@@ -178,17 +178,17 @@
   },
   "dagster_success": true,
   "dbt_prepare": {
-    "manifest": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/orchestrator_dbt_stub/target/manifest.json",
+    "manifest": "<runtime-root>/orchestrator_dbt_stub/target/manifest.json",
     "process_stream_policy": {
       "captured_for_status_only": true,
       "log_text_omitted_from_artifact": true,
       "pass_critical_facts_in_structured_fields": true,
       "persisted_text_artifact": false
     },
-    "project_dir": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/tmp/production-daily-cycle-proof/20260501T150811Z/orchestrator_dbt_stub",
+    "project_dir": "<runtime-root>/orchestrator_dbt_stub",
     "returncode": 0,
     "status": "passed",
-    "summary_artifact": "/Users/fanjie/Desktop/Cowork/project-ult/assembly/reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/orchestrator-dbt-compile-summary.json"
+    "summary_artifact": "reports/stabilization/p1-p2-production-daily-cycle-proof-artifacts/20260501T150811Z/orchestrator-dbt-compile-summary.json"
   },
   "duration_ms": 23025,
   "event_count": 205,
@@ -369,8 +369,8 @@
   "missing_expected_asset_check_names": [],
   "missing_selected_asset_keys": [],
   "pass_basis": "resolved_selected_asset_keys",
+  "raw_payload_removed": true,
   "recorded_asset_check_count": 5,
-  "run_id": "efad558c-f5a1-4b9e-9bd6-31d0a0ce2212",
   "schema_version": "project-ult.production-daily-cycle-proof.v2.dagster-execution-evidence.v1",
   "selected_asset_count": 17,
   "selected_asset_count_matches_legacy_claim": false,

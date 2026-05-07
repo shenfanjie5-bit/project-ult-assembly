@@ -1,0 +1,92 @@
+{
+  "artifact_count": 2,
+  "artifact_group": "live-tushare-mini-ingestion-20260427",
+  "artifacts": [
+    {
+      "dataset": "daily",
+      "partition_date": "2026-04-15",
+      "raw_payload_removed": true,
+      "row_count": 2,
+      "schema": [
+        {
+          "name": "ts_code",
+          "type": "string"
+        },
+        {
+          "name": "trade_date",
+          "type": "string"
+        },
+        {
+          "name": "open",
+          "type": "string"
+        },
+        {
+          "name": "high",
+          "type": "string"
+        },
+        {
+          "name": "low",
+          "type": "string"
+        },
+        {
+          "name": "close",
+          "type": "string"
+        },
+        {
+          "name": "pre_close",
+          "type": "string"
+        },
+        {
+          "name": "change",
+          "type": "string"
+        },
+        {
+          "name": "pct_chg",
+          "type": "string"
+        },
+        {
+          "name": "vol",
+          "type": "string"
+        },
+        {
+          "name": "amount",
+          "type": "string"
+        }
+      ],
+      "schema_hash": "09bd2424b35eba12fac10df508120eb535265c129c1f120e69f15cd0a4c37d20",
+      "sha256": "e60e5fe12eb528d5f24a33d2fe0ff45f3d1c7394542378c7dabf79bc403d5bb2",
+      "size_bytes": 3007
+    },
+    {
+      "dataset": "trade_cal",
+      "partition_date": "2026-04-15",
+      "raw_payload_removed": true,
+      "row_count": 1,
+      "schema": [
+        {
+          "name": "exchange",
+          "type": "string"
+        },
+        {
+          "name": "cal_date",
+          "type": "string"
+        },
+        {
+          "name": "is_open",
+          "type": "string"
+        },
+        {
+          "name": "pretrade_date",
+          "type": "string"
+        }
+      ],
+      "schema_hash": "6c293a58e9ee708facb2321a02151cf2c70f671511d90fc47db66cee5e51a790",
+      "sha256": "2461957fa1fb4d388f4862538c39319accb35bda315555e2ee602fe06f6b103e",
+      "size_bytes": 1198
+    }
+  ],
+  "raw_manifest_removed": true,
+  "raw_payload_removed": true,
+  "schema_version": "project-ult.evidence-hygiene.raw-artifact-summary.v1",
+  "total_row_count": 3
+}

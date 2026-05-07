@@ -1,0 +1,35 @@
+schema_version: project-ult.evidence-hygiene-exemptions.v1
+scope: reports/stabilization historical evidence artifacts
+policy:
+  raw_runtime_artifact_exemptions: []
+  raw_runtime_artifact_exemption_note: >
+    Raw parquet payloads, raw manifests, runtime directories, runtime env files,
+    process stream files, exit-code files, and dbt profile files are not
+    acceptable tracked evidence. They must be replaced with sanitized summaries.
+legacy_markdown_local_path_exemptions:
+  - pattern: reports/stabilization/**/*.md
+    reason: >
+      Pre-existing narrative evidence may describe command shapes, placeholders,
+      localhost endpoints, or legacy local path examples. These markdown records
+      are not raw runtime bodies and should not be expanded with new absolute
+      paths or secret values.
+public_demo_identifier_exemptions:
+  - identifiers:
+      - 600519.SH
+      - 000001.SZ
+      - 000063.SZ
+    reason: >
+      Historical markdown may mention public demo securities used to describe a
+      bounded proof scope. Sanitized replacement JSON must remove concrete
+      security-code lists and retain only counts or hashes.
+release_record_exclusions:
+  reason: >
+    This cleanup targets stabilization evidence artifacts only and does not
+    delete release, contract, smoke, or e2e run records.
+  patterns:
+    - reports/contract/**
+    - reports/smoke/**
+    - reports/e2e/**
+    - reports/release/**
+    - contracts/**
+    - docs/**

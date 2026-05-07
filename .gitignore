@@ -8,3 +8,15 @@ PROJECT_REPORT.md
 tmp-*/
 tmp/
 src/project_ult_assembly.egg-info/
+
+# Runtime/raw evidence artifacts are summarized before commit.
+reports/stabilization/**/raw/tushare/
+reports/stabilization/**/runtime/
+reports/stabilization/**/*.parquet
+reports/stabilization/**/*stdout*
+reports/stabilization/**/*stderr*
+reports/stabilization/**/*.exitcode
+reports/stabilization/**/runtime-env*
+reports/stabilization/**/runtime-preflight*
+reports/stabilization/**/daily_refresh_dbt_profiles/
+reports/stabilization/**/*_manifest.json
