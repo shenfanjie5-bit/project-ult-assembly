@@ -12,7 +12,7 @@ Source of truth:
 - `CLAUDE.md` (project-specific guardrails — boundary rules, blocker
   triggers, KPI baselines)
 
-## Current state — stabilization gate passed + hardening prereqs landed
+## Current state — bounded gated canary/live production evidence passed
 
 - 13 of 15 module slots are `integration_status: verified` per
   `module-registry.yaml`. The two frozen slots (`feature-store`,
