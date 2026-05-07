@@ -4,10 +4,10 @@ This report records the assembly-owned M4.9 subsystem scope decision and
 handoff after M4.6, assembly PR #52
 (`a6bb671aff39cdd31db3ef28104e6119e13ad3ba`), and the first four
 `subsystem-holdings` PRs landed. It records the PR #5 blocker state, the newer
-attempt2 live proof handoff state, and the post queue/freeze/promotion handoff
-after sibling repo progress. It is an assembly docs/report artifact only. It
-does not change code, does not change contracts, and does not perform
-derivations or backfill.
+attempt2 live proof handoff state, the post queue/freeze/promotion handoff,
+and the post holdings-only algorithms handoff after sibling repo progress. It
+is an assembly docs/report artifact only. It does not change code, does not
+change contracts, and does not perform derivations or backfill.
 
 ## Status
 
@@ -22,9 +22,13 @@ derivations or backfill.
 - Queue/freeze/promotion handoff: proof-only queue submit path, holdings Ex-3
   queue/freeze bridge, and offline Layer A promotion/query/channel proof are
   merged in sibling repos.
+- Holdings-only algorithms handoff: graph-engine PR #59 merged and closed
+  #55 with explicit-entry-only `CO_HOLDING` co-holding crowding and
+  `NORTHBOUND_HOLD` northbound anomaly algorithms.
 - Not proven by assembly: production queue propagation, live Neo4j graph
-  propagation, graph-engine #55 algorithms, provider/backfill execution from
-  assembly, financial-doc scope, or contracts/subtype change.
+  propagation, default full-propagation rollout, provider/backfill execution
+  from assembly, financial-doc scope, guarantees or related-party scope, or
+  contracts/subtype change.
 - `subsystem-financial-doc` status: deferred.
 - M4.7 status: partial; real-document validation remains open.
 - M4.8 status: future validation gate.
@@ -48,6 +52,9 @@ derivations or backfill.
 - Post queue/freeze/promotion handoff: data-platform PR #108,
   `subsystem-holdings` PR #10, `subsystem-sdk` PR #43 / tag `v0.1.3`, and
   graph-engine PR #58 have landed.
+- Post holdings-only algorithms handoff: graph-engine PR #59 merged as
+  `8a40fead9a57d67f0b232a52d4ed0d99db78a96e`, and #55 is closed with the
+  narrowed holdings-only scope.
 
 ## Decision
 
@@ -64,8 +71,9 @@ Assembly now points to the merged sibling evidence PRs for repository-tracked
 handoff evidence.
 
 Assembly was already aligned at the boundary level. This update syncs assembly
-to the current queue/freeze/promotion handoff without changing the boundary,
-contracts, subtype scope, graph-engine #55 scope, or sibling repositories.
+to the current queue/freeze/promotion and holdings-only algorithm handoff
+without changing contracts, subtype scope, production rollout status, or
+sibling repositories.
 
 ## Subsystem-Holdings Adapter Handoff
 
@@ -203,11 +211,12 @@ This attempt2 evidence does not claim any of the following:
 - Provider/backfill execution from assembly.
 - Financial-doc scope.
 - Live graph contracts subtype work.
-- Graph-engine #55 algorithms.
+- Graph-engine #55 algorithms; that is covered later only by the scoped
+  holdings-only handoff.
 - Contracts or subtype change.
 
-Graph-engine #55 remains not entered. This handoff must not mix #55 and #56
-scope and must not revive the older financial-doc / contracts-subtype scope.
+This attempt2 handoff must not mix #55 and #56 scope and must not revive the
+older financial-doc / contracts-subtype scope.
 
 ## Post Queue/Freeze/Promotion Handoff - 2026-05-07
 
@@ -238,6 +247,40 @@ landed. This does not claim:
 - financial-doc scope;
 - holdings-specific contracts subtype or any contracts change.
 
+## Post Holdings-Only Algorithms Handoff - 2026-05-07
+
+Graph-engine PR #59 merged as
+`8a40fead9a57d67f0b232a52d4ed0d99db78a96e` and closed issue #55 with the
+superseded holdings-only scope. The landed scope is intentionally narrow:
+
+- `CO_HOLDING`: co-holding crowding algorithm.
+- `NORTHBOUND_HOLD`: northbound anomaly algorithm.
+- Entry mode: explicit holdings algorithm entry points only.
+- Channel fit: `CO_HOLDING` remains reflexive; `NORTHBOUND_HOLD` remains event
+  aligned while preserving the earlier channel declaration context.
+
+PR #59 CI passed in graph-engine:
+
+- `ci`: pass.
+- `test-fast`: pass.
+- `smoke`: pass.
+- `contract`: pass.
+- `regression`: pass.
+
+This handoff does not claim:
+
+- production queue propagation;
+- production live graph writeback;
+- default full-propagation rollout;
+- guarantees, related-party, or financial-doc algorithms;
+- `MAJOR_CUSTOMER` / `MAJOR_SUPPLIER`;
+- holdings-specific contracts subtype or any contracts change;
+- assembly execution of provider/backfill, graph sync, or graph algorithms.
+
+The older #55 scope that mentioned guarantees, related-party, financial-doc,
+contracts subtype, `MAJOR_CUSTOMER`, or `MAJOR_SUPPLIER` is superseded and must
+not be revived through this M4.9 handoff.
+
 ## Graph Relation Scope
 
 M4.9 narrows holdings graph production to these relation types:
@@ -251,12 +294,14 @@ subtypes in this scope decision.
 
 ## Graph-Engine Follow-Up
 
-`graph-engine #55` remains not entered and unimplemented. This handoff records
-that producer scaffold, read-only adapter proof, proof-only queue submit path,
-holdings Ex-3 queue/freeze bridge, and offline Layer A promotion/query/channel
-proof now exist, but it does not shift #56/#55 scope and does not enter #55
-algorithm work. The future #55 scope must not revive the older financial-doc /
-contracts-subtype scope and must not assume financial-doc availability.
+`graph-engine #55` is closed through PR #59 with a holdings-only algorithm
+scope. This handoff records that producer scaffold, read-only adapter proof,
+proof-only queue submit path, holdings Ex-3 queue/freeze bridge, offline Layer
+A promotion/query/channel proof, and explicit-entry holdings algorithms now
+exist. It does not shift into production queue propagation, production live
+graph writeback, default full propagation, or financial-doc scope. The older
+financial-doc / contracts-subtype scope remains superseded and must not assume
+financial-doc availability.
 
 The dependency order is:
 
@@ -266,8 +311,9 @@ The dependency order is:
 3. Treat proof-only queue submit, holdings Ex-3 queue/freeze bridge, and
    offline Layer A promotion/query/channel proof as merged sibling evidence
    through PRs #10, #108, #43, and #58.
-4. Enter production queue propagation, live Neo4j graph propagation, and
-   graph-engine #55 algorithms only when that work is explicitly planned.
+4. Treat graph-engine PR #59 as the closed #55 holdings-only algorithm handoff.
+5. Enter production queue propagation, live Neo4j graph propagation, or
+   default full-propagation rollout only when that work is explicitly planned.
 
 ## Financial-Doc Gate
 
@@ -296,7 +342,8 @@ These exclusions do not negate the bounded live backfill and producer proof
 evidence already merged through data-platform PR #107 and `subsystem-holdings`
 PR #9, or the queue/freeze/promotion proof evidence merged through
 data-platform PR #108, `subsystem-holdings` PR #10, `subsystem-sdk` PR #43,
-and graph-engine PR #58.
+graph-engine PR #58, and graph-engine #55 holdings-only algorithm evidence
+merged through PR #59.
 
 This decision does not:
 
@@ -304,7 +351,8 @@ This decision does not:
 - add new data derivations, additional backfill, or raw-provider ingestion;
 - add holdings-specific contract classes, subtypes, or relation contracts;
 - claim production queue propagation or live Neo4j graph propagation;
-- enter graph-engine #55 algorithms;
+- claim default full-propagation rollout;
+- expand graph-engine #55 beyond holdings-only algorithms;
 - add contracts subtype scope;
 - claim financial-doc scope;
 - claim that M4.7 or M4.8 is complete;

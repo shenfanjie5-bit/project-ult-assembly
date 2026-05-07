@@ -12,7 +12,7 @@ Source of truth:
 - `CLAUDE.md` (project-specific guardrails — boundary rules, blocker
   triggers, KPI baselines)
 
-## Current state — stabilization gate passed + M4.9 holdings live proof handoff
+## Current state — stabilization gate passed + M4.9 holdings algorithms handoff
 
 - 13 of 15 module slots are `integration_status: verified` per
   `module-registry.yaml`. The two frozen slots (`feature-store`,
@@ -90,13 +90,17 @@ Source of truth:
   holdings Ex-3 queue/freeze bridge proof commit
   `138b78c27b68b1d9b5e7395aec0c396d99dc4202`; graph-engine PR #58 merged
   `edge_upsert` holdings Layer A promotion/query/channel proof commit
-  `7eb363cc74325699de5ac46c1362e93cdf470651`. This is proof-only queue submit
-  path plus holdings Ex-3 queue/freeze bridge plus offline Layer A
-  promotion/query/channel proof. It still does not claim production queue,
-  live Neo4j graph propagation, graph-engine #55 algorithms,
-  provider/backfill execution from assembly, financial-doc scope, or
-  contracts/subtype change. `contracts #81` remains CLOSED / NOT_PLANNED.
-  M4.7 remains partial; M4.8 remains a future validation gate.
+  `7eb363cc74325699de5ac46c1362e93cdf470651`. Graph-engine PR #59 then
+  merged the scoped `graph-engine #55` holdings-only algorithms as commit
+  `8a40fead9a57d67f0b232a52d4ed0d99db78a96e`, and issue #55 is closed.
+  The #55 scope is limited to `CO_HOLDING` co-holding crowding and
+  `NORTHBOUND_HOLD` northbound anomaly through explicit entry points only.
+  This still does not claim production queue, live Neo4j graph propagation,
+  default full-propagation rollout, provider/backfill execution from assembly,
+  financial-doc scope, guarantees or related-party scope, `MAJOR_CUSTOMER` /
+  `MAJOR_SUPPLIER`, or contracts/subtype change. `contracts #81` remains
+  CLOSED / NOT_PLANNED. M4.7 remains partial; M4.8 remains a future
+  validation gate.
   Evidence:
   `reports/stabilization/m4-9-holdings-scope-decision-20260506.md` and
   `reports/stabilization/m4-9-holdings-scope-decision-20260506.json`.
@@ -114,8 +118,9 @@ Source of truth:
   blocker was superseded by attempt2 bounded live backfill evidence merged in
   data-platform PR #107. The later PR #108 / #10 / #43 / #58 handoff proves
   queue submit shape, holdings queue/freeze, and offline Layer A promotion
-  compatibility, but this assembly handoff still does not enter production
-  queue propagation, live Neo4j graph propagation, or graph-engine #55.
+  compatibility. Graph-engine PR #59 closes #55 with holdings-only algorithms,
+  but this assembly handoff still does not enter production queue propagation,
+  live Neo4j graph propagation, or default full-propagation rollout.
 - Compatibility matrix records 4 verified rows:
   - `lite-local` (default): `verified_at: 2026-04-24T05:24:14Z` (Stage
     5 re-verification after audit-eval pin sync 0.2.2 → 0.2.5;
@@ -180,19 +185,24 @@ M4 priority order:
    (`v0.1.3`), `subsystem-holdings` PR #10, data-platform PR #108, and
    graph-engine PR #58: proof-only queue submit path, holdings Ex-3
    queue/freeze bridge, and offline Layer A promotion/query/channel proof.
-   Assembly still claims no production queue propagation, live Neo4j graph
-   propagation, graph-engine #55 algorithms, provider/backfill execution from
-   assembly, financial-doc scope, or contracts/subtype change. It must
-   continue to use existing `Ex3CandidateGraphDelta` submission through
-   `subsystem-sdk` and avoid contract/subtype changes. Relations are limited
-   to `CO_HOLDING` / `NORTHBOUND_HOLD`; top-shareholder and pledge facts stay
-   on `OWNERSHIP` plus properties. `contracts #81` remains CLOSED /
-   NOT_PLANNED.
+   Graph-engine PR #59 then landed and closed #55 with explicit-entry-only
+   holdings algorithms: `CO_HOLDING` co-holding crowding and `NORTHBOUND_HOLD`
+   northbound anomaly. Assembly still claims no production queue propagation,
+   live Neo4j graph propagation, default full-propagation rollout,
+   provider/backfill execution from assembly, financial-doc scope, guarantees
+   or related-party scope, `MAJOR_CUSTOMER` / `MAJOR_SUPPLIER`, or
+   contracts/subtype change. It must continue to use existing
+   `Ex3CandidateGraphDelta` submission through `subsystem-sdk` and avoid
+   contract/subtype changes. Relations are limited to `CO_HOLDING` /
+   `NORTHBOUND_HOLD`; top-shareholder and pledge facts stay on `OWNERSHIP`
+   plus properties. `contracts #81` remains CLOSED / NOT_PLANNED.
    `subsystem-financial-doc` remains gated behind M4.7 real-document validation
    and holdings usefulness.
-6. **Graph-engine #55 follow-up**: graph-engine #55 remains not entered and
-   unimplemented. This handoff does not shift #56/#55 scope, and the old
-   financial-doc/contracts-subtype #55 scope must not be revived through M4.9.
+6. **Graph-engine #55 follow-up**: graph-engine #55 is closed through PR #59,
+   narrowed to holdings-only algorithms. It remains explicit-entry-only and
+   does not shift into production live graph writeback, default full
+   propagation, financial-doc, guarantees, related-party, or contracts subtype
+   scope.
 
 ## Lite stack quickstart
 
@@ -308,9 +318,14 @@ fails the test suite if MD ⇄ YAML drifts.
   commit `63a09b7ca6e6d152279a51857cd497fd8be60fb7`, subsystem-sdk PR #43
   commit `9c220b7a7a9f5f50b3c57131b501b83fab2e75ce` with tag `v0.1.3`, and
   graph-engine PR #58 commit `7eb363cc74325699de5ac46c1362e93cdf470651`.
+  Graph-engine PR #59 is merged at commit
+  `8a40fead9a57d67f0b232a52d4ed0d99db78a96e` and closes #55 with
+  holdings-only algorithms: `CO_HOLDING` co-holding crowding and
+  `NORTHBOUND_HOLD` northbound anomaly.
   Do not use M4.9 to claim production queue propagation, live Neo4j graph
-  propagation, M4.7, M4.8, financial-doc work, contracts subtype changes, or
-  graph-engine #55 algorithms.
+  propagation, default full-propagation rollout, M4.7, M4.8, financial-doc
+  work, guarantees or related-party scope, `MAJOR_CUSTOMER` /
+  `MAJOR_SUPPLIER`, or contracts subtype changes.
 - **M4.7/M4.8 validation gates** — M4.7 remains partial until
   real-document parsing is validated on representative A-share documents.
   M4.8 remains the future entity-resolution validation gate with unresolved
@@ -318,8 +333,9 @@ fails the test suite if MD ⇄ YAML drifts.
 - **M4 production bridge closure upkeep** — keep the M4.1-M4.6 bridge and
   read-only evidence linked to their recorded reports. The current holdings
   handoff now points to merged sibling attempt2 evidence PRs #107 and #9, plus
-  queue/freeze/promotion proof PRs #108, #10, #43, and #58, but it must not be
-  treated as production queue or live Neo4j graph propagation closure.
+  queue/freeze/promotion proof PRs #108, #10, #43, and #58, plus #55
+  holdings-only algorithm PR #59, but it must not be treated as production
+  queue or live Neo4j graph propagation closure.
 - **frontend-api matrix evidence upkeep** — keep the
   `lite-local-readonly-ui` verified row bound to its recorded
   smoke/e2e/contract-suite evidence. Do not mutate historical verified
